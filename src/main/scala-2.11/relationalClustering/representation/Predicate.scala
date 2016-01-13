@@ -12,6 +12,7 @@ class Predicate(
                  ) {
 
   private val trueGroundings: collection.mutable.Set[List[String]] = collection.mutable.Set[List[String]]()
+  private var argumentDeclarations = List[String]()
 
   def getTrueGroundings: collection.mutable.Set[List[String]] = { trueGroundings }
 
@@ -43,4 +44,7 @@ class Predicate(
   override def toString = getName + "(" + getDomains.mkString(",") + ")"
 
   def setName(newName: String) = { name = newName}
+
+  def setDeclarations(declarations: List[String]) = { argumentDeclarations = declarations }
+  def getArgumentRole(position: Int) = { argumentDeclarations(position) }
 }
