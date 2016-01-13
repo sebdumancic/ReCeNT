@@ -757,13 +757,35 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   //COMPETITOR -- RIBL
 
   def constructRiblP(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
-    neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt))
+    level match {
+      case 0 => neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt))
+      case _ =>
+        val previousLayers = (0 until level).foldLeft(Set[(String, Int)]())( (acc, cLevel) => {
+          acc ++ neighbourhoodGraph.getEdgeDistribution(cLevel).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt))
+        })
+        neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt)).filter(!previousLayers.contains(_))
+    }
   }
 
   def constructRiblL(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
-    neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
-      acc ++ predicate.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${predicate.name}($x)").toList
-    })
+    level match {
+      case 0 =>
+        neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
+          acc ++ predicate.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${predicate.name}($x)").toList
+        })
+      case _ =>
+        val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
+        val previousLevelsVertices = (0 until level).foldLeft(Set[String]())( (acc, cLevel) => {
+          acc ++ allLevelInformation(cLevel).foldLeft(Set[String]())( (acc_i, dTuple) => { acc_i ++ dTuple._2 })
+        })
+        val levelVertices = allLevelInformation(level).foldLeft(Set[String]())( (acc, domain) => {
+          acc ++ domain._2
+        }).filter( !previousLevelsVertices.contains(_))
+
+        neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
+          acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map( x => s"${predicate.name}($x)").toList
+        })
+    }
   }
 
   def riblSimilarity(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph) = {
@@ -806,9 +828,11 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   }
 
   def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int) = {
-    val positionDomain = getKnowledgeBase.getPredicate(predicate).getDomainObjects(position).size
-    depth <= getJumpStep && positionDomain < 11 match {
-      case true => 0.0 //sim_a(vertex1, vertex2, depth + 1, constructRiblL(vertex1, depth + 1), constructRiblL(vertex2, depth + 1), constructRiblP(vertex1, depth + 1), constructRiblP(vertex2, depth + 1))
+    depth <= getJumpStep match {
+      case true => getDeclarations.getArgumentType(predicate, position) match {
+        case "attribute" => sim_a_discrete(element1, element2)
+        case "name" => 0.0 //sim_a(vertex1, vertex2, depth + 1, constructRiblL(vertex1, depth + 1), constructRiblL(vertex2, depth + 1), constructRiblP(vertex1, depth + 1), constructRiblP(vertex2, depth + 1))
+      }
       case false => 0.0 //baseSimilarity(vertex1, vertex2)
     }
   }
