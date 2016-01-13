@@ -66,7 +66,7 @@ object RelationalClustering {
     require(head.hasValue, "no header specified")
     require(dbs.hasValue, "no databases specified")
     require(query.hasValue, "query not specified")
-    require(!neville.value.get || !ribl.value.get, "Neville and RIBL flags cannot be used at the same time")
+    require(!neville.value.getOrElse(false) || !ribl.value.getOrElse(false), "Neville and RIBL flags cannot be used at the same time")
 
     val header = Helper.readFile(head.value.get).mkString("\n")
 
