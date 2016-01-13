@@ -17,6 +17,7 @@ class NeighbourhoodGraph(val rootObject: String,
   val root = new Node(rootObject, domain)
   val nodes = collection.mutable.Map[String, Node]() //collection of all connected objects for easier manipulation
   nodes(rootObject) = getRoot
+  construct()
 
   def getKnowledgeBase = {
     kBase
@@ -96,7 +97,7 @@ class NeighbourhoodGraph(val rootObject: String,
     :returns: a Map[Int,Map[String1, List[String]]] (Int -> Level starting with 0, String1 -> domains, List => list of found objects)
    */
   def collectTypeInformation() = {
-    construct()
+    //construct()
     val resultSummary = collection.mutable.Map[Int,collection.mutable.Map[String,List[String]]]()
     var currentLevel = 0
     var frontier = List[Node](getRoot)
@@ -267,11 +268,11 @@ class Edge(val parentNode: Node,
   }
 
   def getEdgeType = {
-    s"$getPredicate$getParentPosition"
+    s"${getPredicate.getName}$getParentPosition"
   }
 
   override def toString = {
-    s"$getParent --[$getPredicate],[$getParentPosition]--> $getChild"
+    s"$getParent --[${getPredicate.getName}],[$getParentPosition]--> $getChild"
   }
 
   override def equals(other: Any) = other match {
