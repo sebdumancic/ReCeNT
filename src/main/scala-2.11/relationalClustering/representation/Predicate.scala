@@ -17,7 +17,7 @@ class Predicate(
   def getTrueGroundings: collection.mutable.Set[List[String]] = { trueGroundings }
 
   def setTrueGrounding(ground: List[String]) = {
-    require( ground.size == arity, "Wrong number of arguments")
+    require( ground.length == arity, s"Wrong number of arguments [$name($ground)] -- ${ground.length} != $arity")
     trueGroundings += ground
 
     //add each elements to its domain
@@ -29,7 +29,7 @@ class Predicate(
     trueGroundings -= ground
   }
 
-  def arity: Int = { domains.size }
+  def arity: Int = { domains.length }
 
   def getName: String = { name }
 

@@ -61,7 +61,7 @@ class KnowledgeBase(
     for(predicate <- header.split("\n")) {
       if (predicate.length > 2 && !predicate.contains("//")) {
         val predicate_regex(predicate_name, predicate_args) = predicate
-        createPredicate(cleanForm(predicate_name), predicate_args.split("m").toList) // cleans predicate name in case it is in the autoencoder form
+        createPredicate(cleanForm(predicate_name), predicate_args.split(",").toList) // cleans predicate name in case it is in the autoencoder form
       }
 
     }
