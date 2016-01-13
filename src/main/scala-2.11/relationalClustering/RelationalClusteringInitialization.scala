@@ -6,7 +6,7 @@ import java.util.Calendar
 import breeze.linalg.{min, max, DenseMatrix}
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.{Predicate, KnowledgeBase}
-import relationalClustering.utils.{Helper, Histogram, HistogramDistance}
+import relationalClustering.utils.{PredicateDeclarations, Helper, Histogram, HistogramDistance}
 
 import scala.sys.process._
 import scala.util.Random
@@ -24,9 +24,11 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
                                          val k: Int,
                                          val logFile: String,
                                          val scaleFactors: Array[Double] = Array[Double](0.2,0.2,0.2,0.2,0.2),
-                                         val overlapMeasure: String = "union",
+                                         val overlapMeasure: String = "histogram",
                                          val algorithm: String = "Spectral",
-                                         val asNeville: Boolean = false) { //Neville overrides all other options, if set to true
+                                         val asNeville: Boolean = false, //Neville overrides all other options, if set to true
+                                         val asRIBL: Boolean = false, // same as Neville
+                                         val declarations: PredicateDeclarations = null) {
 
   private val clusteringFile = "relclustering.py"
   createPythonScript(rootFolder + "/" + clusteringFile)
@@ -69,6 +71,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   def getAttributes(domain: String, element: String) = {
     attributeNodesCache.getOrElse(element, List[String]())
   }
+  def getDeclarations = { declarations }
 
   private def increaseAccessCount(key: String) = { if (!accessingClustersCounter.contains(key)) { accessingClustersCounter(key) = 0}; accessingClustersCounter(key) += 1 }
   def roundMade(domains: List[String]) = { accessingClustersCounter(domains.mkString(",")) >= createdClusters(domains.mkString(",")).size}

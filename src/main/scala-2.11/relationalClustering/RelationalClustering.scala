@@ -4,7 +4,7 @@ import java.io.FileWriter
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.representation.KnowledgeBase
-import relationalClustering.utils.Helper
+import relationalClustering.utils.{PredicateDeclarations, Helper}
 
 import scala.sys.process._
 
@@ -33,6 +33,8 @@ object RelationalClustering {
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Agglomerative|Affinity]", "algorithm to perform clustering")
   val asDB = parser.flag[Boolean](List("asDB"), "should results be written in a database format (clusters_{query}.db)")
   val neville = parser.flag[Boolean](List("asNeville"), "Calculate Neville's similarity matrix [if set, overrides all other settings]")
+  val declarationFile = parser.option[String](List("declarations"), "file path", "[optional] file containing declarations of predicates")
+  val ribl = parser.flag[Boolean](List("asRIBL"), "Calculate RIBL's similarity matrix [if set, overrides all other settings]")
 
   val ariScript =
     """
@@ -64,8 +66,14 @@ object RelationalClustering {
     require(head.hasValue, "no header specified")
     require(dbs.hasValue, "no databases specified")
     require(query.hasValue, "query not specified")
+    require(!neville.value.get || !ribl.value.get, "Neville and RIBL flags cannot be used at the same time")
 
     val header = Helper.readFile(head.value.get).mkString("\n")
+
+    val declarations = declarationFile.value.orNull match {
+      case null => null
+      case file: String => new PredicateDeclarations(file)
+    }
 
     val knowledgeBase = new KnowledgeBase(dbs.value, header)
     val clusteringAlgorithm = new RelationalClusteringInitialization(knowledgeBase,
@@ -77,7 +85,9 @@ object RelationalClustering {
                                                                      scaleFactors.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").map( _.toDouble),
                                                                      overlapType.value.getOrElse("histogram"),
                                                                      algorithm.value.getOrElse("Spectral"),
-                                                                     neville.value.getOrElse(false))
+                                                                     neville.value.getOrElse(false),
+                                                                     ribl.value.getOrElse(false),
+                                                                     declarations)
 
     val startTime = System.currentTimeMillis()
     val results = clusteringAlgorithm.getAllClusters(query.value.get.split(",").toList, subSample = false, proportion = 1.0)
