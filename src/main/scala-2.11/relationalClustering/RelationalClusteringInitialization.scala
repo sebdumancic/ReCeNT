@@ -34,7 +34,13 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   createPythonScript(rootFolder + "/" + clusteringFile)
   require(scaleFactors.sum == 1.0, s"scale factors don't sum to 1 $scaleFactors")
   require(scaleFactors.length == 5, s"number of scale factors does not match number of matrices $scaleFactors")
-  println(s"CLUSTERING normalize: $getNormalization\nCLUSTERING k: $getK\nCLUSTERING depth: $getJumpStep\nCLUSTERING algorithm: $getAlgorithm\nCLUSTERING overlap: $getOverlapMeasure\n")
+  println(s"CLUSTERING normalize: $getNormalization\n" +
+          s"CLUSTERING k: $getK\n" +
+          s"CLUSTERING depth: $getJumpStep\n" +
+          s"CLUSTERING algorithm: $getAlgorithm\n" +
+          s"CLUSTERING overlap: $getOverlapMeasure\n" +
+          s"CLUSTERING using neville: $getNeville\n" +
+          s"CLUSTERING using ribl: $getRIBL\n")
 
   private val createdClusters = collection.mutable.Map[String, List[List[String]]]()
   private val lastIndexedCluster = collection.mutable.Map[String, Int]()
@@ -51,6 +57,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private def getLogFile = { logFile }
   private def getK = { k }
   private def getNeville = { asNeville }
+  private def getRIBL = { asRIBL }
   private def getNeighbourhoodGraph(element: String, domain: String, depth: Int) = {
     val accessIndex = new Tuple3(element, domain, depth)
     if (!neighbourhoodGraphCache.contains(accessIndex)) { neighbourhoodGraphCache(accessIndex) = new NeighbourhoodGraph(element, domain, depth, getKnowledgeBase) }
@@ -79,13 +86,21 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private def getInputFileName(domains: List[String]) = {
     getNeville match {
       case true => getRootFolder + "/" + domains.mkString("_") + s"_neville_" + s"$getOverlapMeasure" + ".txt"
-      case false => getRootFolder + "/" + domains.mkString("_") + s"_depth$getJumpStep"  + s"_normalize$getNormalization" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
+      case false =>
+        getRIBL match {
+          case true => getRootFolder + "/" + domains.mkString("_") + s"_ribl_" + s"$getOverlapMeasure" + ".txt"
+          case false => getRootFolder + "/" + domains.mkString("_") + s"_depth$getJumpStep"  + s"_normalize$getNormalization" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
+        }
     }
   }
   private def getClustersFilename(domains: List[String]) = {
     getNeville match {
       case true => getRootFolder + "/clusters" + domains.mkString("_") + "_neville_" + s"$getOverlapMeasure" + ".txt"
-      case false => getRootFolder + "/clusters" + domains.mkString("_") + s"_depth$getJumpStep" + s"_normalize$getNormalization" + s"_k$getK" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
+      case false =>
+        getRIBL match {
+          case true => getRootFolder + "/clusters" + domains.mkString("_") + "_ribl_" + s"$getOverlapMeasure" + ".txt"
+          case false => getRootFolder + "/clusters" + domains.mkString("_") + s"_depth$getJumpStep" + s"_normalize$getNormalization" + s"_k$getK" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
+        }
     }
   }
 
@@ -297,6 +312,11 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     if (getNeville) {
       require(domains.length == 1, s"Calculating Neville's measure, but there are more than one domain of interest: $domains")
       return (domainElements, nevilleSimilarity(domains.head))
+    }
+    else if (getRIBL) {
+      println("calculating RIBL score")
+      require(domains.length == 1, s"Calculating RIBL's measure, but there are more than one domain of interest: $domains")
+      return (domainElements, riblSimilarity(domains.head))
     }
 
     val similarityMatrices = Array.ofDim[DenseMatrix[Double]](5).map(x => DenseMatrix.zeros[Double](domainElements.size, domainElements.size))
@@ -756,14 +776,29 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
   //COMPETITOR -- RIBL
 
+  def riblSimilarity(domain: String) = {
+    println("RIBL SIMILARITY CALC....")
+    val domainElements = getKnowledgeBase.getDomain(domain).getElementsAsList.toList
+    val resultingMatrix = DenseMatrix.zeros[Double](domainElements.size, domainElements.size)
+
+    for(ind1 <- domainElements.indices; ind2 <- ind1 + 1 until domainElements.length) {
+      val sim = riblSimilarityVertices(domainElements(ind1).head, domainElements(ind2).head, domain)
+
+      resultingMatrix(ind1, ind2) = sim
+      resultingMatrix(ind2, ind1) = sim
+    }
+
+    resultingMatrix
+  }
+
   def constructRiblP(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
     level match {
-      case 0 => neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt))
+      case 0 => neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toString.toInt))
       case _ =>
         val previousLayers = (0 until level).foldLeft(Set[(String, Int)]())( (acc, cLevel) => {
-          acc ++ neighbourhoodGraph.getEdgeDistribution(cLevel).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt))
+          acc ++ neighbourhoodGraph.getEdgeDistribution(cLevel).map( x => new Tuple2(x.take(x.length - 1), x.last.toString.toInt))
         })
-        neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toInt)).filter(!previousLayers.contains(_))
+        neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toString.toInt)).filter(!previousLayers.contains(_))
     }
   }
 
@@ -771,30 +806,51 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     level match {
       case 0 =>
         neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
-          acc ++ predicate.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${predicate.name}($x)").toList
+          acc ++ predicate.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+        }) ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter( _.arity == 1).foldLeft(List[String]())( (acc_1, pred) => {
+          acc_1 ++ pred.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${pred.getName}(" + x.mkString(",") + ")").toList
         })
       case _ =>
         val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
-        val previousLevelsVertices = (0 until level).foldLeft(Set[String]())( (acc, cLevel) => {
+
+        //cd depth corresponds to the vertices at (level - 1) depth in neighbourhood graph
+        val previousLevelsVertices = (0 until level - 1).foldLeft(Set[String]())( (acc, cLevel) => {
           acc ++ allLevelInformation(cLevel).foldLeft(Set[String]())( (acc_i, dTuple) => { acc_i ++ dTuple._2 })
-        })
-        val levelVertices = allLevelInformation(level).foldLeft(Set[String]())( (acc, domain) => {
+        }) + neighbourhoodGraph.getRoot.getEntity
+
+        val levelVertices = allLevelInformation(level - 1).foldLeft(Set[String]())( (acc, domain) => {
           acc ++ domain._2
         }).filter( !previousLevelsVertices.contains(_))
 
-        neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
-          acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map( x => s"${predicate.name}($x)").toList
-        })
+        (neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
+          acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map( x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+        }) ++ levelVertices.diff(previousLevelsVertices).foldLeft(List[String]())( (acc_c, vertex) => {
+          acc_c ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter( _.arity == 1).foldLeft(List[String]())( (acc_p, pred) => {
+            acc_p ++ pred.getTrueGroundings.filter( _.contains(vertex)).map( x => s"${pred.getName}(" + x.mkString(",") + ")").toList
+          })
+        })).distinct
     }
   }
 
-  def riblSimilarity(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph) = {
-    sim_a(vertex1, vertex2, 0, constructRiblL(vertex1), constructRiblL(vertex2), constructRiblP(vertex1), constructRiblP(vertex2))
+  def constructRiblPFromL(element: String, literals: List[String]) = {
+    literals.filter( _.contains(element)).foldLeft(Set[(String, Int)]())( (acc, lit) => {
+      acc + new Tuple2(getPredicate(lit), getArguments(lit).indexOf(element))
+    }).toList
   }
 
-  def sim_a(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph, depth: Int, v1Literals: List[String], v2Literals: List[String], v1Positions: List[(String, Int)], v2Positions: List[(String,Int)]): Double = {
-    1.0/math.max(v1Positions.length, v2Positions.length) * v1Positions.toSet.intersect(v2Positions.toSet).toList.foldLeft(0.0)( (acc, pTuple) => {
-      acc + sim_ls(vertex1, vertex2, depth, pTuple._1, pTuple._2, v1Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex1.getRoot.getEntity), v2Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex2.getRoot.getEntity))
+  def riblSimilarityVertices(vertex1: String, vertex2: String, domain: String) = {
+    val v1ng = getNeighbourhoodGraph(vertex1, domain, getJumpStep)
+    val v2ng = getNeighbourhoodGraph(vertex2, domain, getJumpStep)
+    val l1 = constructRiblL(v1ng).filter( _.contains(vertex1))
+    val l2 = constructRiblL(v2ng).filter( _.contains(vertex2))
+    sim_a(vertex1, vertex2, 0, l1, l2, constructRiblPFromL(vertex1, l1), constructRiblPFromL(vertex2, l2), v1ng, v2ng)
+  }
+
+  def sim_a(vertex1: String, vertex2: String, depth: Int, v1Literals: List[String], v2Literals: List[String], v1Positions: List[(String, Int)], v2Positions: List[(String,Int)], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph): Double = {
+    val predicateIntersection = v1Positions.toSet.intersect(v2Positions.toSet)
+    println(predicateIntersection)
+    (1.0/math.max(v1Positions.length, v2Positions.length)) * predicateIntersection.toList.foldLeft(0.0)( (acc, pTuple) => {
+      acc + sim_ls(vertex1, vertex2, depth, pTuple._1, pTuple._2, v1Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex1), v2Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex2), cd1, cd2)
     })
   }
 
@@ -805,47 +861,83 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     }
   }
 
-  def sim_ls(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph, depth: Int, predicate: String, position: Int, v1Literals: List[String], v2Literals: List[String]) = {
-    v1Literals.size < v2Literals.size match {
-      case true => 1.0/v2Literals.size * v1Literals.foldLeft(0.0)( (acc, literal) => {
-        //val evaluations = v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x))
-        acc + v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x)).max
+  def sim_ls(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literals: List[String], v2Literals: List[String], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+    v1Literals.length < v2Literals.length match {
+      case true => (1.0/math.max(v2Literals.length, 1.0)) * v1Literals.foldLeft(0.0)( (acc, literal) => {
+        val evaluations = v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x, cd1, cd2))
+        acc + evaluations.max
       })
-      case false => 1.0/v1Literals.size * v2Literals.foldLeft(0.0)( (acc, literal) => {
-        //val evaluations = v1Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, x, literal))
-        acc + v1Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, x, literal)).max
+      case false => (1.0/math.max(v1Literals.length, 1.0)) * v2Literals.foldLeft(0.0)( (acc, literal) => {
+        val evaluations = v1Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, x, literal, cd1, cd2))
+        acc + evaluations.max
       })
     }
   }
 
-  def sim_l(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String) = {
+  def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+    val divideBy = math.max((v1Literal.count( _ == ',') + 1) - getArguments(v1Literal).zip(getArguments(v2Literal)).map( t => t._1 == vertex1 && t._2 == vertex2).map(x => if (x) 1 else 0).sum, 1.0)
+
     getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
-      tuple._1 == vertex1.getRoot.getEntity && tuple._2 == vertex2.getRoot.getEntity match {
-        case true => 0.0
-        case false => SIM_A(tuple._1, tuple._2, predicate, position, depth)
+      tuple._1 == vertex1 && tuple._2 == vertex2 match {
+        case true => acc + 0.0
+        case false => //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
+          depth < getJumpStep match {
+            case true => getDeclarations.getArgumentType(predicate, position) match {
+              case "attribute" => acc + sim_a_discrete(tuple._1, tuple._2)
+              case _ =>
+                val l1 = constructRiblL(cd1, depth + 1).filter(_.contains(tuple._1))
+                val l2 = constructRiblL(cd2, depth + 1).filter(_.contains(tuple._2))
+                acc + sim_a(tuple._1, tuple._2, depth + 1, l1, l2, constructRiblPFromL(tuple._1, l1), constructRiblPFromL(tuple._2, l2), cd1, cd2)
+            }
+            case false =>
+              //base similarity
+              val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
+              val vertex1 = getAnyNeighbourhoodGraph(tuple._1, domain)
+              val vertex2 = getAnyNeighbourhoodGraph(tuple._2, domain)
+              val firstOcc = vertex1.getEdgeDistribution(0)
+              val secondOcc = vertex2.getEdgeDistribution(0)
+              acc + firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+            //baseSimilarity(getAnyNeighbourhoodGraph(element1, domain), getAnyNeighbourhoodGraph(element2, domain))
+          }
       }
-    })/(getArguments(v1Literal).length - getArguments(v1Literal).zip(getArguments(v2Literal)).map( t => t._1 == vertex1.getRoot.getEntity && t._2 == vertex2.getRoot.getEntity).map(x => if (x) 1 else 0).sum)
+    })/divideBy
   }
 
-  def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int) = {
-    depth <= getJumpStep match {
+  def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+    depth < getJumpStep match {
       case true => getDeclarations.getArgumentType(predicate, position) match {
         case "attribute" => sim_a_discrete(element1, element2)
-        case "name" => 0.0 //sim_a(vertex1, vertex2, depth + 1, constructRiblL(vertex1, depth + 1), constructRiblL(vertex2, depth + 1), constructRiblP(vertex1, depth + 1), constructRiblP(vertex2, depth + 1))
+        case _ =>
+          val l1 = constructRiblL(cd1, depth + 1).filter(_.contains(element1))
+          val l2 = constructRiblL(cd2, depth + 1).filter(_.contains(element2))
+          sim_a(element1, element2, depth + 1, l1, l2, constructRiblPFromL(element1, l1), constructRiblPFromL(element2, l2), cd1, cd2)
       }
-      case false => 0.0 //baseSimilarity(vertex1, vertex2)
+      case false =>
+        //base similarity
+        val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
+        val vertex1 = getAnyNeighbourhoodGraph(element1, domain)
+        val vertex2 = getAnyNeighbourhoodGraph(element2, domain)
+        val firstOcc = vertex1.getEdgeDistribution(0)
+        val secondOcc = vertex2.getEdgeDistribution(0)
+        firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+        //baseSimilarity(getAnyNeighbourhoodGraph(element1, domain), getAnyNeighbourhoodGraph(element2, domain))
     }
   }
 
   def baseSimilarity(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph) = {
     val firstOcc = vertex1.getEdgeDistribution(0)
     val secondOcc = vertex2.getEdgeDistribution(0)
-    firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+    val res = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+    res
   }
 
   private def getArguments(literal: String) = {
     val predArguments_regex = """.*\((.*)\)""".r
     val predArguments_regex(args) = literal
     args.split(",").toList
+  }
+
+  private def getPredicate(literal: String) = {
+    literal.split("""\(""").head
   }
 }
