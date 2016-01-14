@@ -88,7 +88,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       case true => getRootFolder + "/" + domains.mkString("_") + s"_neville_" + s"$getOverlapMeasure" + ".txt"
       case false =>
         getRIBL match {
-          case true => getRootFolder + "/" + domains.mkString("_") + s"_ribl_" + s"$getOverlapMeasure" + ".txt"
+          case true => getRootFolder + "/" + domains.mkString("_") + s"_ribl_" + s"_depth$getJumpStep" + ".txt"
           case false => getRootFolder + "/" + domains.mkString("_") + s"_depth$getJumpStep"  + s"_normalize$getNormalization" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
         }
     }
@@ -98,7 +98,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       case true => getRootFolder + "/clusters" + domains.mkString("_") + "_neville_" + s"$getOverlapMeasure" + ".txt"
       case false =>
         getRIBL match {
-          case true => getRootFolder + "/clusters" + domains.mkString("_") + "_ribl_" + s"$getOverlapMeasure" + ".txt"
+          case true => getRootFolder + "/clusters" + domains.mkString("_") + "_ribl_" + s"_depth$getJumpStep" + ".txt"
           case false => getRootFolder + "/clusters" + domains.mkString("_") + s"_depth$getJumpStep" + s"_normalize$getNormalization" + s"_k$getK" + "_scale" + scaleFactors.mkString(",") + s"$getOverlapMeasure" + ".txt"
         }
     }
@@ -311,12 +311,12 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
     if (getNeville) {
       require(domains.length == 1, s"Calculating Neville's measure, but there are more than one domain of interest: $domains")
-      return (domainElements, nevilleSimilarity(domains.head))
+      return nevilleSimilarity(domains.head)
     }
     else if (getRIBL) {
       println("calculating RIBL score")
       require(domains.length == 1, s"Calculating RIBL's measure, but there are more than one domain of interest: $domains")
-      return (domainElements, riblSimilarity(domains.head))
+      return riblSimilarity(domains.head)
     }
 
     val similarityMatrices = Array.ofDim[DenseMatrix[Double]](5).map(x => DenseMatrix.zeros[Double](domainElements.size, domainElements.size))
@@ -729,10 +729,12 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private def cluster(command: String, clustersFile: String) = {
     val logInner = new FileWriter(getLogFile, true)
     val log = new BufferedWriter(logInner)
-    command.!(ProcessLogger(line => {}, line => {log.write("CLUSTERING ERROR: " + line + "   [" + Calendar.getInstance().getTime + "]" + "\n")}))
+    val retCode = command.!(ProcessLogger(line => {}, line => {log.write("CLUSTERING ERROR: " + line + "   [" + Calendar.getInstance().getTime + "]" + "\n")}))
     println("CLUSTERING clustering done! [" + Calendar.getInstance().getTime + "]")
     log.close()
     logInner.close()
+
+    if (retCode != 0) { throw new Exception(s"Clustering didn't succeed, return code $retCode!")}
 
     var clusters = collection.mutable.Set[List[List[String]]]()
 
@@ -771,7 +773,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       resultingMatrix(domainElements.indexOf(List(tuple._2)), domainElements.indexOf(List(tuple._1))) = 1.0
     })
 
-    fastAttributeSimilarity(List[String](domain), domainElements) :* resultingMatrix
+    (domainElements, fastAttributeSimilarity(List[String](domain), domainElements) :* resultingMatrix)
   }
 
   //COMPETITOR -- RIBL
@@ -779,7 +781,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   def riblSimilarity(domain: String) = {
     println("RIBL SIMILARITY CALC....")
     val domainElements = getKnowledgeBase.getDomain(domain).getElementsAsList.toList
-    val resultingMatrix = DenseMatrix.zeros[Double](domainElements.size, domainElements.size)
+    val resultingMatrix = DenseMatrix.zeros[Double](domainElements.length, domainElements.length)
 
     for(ind1 <- domainElements.indices; ind2 <- ind1 + 1 until domainElements.length) {
       val sim = riblSimilarityVertices(domainElements(ind1).head, domainElements(ind2).head, domain)
@@ -788,7 +790,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       resultingMatrix(ind2, ind1) = sim
     }
 
-    resultingMatrix
+    (domainElements, resultingMatrix)
   }
 
   def constructRiblP(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
@@ -848,7 +850,6 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
   def sim_a(vertex1: String, vertex2: String, depth: Int, v1Literals: List[String], v2Literals: List[String], v1Positions: List[(String, Int)], v2Positions: List[(String,Int)], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph): Double = {
     val predicateIntersection = v1Positions.toSet.intersect(v2Positions.toSet)
-    println(predicateIntersection)
     (1.0/math.max(v1Positions.length, v2Positions.length)) * predicateIntersection.toList.foldLeft(0.0)( (acc, pTuple) => {
       acc + sim_ls(vertex1, vertex2, depth, pTuple._1, pTuple._2, v1Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex1), v2Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex2), cd1, cd2)
     })
@@ -864,11 +865,11 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   def sim_ls(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literals: List[String], v2Literals: List[String], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
     v1Literals.length < v2Literals.length match {
       case true => (1.0/math.max(v2Literals.length, 1.0)) * v1Literals.foldLeft(0.0)( (acc, literal) => {
-        val evaluations = v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x, cd1, cd2))
+        val evaluations = v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x, cd1, cd2)).map(x => if (x.isNaN) 0.0 else x)
         acc + evaluations.max
       })
       case false => (1.0/math.max(v1Literals.length, 1.0)) * v2Literals.foldLeft(0.0)( (acc, literal) => {
-        val evaluations = v1Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, x, literal, cd1, cd2))
+        val evaluations = v1Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, x, literal, cd1, cd2)).map(x => if (x.isNaN) 0.0 else x)
         acc + evaluations.max
       })
     }
@@ -877,30 +878,36 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
     val divideBy = math.max((v1Literal.count( _ == ',') + 1) - getArguments(v1Literal).zip(getArguments(v2Literal)).map( t => t._1 == vertex1 && t._2 == vertex2).map(x => if (x) 1 else 0).sum, 1.0)
 
-    getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
-      tuple._1 == vertex1 && tuple._2 == vertex2 match {
-        case true => acc + 0.0
-        case false => //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
-          depth < getJumpStep match {
-            case true => getDeclarations.getArgumentType(predicate, position) match {
-              case "attribute" => acc + sim_a_discrete(tuple._1, tuple._2)
+    val res = getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
+      if (tuple._1 == vertex1 && tuple._2 == vertex2) { acc + 0.0 }
+      else {
+        //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
+        depth < getJumpStep match {
+          case true =>
+            println(getDeclarations.getArgumentType(predicate, position))
+            getDeclarations.getArgumentType(predicate, position) match {
+              case "attribute" =>
+                acc + sim_a_discrete(tuple._1, tuple._2)
               case _ =>
                 val l1 = constructRiblL(cd1, depth + 1).filter(_.contains(tuple._1))
                 val l2 = constructRiblL(cd2, depth + 1).filter(_.contains(tuple._2))
-                acc + sim_a(tuple._1, tuple._2, depth + 1, l1, l2, constructRiblPFromL(tuple._1, l1), constructRiblPFromL(tuple._2, l2), cd1, cd2)
+                val res1 = sim_a(tuple._1, tuple._2, depth + 1, l1, l2, constructRiblPFromL(tuple._1, l1), constructRiblPFromL(tuple._2, l2), cd1, cd2)
+                acc + (if (res1.isNaN) 0.0 else res1)
             }
-            case false =>
-              //base similarity
-              val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
-              val vertex1 = getAnyNeighbourhoodGraph(tuple._1, domain)
-              val vertex2 = getAnyNeighbourhoodGraph(tuple._2, domain)
-              val firstOcc = vertex1.getEdgeDistribution(0)
-              val secondOcc = vertex2.getEdgeDistribution(0)
-              acc + firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
-            //baseSimilarity(getAnyNeighbourhoodGraph(element1, domain), getAnyNeighbourhoodGraph(element2, domain))
-          }
+          case false =>
+            //base similarity
+            val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
+            val vertex1 = getAnyNeighbourhoodGraph(tuple._1, domain)
+            val vertex2 = getAnyNeighbourhoodGraph(tuple._2, domain)
+            val firstOcc = vertex1.getEdgeDistribution(0)
+            val secondOcc = vertex2.getEdgeDistribution(0)
+            val res_i = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+            acc + (if (res_i.isNaN) 0.0 else res_i)
+        }
       }
-    })/divideBy
+    })
+    val returnR = res / divideBy
+    returnR
   }
 
   def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
