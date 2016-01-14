@@ -6,11 +6,13 @@ package relationalClustering.utils
 class PredicateDeclarations(val filename: String) {
 
   private val declarations = collection.mutable.Map[String, List[String]]()
+  private val possibleDeclarations = List[String]("attribute", "name", "number")
   processFile()
 
 
   def getFilename = { filename }
   def addDeclaration(predicate: String, types: List[String]) = {
+    require(types.map(possibleDeclarations.contains(_)).reduce( _ && _), s"Unknown declaration $types; possible declarations $possibleDeclarations")
     declarations(predicate) = types
   }
 
