@@ -773,7 +773,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       resultingMatrix(domainElements.indexOf(List(tuple._2)), domainElements.indexOf(List(tuple._1))) = 1.0
     })
 
-    (domainElements, fastAttributeSimilarity(List[String](domain), domainElements) :* resultingMatrix)
+    (domainElements, normalizeMatrix(fastAttributeSimilarity(List[String](domain), domainElements) :* resultingMatrix))
   }
 
   //COMPETITOR -- RIBL
@@ -790,7 +790,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       resultingMatrix(ind2, ind1) = sim
     }
 
-    (domainElements, resultingMatrix)
+    (domainElements, normalizeMatrix(resultingMatrix))
   }
 
   def constructRiblP(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
@@ -881,6 +881,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     val res = getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
       if (tuple._1 == vertex1 && tuple._2 == vertex2) { acc + 0.0 }
       else {
+        //SIM_A part
         //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
         depth < getJumpStep match {
           case true =>
