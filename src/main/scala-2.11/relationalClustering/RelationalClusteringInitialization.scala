@@ -797,7 +797,6 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   //COMPETITOR -- RIBL
 
   def riblSimilarity(domain: String) = {
-    println("RIBL SIMILARITY CALC....")
     val domainElements = getKnowledgeBase.getDomain(domain).getElementsAsList.toList
     val resultingMatrix = DenseMatrix.zeros[Double](domainElements.length, domainElements.length)
 
@@ -903,7 +902,6 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
         depth < getJumpStep match {
           case true =>
-            println(getDeclarations.getArgumentType(predicate, position))
             getDeclarations.getArgumentType(predicate, position) match {
               case "attribute" =>
                 acc + sim_a_discrete(tuple._1, tuple._2)
