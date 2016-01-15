@@ -911,7 +911,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   }
 
   def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
-    depth < getJumpStep match {
+    depth <= getJumpStep match {
       case true => getDeclarations.getArgumentType(predicate, position) match {
         case "attribute" => sim_a_discrete(element1, element2)
         case _ =>
@@ -920,14 +920,18 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
           sim_a(element1, element2, depth + 1, l1, l2, constructRiblPFromL(element1, l1), constructRiblPFromL(element2, l2), cd1, cd2)
       }
       case false =>
-        //base similarity
-        val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
-        val vertex1 = getAnyNeighbourhoodGraph(element1, domain)
-        val vertex2 = getAnyNeighbourhoodGraph(element2, domain)
-        val firstOcc = vertex1.getEdgeDistribution(0)
-        val secondOcc = vertex2.getEdgeDistribution(0)
-        firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
-        //baseSimilarity(getAnyNeighbourhoodGraph(element1, domain), getAnyNeighbourhoodGraph(element2, domain))
+        getDeclarations.getArgumentType(predicate, position) match {
+          case "attribute" => sim_a_discrete(element1, element2)
+          case _ =>
+            //base similarity
+            val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
+            val vertex1 = getAnyNeighbourhoodGraph(element1, domain)
+            val vertex2 = getAnyNeighbourhoodGraph(element2, domain)
+            val firstOcc = vertex1.getEdgeDistribution(0)
+            val secondOcc = vertex2.getEdgeDistribution(0)
+            firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+        }
+
     }
   }
 
