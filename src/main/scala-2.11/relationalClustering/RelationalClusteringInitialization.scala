@@ -450,6 +450,24 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     similarityMatrix
   }
 
+  def fastNevilleAttributes(domains: List[String], domainElements: List[List[String]]) = {
+    val attributeSimilarityMatrix = DenseMatrix.zeros[Double](domainElements.size, domainElements.size)
+    val elementIndices = collection.mutable.Map[List[String], Int]()
+    domainElements.zipWithIndex.foreach( x => elementIndices(x._1) = x._2)
+
+    getKnowledgeBase.getPredicateNames.map( getKnowledgeBase.getPredicate ).filter( _.arity == 1).foreach( attribute => {
+      val similarElements = findSimilarTuplesAttribute(domains, attribute).filter( elementIndices.contains )
+
+
+      for( ind1 <- similarElements.indices; ind2 <- ind1 + 1 until similarElements.size) {
+        attributeSimilarityMatrix(elementIndices(similarElements(ind1)), elementIndices(similarElements(ind2))) += 1
+        attributeSimilarityMatrix(elementIndices(similarElements(ind2)), elementIndices(similarElements(ind1))) += 1
+      }
+    })
+
+    attributeSimilarityMatrix
+  }
+
   def findSimilarTuplesIntraConnections(domains: List[String], predicate: Predicate) = {
     val possibleLink = domains.distinct.map( x => domains.count( _ == x ) <= predicate.getDomains.count( _ == x) ).reduce( _ && _)
 
@@ -773,7 +791,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       resultingMatrix(domainElements.indexOf(List(tuple._2)), domainElements.indexOf(List(tuple._1))) = 1.0
     })
 
-    (domainElements, normalizeMatrix(fastAttributeSimilarity(List[String](domain), domainElements) :* resultingMatrix))
+    (domainElements, normalizeMatrix(fastNevilleAttributes(List[String](domain), domainElements) :* resultingMatrix))
   }
 
   //COMPETITOR -- RIBL
