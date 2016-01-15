@@ -78,7 +78,7 @@ object RelationalClustering {
     val knowledgeBase = new KnowledgeBase(dbs.value, header)
     val clusteringAlgorithm = new RelationalClusteringInitialization(knowledgeBase,
                                                                      depth.value.getOrElse(2),
-                                                                     normalize.value.getOrElse(false),
+                                                                     true,
                                                                      rootFolder.value.getOrElse("."),
                                                                      k.value.getOrElse(3),
                                                                      logFile.value.getOrElse("./clustering.log"),
