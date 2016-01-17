@@ -896,13 +896,14 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     val divideBy = math.max((v1Literal.count( _ == ',') + 1) - getArguments(v1Literal).zip(getArguments(v2Literal)).map( t => t._1 == vertex1 && t._2 == vertex2).map(x => if (x) 1 else 0).sum, 1.0)
 
     val res = getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
+      val argPosition = getArguments(v1Literal).indexOf(tuple._1)
       if (tuple._1 == vertex1 && tuple._2 == vertex2) { acc + 0.0 }
       else {
         //SIM_A part
         //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
         depth < getJumpStep match {
           case true =>
-            getDeclarations.getArgumentType(predicate, position) match {
+            getDeclarations.getArgumentType(predicate, argPosition) match {
               case "attribute" =>
                 acc + sim_a_discrete(tuple._1, tuple._2)
               case _ =>
@@ -912,14 +913,19 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
                 acc + (if (res1.isNaN) 0.0 else res1)
             }
           case false =>
-            //base similarity
-            val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
-            val vertex1 = getAnyNeighbourhoodGraph(tuple._1, domain)
-            val vertex2 = getAnyNeighbourhoodGraph(tuple._2, domain)
-            val firstOcc = vertex1.getEdgeDistribution(0)
-            val secondOcc = vertex2.getEdgeDistribution(0)
-            val res_i = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
-            acc + (if (res_i.isNaN) 0.0 else res_i)
+            getDeclarations.getArgumentType(predicate, argPosition) match {
+              case "attribute" =>
+                acc + sim_a_discrete(tuple._1, tuple._2)
+              case _ =>
+                //base similarity
+                val domain = getKnowledgeBase.getPredicate(predicate).getDomains(argPosition)
+                val vertex1 = getNeighbourhoodGraph(tuple._1, domain, 1)
+                val vertex2 = getNeighbourhoodGraph(tuple._2, domain, 1)
+                val firstOcc = vertex1.getEdgeDistribution(0)
+                val secondOcc = vertex2.getEdgeDistribution(0)
+                val res_i = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
+                acc + (if (res_i.isNaN) 0.0 else res_i)
+            }
         }
       }
     })
