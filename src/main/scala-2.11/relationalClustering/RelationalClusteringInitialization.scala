@@ -835,14 +835,14 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     val queryTuple = new Tuple2(neighbourhoodGraph.getRoot.getEntity, level)
 
     if (!riblLiteralCache.contains(queryTuple)) {
-      val finalRes = level match {
-        case 0 =>
+      val finalRes = level == 0 match {
+        case true =>
           neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
             acc ++ predicate.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
           }) ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter(_.arity == 1).foldLeft(List[String]())((acc_1, pred) => {
             acc_1 ++ pred.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${pred.getName}(" + x.mkString(",") + ")").toList
           })
-        case _ =>
+        case false =>
           val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
 
           //cd depth corresponds to the vertices at (level - 1) depth in neighbourhood graph
@@ -872,14 +872,16 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   }
 
   def constructRiblPFromL(element: String, literals: List[String]) = {
-    literals.filter( _.contains(element)).foldLeft(Set[(String, Int)]())( (acc, lit) => {
+    val res = literals.filter( x => x.contains(s"$element,") || x.contains(s"$element)")).foldLeft(Set[(String, Int)]())( (acc, lit) => {
       acc + new Tuple2(getPredicate(lit), getArguments(lit).indexOf(element))
     }).toList
+
+    res
   }
 
   def riblSimilarityVertices(vertex1: String, vertex2: String, domain: String) = {
-    val v1ng = getNeighbourhoodGraph(vertex1, domain, getJumpStep)
-    val v2ng = getNeighbourhoodGraph(vertex2, domain, getJumpStep)
+    val v1ng = getNeighbourhoodGraph(vertex1, domain, getJumpStep + 1)
+    val v2ng = getNeighbourhoodGraph(vertex2, domain, getJumpStep + 1)
     val l1 = constructRiblL(v1ng).filter( _.contains(vertex1))
     val l2 = constructRiblL(v2ng).filter( _.contains(vertex2))
     sim_a(vertex1, vertex2, 0, l1, l2, constructRiblPFromL(vertex1, l1), constructRiblPFromL(vertex2, l2), v1ng, v2ng)
