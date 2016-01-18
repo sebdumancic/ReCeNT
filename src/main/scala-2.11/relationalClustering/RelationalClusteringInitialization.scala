@@ -47,6 +47,8 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private val accessingClustersCounter = collection.mutable.Map[String, Int]()
   private val neighbourhoodGraphCache = collection.mutable.Map[(String,String,Int), NeighbourhoodGraph]() // [element, Domain, Depth]
   private val attributeNodesCache = collection.mutable.Map[String, List[String]]() // [ObjectName(Node) -> List[Attributes] ]
+  private val riblBaseSimilarityCache = collection.mutable.Map[String, List[String]]() // Object_domain -> List[Occurrences]
+  private val riblLiteralCache = collection.mutable.Map[(String, Int), List[String]]()
   createAttributeNodes()
 
   private def getKnowledgeBase = { knowledgeBase }
@@ -79,6 +81,14 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     attributeNodesCache.getOrElse(element, List[String]())
   }
   def getDeclarations = { declarations }
+
+  def getRiblBaseSimilarity(element: String, domain: String) = {
+    if (!riblBaseSimilarityCache.contains(s"$element-$domain")) {
+      val vertex1 = getAnyNeighbourhoodGraph(element, domain)
+      riblBaseSimilarityCache(s"$element-$domain") = vertex1.getEdgeDistribution(0)
+    }
+    riblBaseSimilarityCache(s"$element-$domain")
+  }
 
   private def increaseAccessCount(key: String) = { if (!accessingClustersCounter.contains(key)) { accessingClustersCounter(key) = 0}; accessingClustersCounter(key) += 1 }
   def roundMade(domains: List[String]) = { accessingClustersCounter(domains.mkString(",")) >= createdClusters(domains.mkString(",")).size}
@@ -822,33 +832,43 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   }
 
   def constructRiblL(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
-    level match {
-      case 0 =>
-        neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
-          acc ++ predicate.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${predicate.name}(" + x.mkString(",") + ")").toList
-        }) ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter( _.arity == 1).foldLeft(List[String]())( (acc_1, pred) => {
-          acc_1 ++ pred.getTrueGroundings.filter( _.contains(neighbourhoodGraph.getRoot.getEntity)).map( x => s"${pred.getName}(" + x.mkString(",") + ")").toList
-        })
-      case _ =>
-        val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
+    val queryTuple = new Tuple2(neighbourhoodGraph.getRoot.getEntity, level)
 
-        //cd depth corresponds to the vertices at (level - 1) depth in neighbourhood graph
-        val previousLevelsVertices = (0 until level - 1).foldLeft(Set[String]())( (acc, cLevel) => {
-          acc ++ allLevelInformation(cLevel).foldLeft(Set[String]())( (acc_i, dTuple) => { acc_i ++ dTuple._2 })
-        }) + neighbourhoodGraph.getRoot.getEntity
-
-        val levelVertices = allLevelInformation(level - 1).foldLeft(Set[String]())( (acc, domain) => {
-          acc ++ domain._2
-        }).filter( !previousLevelsVertices.contains(_))
-
-        (neighbourhoodGraph.getEdgeDistribution(level).map( x => x.take(x.length - 1)).distinct.map( getKnowledgeBase.getPredicate ).foldLeft(List[String]())( (acc, predicate) => {
-          acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map( x => s"${predicate.name}(" + x.mkString(",") + ")").toList
-        }) ++ levelVertices.diff(previousLevelsVertices).foldLeft(List[String]())( (acc_c, vertex) => {
-          acc_c ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter( _.arity == 1).foldLeft(List[String]())( (acc_p, pred) => {
-            acc_p ++ pred.getTrueGroundings.filter( _.contains(vertex)).map( x => s"${pred.getName}(" + x.mkString(",") + ")").toList
+    if (!riblLiteralCache.contains(queryTuple)) {
+      val finalRes = level match {
+        case 0 =>
+          neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
+            acc ++ predicate.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+          }) ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter(_.arity == 1).foldLeft(List[String]())((acc_1, pred) => {
+            acc_1 ++ pred.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${pred.getName}(" + x.mkString(",") + ")").toList
           })
-        })).distinct
+        case _ =>
+          val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
+
+          //cd depth corresponds to the vertices at (level - 1) depth in neighbourhood graph
+          val previousLevelsVertices = (0 until level - 1).foldLeft(Set[String]())((acc, cLevel) => {
+            acc ++ allLevelInformation(cLevel).foldLeft(Set[String]())((acc_i, dTuple) => {
+              acc_i ++ dTuple._2
+            })
+          }) + neighbourhoodGraph.getRoot.getEntity
+
+          val levelVertices = allLevelInformation(level - 1).foldLeft(Set[String]())((acc, domain) => {
+            acc ++ domain._2
+          }).filter(!previousLevelsVertices.contains(_))
+
+          (neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
+            acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+          }) ++ levelVertices.diff(previousLevelsVertices).foldLeft(List[String]())((acc_c, vertex) => {
+            acc_c ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter(_.arity == 1).foldLeft(List[String]())((acc_p, pred) => {
+              acc_p ++ pred.getTrueGroundings.filter(_.contains(vertex)).map(x => s"${pred.getName}(" + x.mkString(",") + ")").toList
+            })
+          })).distinct
+      }
+
+      riblLiteralCache(queryTuple) = finalRes
     }
+
+    riblLiteralCache(queryTuple)
   }
 
   def constructRiblPFromL(element: String, literals: List[String]) = {
@@ -919,10 +939,10 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
               case _ =>
                 //base similarity
                 val domain = getKnowledgeBase.getPredicate(predicate).getDomains(argPosition)
-                val vertex1 = getNeighbourhoodGraph(tuple._1, domain, 1)
-                val vertex2 = getNeighbourhoodGraph(tuple._2, domain, 1)
-                val firstOcc = vertex1.getEdgeDistribution(0)
-                val secondOcc = vertex2.getEdgeDistribution(0)
+                //val vertex1 = getNeighbourhoodGraph(tuple._1, domain, 1)
+                //val vertex2 = getNeighbourhoodGraph(tuple._2, domain, 1)
+                val firstOcc = getRiblBaseSimilarity(tuple._1, domain) //vertex1.getEdgeDistribution(0)
+                val secondOcc = getRiblBaseSimilarity(tuple._2, domain) //vertex2.getEdgeDistribution(0)
                 val res_i = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
                 acc + (if (res_i.isNaN) 0.0 else res_i)
             }
@@ -948,10 +968,10 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
           case _ =>
             //base similarity
             val domain = getKnowledgeBase.getPredicate(predicate).getDomains(position)
-            val vertex1 = getAnyNeighbourhoodGraph(element1, domain)
-            val vertex2 = getAnyNeighbourhoodGraph(element2, domain)
-            val firstOcc = vertex1.getEdgeDistribution(0)
-            val secondOcc = vertex2.getEdgeDistribution(0)
+            //val vertex1 = getAnyNeighbourhoodGraph(element1, domain)
+            //val vertex2 = getAnyNeighbourhoodGraph(element2, domain)
+            val firstOcc = getRiblBaseSimilarity(element1, domain) //vertex1.getEdgeDistribution(0)
+            val secondOcc = getRiblBaseSimilarity(element2, domain) //vertex2.getEdgeDistribution(0)
             firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
         }
 
