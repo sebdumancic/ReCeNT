@@ -810,7 +810,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     val domainElements = getKnowledgeBase.getDomain(domain).getElementsAsList.toList
     val resultingMatrix = DenseMatrix.zeros[Double](domainElements.length, domainElements.length)
 
-    for(ind1 <- domainElements.indices; ind2 <- ind1 + 1 until domainElements.length) {
+    for(ind1 <- domainElements.indices; ind2 <- (ind1 + 1) until domainElements.length) {
       val sim = riblSimilarityVertices(domainElements(ind1).head, domainElements(ind2).head, domain)
 
       resultingMatrix(ind1, ind2) = sim
@@ -921,7 +921,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       else {
         //SIM_A part
         //acc + SIM_A(tuple._1, tuple._2, predicate, position, depth, cd1, cd2)
-        depth < getJumpStep match {
+        depth <= getJumpStep match {
           case true =>
             getDeclarations.getArgumentType(predicate, argPosition) match {
               case "attribute" =>
