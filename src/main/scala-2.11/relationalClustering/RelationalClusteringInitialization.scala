@@ -619,7 +619,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         case "max" => t1Items.intersect(t2Items).length.toDouble/math.max(t1Items.length, t2Items.length)
         case "histogram" =>
           val histograms = Histogram.create(t1Items, t2Items)
-          math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))/math.max(histograms._1.length, 1.0)
+          math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
       })
     })
   }
@@ -671,7 +671,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         acc + (0 to getJumpStep).foldLeft(0.0)( (acc_i, level) => {
           acc_i + (firstGraph(level).keySet ++ secondGraph(level).keySet).foldLeft(0.0)( (acc_ii, dom) => {
             val histograms = Histogram.create(firstGraph(level).getOrElse(dom, List[String]()), secondGraph(level).getOrElse(dom, List[String]()))
-            acc_ii + math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))/math.max(histograms._1.length, 1.0)
+            acc_ii + math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
           })
         })
       }
@@ -705,7 +705,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
           firstSet.intersect(secondSet).size.toDouble / firstSet.union(secondSet).size
         case "histogram" =>
           val histograms = Histogram.create(firstAttributes, secondAttributes)
-          math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))/math.max(histograms._1.length, 1.0)
+          math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
       }
     }
   }
