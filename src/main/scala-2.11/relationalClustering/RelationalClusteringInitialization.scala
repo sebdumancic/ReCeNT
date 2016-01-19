@@ -669,7 +669,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         acc + intersect.keys.foldLeft(0.0)((acc_i, level) => {
           acc_i + intersect(level).keys.foldLeft(0.0)((acc_ii, dom) => {
             acc_ii + (getOverlapMeasure match {
-              case "union" => intersect(level)(dom).toSet.size.toDouble / firstGraph(level)(dom).toSet.union(secondGraph(level)(dom).toSet).size
+              case "union" => intersect(level)(dom).size.toDouble / firstGraph(level)(dom).union(secondGraph(level)(dom)).size
               case "min" => intersect(level)(dom).toSet.size.toDouble / math.min(firstGraph(level)(dom).toSet.size, secondGraph(level)(dom).toSet.size)
               case "max" => intersect(level)(dom).toSet.size.toDouble / math.max(firstGraph(level)(dom).toSet.size, secondGraph(level)(dom).toSet.size)
             })
