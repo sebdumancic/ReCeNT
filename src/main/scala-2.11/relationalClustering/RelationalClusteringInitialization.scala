@@ -421,12 +421,12 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         attributeSimilarityMatrix(elementIndices(similarElements(ind2)), elementIndices(similarElements(ind1))) += 1
       }
 
-      val similarSet = similarElements.toSet
+      /*val similarSet = similarElements.toSet
       val similarByNotHavingAttribute = domainElements.filterNot( similarSet.contains )
       for (ind1 <- similarByNotHavingAttribute.indices; ind2 <- ind1 + 1 until similarByNotHavingAttribute.size) {
         attributeSimilarityMatrix(elementIndices(similarByNotHavingAttribute(ind1)), elementIndices(similarByNotHavingAttribute(ind2))) += 1
         attributeSimilarityMatrix(elementIndices(similarByNotHavingAttribute(ind2)), elementIndices(similarByNotHavingAttribute(ind1))) += 1
-      }
+      }*/
     })
 
     attributeSimilarityMatrix
