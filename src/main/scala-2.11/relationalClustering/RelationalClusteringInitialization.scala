@@ -382,13 +382,13 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     }
 
     //if histogram is used to measure similarity, we get a distance metric (0 meaning very similar) ==> it should be converted to similarity (1 meaning very similar)
-    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(3)) > 0.0 ) {
+    if (getOverlapMeasure == "histogram" && max(similarityMatrices(3)) > 0.0 ) {
       similarityMatrices(3) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(3))
     }
-    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(4)) > 0.0 ) {
+    if (getOverlapMeasure == "histogram" && max(similarityMatrices(4)) > 0.0 ) {
       similarityMatrices(4) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(4))
     }
-    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(2)) > 0.0) {
+    if (getOverlapMeasure == "histogram" && max(similarityMatrices(2)) > 0.0) {
       similarityMatrices(2) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(2))
     }
 
@@ -620,15 +620,6 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         case "histogram" =>
           val histograms = Histogram.create(t1Items, t2Items)
           math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
-        case "histogram-manh" =>
-          val histograms = Histogram.create(t1Items, t2Items)
-          math.abs(HistogramDistance.manhattan(histograms._1, histograms._2))
-        case "histogram-eucl" =>
-          val histograms = Histogram.create(t1Items, t2Items)
-          math.abs(HistogramDistance.euclidean(histograms._1, histograms._2))
-        case "histogram-ks" =>
-          val histograms = Histogram.create(t1Items, t2Items)
-          math.abs(HistogramDistance.kolmogorovSmirnov(histograms._1, histograms._2))
       })
     })
   }
@@ -664,7 +655,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       val secondGraph = tuple2.zipWithIndex.filter( x => domains(x._2) == dom).map(x => getNeighbourhoodGraph(x._1, domains(x._2), getJumpStep).collectTypeInformation()).reduce(graphNeighbourhoodIntersection)
 
       //go over levels
-      if (!getOverlapMeasure.contains("histogram")) {
+      if (getOverlapMeasure != "histogram") {
         val intersect = graphNeighbourhoodIntersection(firstGraph, secondGraph)
         acc + intersect.keys.foldLeft(0.0)((acc_i, level) => {
           acc_i + intersect(level).keys.foldLeft(0.0)((acc_ii, dom) => {
@@ -680,12 +671,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         acc + (0 to getJumpStep).foldLeft(0.0)( (acc_i, level) => {
           acc_i + (firstGraph(level).keySet ++ secondGraph(level).keySet).foldLeft(0.0)( (acc_ii, dom) => {
             val histograms = Histogram.create(firstGraph(level).getOrElse(dom, List[String]()), secondGraph(level).getOrElse(dom, List[String]()))
-            acc_ii + (getOverlapMeasure match {
-              case "histogram" => math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
-              case "histogram-manh" => math.abs(HistogramDistance.manhattan(histograms._1, histograms._2))
-              case "histogram-eucl" => math.abs(HistogramDistance.euclidean(histograms._1, histograms._2))
-              case "histogram-ks" => math.abs(HistogramDistance.kolmogorovSmirnov(histograms._1, histograms._2))
-            })
+            acc_ii + math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
           })
         })
       }
@@ -720,15 +706,6 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         case "histogram" =>
           val histograms = Histogram.create(firstAttributes, secondAttributes)
           math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
-        case "histogram-manh" =>
-          val histograms = Histogram.create(firstAttributes, secondAttributes)
-          math.abs(HistogramDistance.manhattan(histograms._1, histograms._2))
-        case "histogram-eucl" =>
-          val histograms = Histogram.create(firstAttributes, secondAttributes)
-          math.abs(HistogramDistance.euclidean(histograms._1, histograms._2))
-        case "histogram-ks" =>
-          val histograms = Histogram.create(firstAttributes, secondAttributes)
-          math.abs(HistogramDistance.kolmogorovSmirnov(histograms._1, histograms._2))
       }
     }
   }
