@@ -17,7 +17,7 @@ object RelationalClusteringCLI {
   //parser specification
   import org.clapper.argot.ArgotConverters._
 
-  val parser = new ArgotParser("RelationalClustering.jar", preUsage = Some("Version 1.0"))
+  val parser = new ArgotParser("RelationalClustering.jar", preUsage = Some("Version 2.0"))
   val dbs = parser.multiOption[String](List("db"), "knowledgeBase", "database(s) with data to cluster")
   val head = parser.option[String](List("domain"), "domain definition", "header for the knowledge base(s); specification of logical predicates")
   val depth = parser.option[Int](List("depth"), "n", "depth of the neighbourhood graph")
