@@ -979,7 +979,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   }
 
   def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
-    depth <= getJumpStep match {
+    depth < getJumpStep match {
       case true => getDeclarations.getArgumentType(predicate, position) match {
         case "attribute" => sim_a_discrete(element1, element2)
         case _ =>
