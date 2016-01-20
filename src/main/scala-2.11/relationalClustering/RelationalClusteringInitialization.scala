@@ -382,13 +382,13 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     }
 
     //if histogram is used to measure similarity, we get a distance metric (0 meaning very similar) ==> it should be converted to similarity (1 meaning very similar)
-    if (getOverlapMeasure == "histogram" && max(similarityMatrices(3)) > 0.0 ) {
+    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(3)) > 0.0 ) {
       similarityMatrices(3) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(3))
     }
-    if (getOverlapMeasure == "histogram" && max(similarityMatrices(4)) > 0.0 ) {
+    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(4)) > 0.0 ) {
       similarityMatrices(4) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(4))
     }
-    if (getOverlapMeasure == "histogram" && max(similarityMatrices(2)) > 0.0) {
+    if (getOverlapMeasure.contains("histogram") && max(similarityMatrices(2)) > 0.0) {
       similarityMatrices(2) = DenseMatrix.tabulate(domainElements.size, domainElements.size){case x => 1.0} - normalizeMatrix(similarityMatrices(2))
     }
 
