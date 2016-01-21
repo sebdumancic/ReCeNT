@@ -49,6 +49,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private val attributeNodesCache = collection.mutable.Map[String, List[String]]() // [ObjectName(Node) -> List[Attributes] ]
   private val riblBaseSimilarityCache = collection.mutable.Map[String, List[String]]() // Object_domain -> List[Occurrences]
   private val riblLiteralCache = collection.mutable.Map[(String, Int), List[String]]()
+  private val riblSimLCache = collection.mutable.Map[String, Double]()
   createAttributeNodes()
 
   private def getKnowledgeBase = { knowledgeBase }
@@ -914,7 +915,16 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     }
   }
 
-  def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+  def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph): Double = {
+    val SimLKey = vertex1 < vertex2 match {
+      case true => s"$vertex1$vertex2$depth$predicate$position$v1Literal$v2Literal"
+      case false => s"$vertex2$vertex1$depth$predicate$position$v2Literal$v1Literal"
+    }
+
+    if (riblSimLCache.contains(SimLKey)) {
+      return riblSimLCache(SimLKey)
+    }
+
     val divideBy = math.max((v1Literal.count( _ == ',') + 1) - getArguments(v1Literal).zip(getArguments(v2Literal)).map( t => t._1 == vertex1 && t._2 == vertex2).map(x => if (x) 1 else 0).sum, 1.0)
 
     val res = getArguments(v1Literal).zip(getArguments(v2Literal)).foldLeft(0.0)( (acc, tuple) => {
@@ -952,6 +962,8 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       }
     })
     val returnR = res / divideBy
+    riblSimLCache(SimLKey) = returnR
+
     returnR
   }
 
