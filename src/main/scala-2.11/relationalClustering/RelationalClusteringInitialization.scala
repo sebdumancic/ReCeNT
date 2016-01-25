@@ -834,6 +834,15 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
   def constructRiblL(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
     val queryTuple = new Tuple2(neighbourhoodGraph.getRoot.getEntity, level)
+    val attrValues = collection.mutable.Set[String]()
+
+    getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).foreach( pred => {
+      (0 until pred.arity).foreach( position => {
+        if (getDeclarations.getArgumentType(pred.getName, position) == "attribute") {
+          pred.getTrueGroundings.map( _(position) ).foreach( x => attrValues += x)
+        }
+      })
+    })
 
     if (!riblLiteralCache.contains(queryTuple)) {
       val finalRes = level == 0 match {
@@ -855,7 +864,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
           val levelVertices = allLevelInformation(level - 1).foldLeft(Set[String]())((acc, domain) => {
             acc ++ domain._2
-          }).filter(!previousLevelsVertices.contains(_))
+          }).filter(v => !previousLevelsVertices.contains(v) && !attrValues.contains(v))
 
           (neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
             acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
