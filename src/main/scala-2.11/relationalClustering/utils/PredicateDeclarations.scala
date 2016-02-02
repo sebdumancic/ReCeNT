@@ -41,7 +41,18 @@ class PredicateDeclarations(val filename: String) {
     * @param predicate name of the predicate: [[String]]
     * @param position position of the arguments: [[Int]]
     * */
-  def getArgumentType(predicate: String, position: Int) = { declarations(predicate)(position) }
+  def getArgumentType(predicate: String, position: Int) = {
+    declarations(predicate)(position)
+  }
+
+  /** Returns the list of all argument type of the predicate
+    *
+    * @param predicate name of the predicate: [[String]]
+    * @return [[List]] of types
+    * */
+  def getArgumentTypes(predicate: String) = {
+    declarations(predicate)
+  }
 
   /** Returns the role of the predicate
     *
