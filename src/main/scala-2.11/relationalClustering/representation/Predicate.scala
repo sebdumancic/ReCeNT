@@ -104,6 +104,12 @@ class Predicate(
     * */
   def getArgumentRole(position: Int) = { argumentDeclarations(position) }
 
+  /** Returns the roles of the arguments
+    * */
+  def getArgumentRoles = {
+    argumentDeclarations
+  }
+
   /** Returns the role of the predicate*/
   def getRole = {
     role
