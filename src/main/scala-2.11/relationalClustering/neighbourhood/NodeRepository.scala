@@ -7,6 +7,8 @@ import relationalClustering.representation.KnowledgeBase
   *
   * @constructor constructs the repository for a certain knowledge base
   * @param knowledgeBase knowledge base for the Nodes
+  *
+  * Node repository takes care of the attributes and annotations associated with a node
   * Created by seb on 02.02.16.
   */
 class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
