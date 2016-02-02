@@ -7,9 +7,6 @@ import relationalClustering.representation.Predicate
   * @constructor Create a new node for an entity of a domain.
   * @param entity the name of the root elements [String]
   * @param domain the domain of the root element [String]
-  *
-  *
-  *
   * Created by seb on 01.02.16.
   */
 class Node(protected val entity: String,
