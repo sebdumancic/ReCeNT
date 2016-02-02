@@ -12,13 +12,13 @@ import relationalClustering.representation.Predicate
   *
   * Created by seb on 01.02.16.
   */
-class Node(val entity: String,
-           val domain: String) {
+class Node(protected val entity: String,
+           protected val domain: String) {
 
-  private var parents = Set[Edge]()
-  private var children = Set[Edge]()
-  private val attributes = collection.mutable.Map[String, String]()
-  private val annotations = collection.mutable.Set[String]()
+  protected var parents = Set[Edge]()
+  protected var children = Set[Edge]()
+  protected val attributes = collection.mutable.Map[String, String]()
+  protected val annotations = collection.mutable.Set[String]()
 
   /** Returns the domain of the root element */
   def getDomain = {
