@@ -4,7 +4,7 @@ package relationalClustering.utils
   * Structure to store declarations of the predicate's arguments
   *
   * @constructor reads the declarations of the predicates
-  * @param filename file containing the declarations of the predicates
+  * @param filename file containing the declarations of the predicates: [[String]]
   * Created by seb on 13.01.16.
   */
 class PredicateDeclarations(val filename: String) {
@@ -18,8 +18,8 @@ class PredicateDeclarations(val filename: String) {
 
   /** Adds the declarations to the predicate
     *
-    * @param predicate name of the predicate: String
-    * @param types arguments types: List[String]
+    * @param predicate name of the predicate: [[String]]
+    * @param types arguments types: [[List]]
     * */
   def addDeclaration(predicate: String, types: List[String]) = {
     require(types.map(possibleDeclarations.contains(_)).reduce( _ && _), s"Unknown declaration $types; possible declarations $possibleDeclarations")
@@ -38,15 +38,15 @@ class PredicateDeclarations(val filename: String) {
 
   /** Returns the role of the specified position
     *
-    * @param predicate name of the predicate: String
-    * @param position position of the arguments: Int
+    * @param predicate name of the predicate: [[String]]
+    * @param position position of the arguments: [[Int]]
     * */
   def getArgumentType(predicate: String, position: Int) = { declarations(predicate)(position) }
 
   /** Returns the role of the predicate
     *
-    * @param predicate name of the predicate
-    * @return String
+    * @param predicate name of the predicate: [[String]]
+    * @return [[String]]
     * */
   def getPredicateRole(predicate: String) = {
     val predicateArgsDeclaration = declarations(predicate)
