@@ -127,6 +127,11 @@ class Node(protected val entity: String,
     children
   }
 
+  /** Checks whether the node has children */
+  def hasChildren = {
+    children.nonEmpty
+  }
+
   /** Returns of all relations originating in this node: List[Predicate] */
   def getChildRelationships = {
     children.toList.map(_.getPredicate)
