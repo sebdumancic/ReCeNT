@@ -1,6 +1,10 @@
 package relationalClustering.utils
 
 /**
+  * Structure to store declarations of the predicate's arguments
+  *
+  * @constructor reads the declarations of the predicates
+  * @param filename file containing the declarations of the predicates
   * Created by seb on 13.01.16.
   */
 class PredicateDeclarations(val filename: String) {
@@ -9,14 +13,20 @@ class PredicateDeclarations(val filename: String) {
   private val possibleDeclarations = List[String]("attribute", "name", "number")
   processFile()
 
-
+  /** Returns the filename of the declaration*/
   def getFilename = { filename }
+
+  /** Adds the declarations to the predicate
+    *
+    * @param predicate name of the predicate: String
+    * @param types arguments types: List[String]
+    * */
   def addDeclaration(predicate: String, types: List[String]) = {
     require(types.map(possibleDeclarations.contains(_)).reduce( _ && _), s"Unknown declaration $types; possible declarations $possibleDeclarations")
     declarations(predicate) = types
   }
 
-
+  /** Reads the declarations file */
   private def processFile() = {
     val declarationRegex = """(.*)\((.*)\)""".r
 
@@ -26,5 +36,23 @@ class PredicateDeclarations(val filename: String) {
     })
   }
 
+  /** Returns the role of the specified position
+    *
+    * @param predicate name of the predicate: String
+    * @param position position of the arguments: Int
+    * */
   def getArgumentType(predicate: String, position: Int) = { declarations(predicate)(position) }
+
+  /** Returns the role of the predicate
+    *
+    * @param predicate name of the predicate
+    * @return String
+    * */
+  def getPredicateRole(predicate: String) = {
+    val predicateArgsDeclaration = declarations(predicate)
+
+    if (predicateArgsDeclaration.length == 1) { "annotation" }
+    else if (predicateArgsDeclaration.contains("attribute") || predicateArgsDeclaration.contains("number")) { "attribute" }
+    else { "hyperedge" }
+  }
 }
