@@ -45,6 +45,7 @@ class KnowledgeBase(private val databases: Seq[String],
     * */
   def createPredicate(name: String, domains: List[String]) = {
     predicates(name) = new Predicate(name.trim, domains.map( x => getDomainObject(x.trim) ), predicateDeclarations.getPredicateRole(name.trim))
+    predicates(name).setDeclarations(predicateDeclarations.getArgumentTypes(name))
   }
 
   /** Adds predicate to the collection of predicate
