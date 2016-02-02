@@ -14,6 +14,11 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
   // Cache for created nodes: domain -> name of the object -> Node
   protected val createdNodes = collection.mutable.Map[String,Node]()
 
+  /** Returns a knowledge base */
+  def getKB = {
+    knowledgeBase
+  }
+
   /** Adds the node to the node cache
     *
     * @param node Node to be added: Node
@@ -30,9 +35,49 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
     * */
   def getNode(identity: String, domain: String) = {
     if (!createdNodes.contains(identity)) {
-      addToCache(new Node(identity, domain))
+      val newNode = new Node(identity, domain)
+      addDescriptions(newNode)
+      addToCache(newNode)
     }
     createdNodes(identity)
+  }
+
+  /** Adds attribute values to the node
+    *
+    * @param node node to be extended by attributes: [[Node]]
+    *
+    * Facts in the form of Predicate(Object,Value), where [Value] is declared as 'attribute' and [Object] as 'name', are considered attributes
+    * */
+  private def addAttributes(node: Node) = {
+    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == "attribute" ).filter(_.getDomains.contains(node.getDomain)).foreach( predicate => {
+      val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter( _._1 == "attribute" )
+      predicate.getTrueGroundings.filter( _.contains(node.getEntity)).foreach( grounding => {
+        attributePosition.foreach( pos => {
+          node.addAttributeValue(predicate.getName, grounding(pos._2))
+        })
+      })
+    })
+  }
+
+  /** Adds annotations to the node
+    *
+    * @param node node to be extended by annotations: [[Node]]
+    *
+    * Facts in form of Predicate(Object), where [Object] is declared as 'name', are considered annotations
+    * */
+  private def addAnnotations(node: Node) = {
+    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == "annotation").filter( _.getDomains.contains(node.getDomain)).foreach( ann => {
+      node.addAnnotation(ann.getName)
+    })
+  }
+
+  /** Adds annotations and attributes to the node
+    *
+    * @param node node to be extended by descriptions: [[Node]]
+    * */
+  private def addDescriptions(node: Node) = {
+    addAnnotations(node)
+    addAttributes(node)
   }
 
 }
