@@ -43,7 +43,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param domains list of domains to cluster objects from: [[List]]
     * @return (ordering of objects, similarity matrix for corresponding element)
     * */
-  protected def getObjectSimilarity(domains: List[String]): (List[String], DenseMatrix[Double])
+  def getObjectSimilarity(domains: List[String]): (List[String], DenseMatrix[Double])
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
     *
@@ -56,7 +56,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param domains list of domains that hyperedges connect: [[List]]
     * @return (ordering of hyperEdges, similarity matrix)
     * */
-  protected def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double])
+  def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double])
 
 
 }
