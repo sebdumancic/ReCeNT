@@ -13,7 +13,7 @@ import relationalClustering.representation.KnowledgeBase
   */
 class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
 
-  // Cache for created nodes: domain -> name of the object -> Node
+  // Cache for created nodes: name of the object -> Node
   protected val createdNodes = collection.mutable.Map[String,Node]()
 
   /** Returns a knowledge base */
