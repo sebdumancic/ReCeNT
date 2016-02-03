@@ -53,7 +53,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
     * */
   private def addAttributes(node: Node) = {
     getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ATTRIBUTE ).filter(_.getDomains.contains(node.getDomain)).foreach(predicate => {
-      val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter( _._1 == "attribute" )
+      val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter( _._1 == Settings.ARG_TYPE_ATTRIBUTE )
       predicate.getTrueGroundings.filter( _.contains(node.getEntity)).foreach( grounding => {
         attributePosition.foreach( pos => {
           node.addAttributeValue(predicate.getName, grounding(pos._2))
