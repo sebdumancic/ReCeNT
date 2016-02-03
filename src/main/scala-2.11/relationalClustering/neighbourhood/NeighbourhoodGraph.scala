@@ -55,7 +55,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * */
   private def constructNodeEdges(node: Node) = {
     //includes only relationship into account here
-    getKnowledgeBase.getPredicateNames.map(kBase.getPredicate).filter(_.arity > 1).filter(_.getDomains.contains(node.getDomain)).foreach(pred => {
+    getKnowledgeBase.getPredicateNames.map(kBase.getPredicate).filter(_.getRole == "hyperedge").filter(_.getDomains.contains(node.getDomain)).foreach(pred => {
       constructEdgeGivenPredicate(node, pred)
     })
   }
