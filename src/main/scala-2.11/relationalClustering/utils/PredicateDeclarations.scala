@@ -10,7 +10,7 @@ package relationalClustering.utils
 class PredicateDeclarations(val filename: String) {
 
   private val declarations = collection.mutable.Map[String, List[String]]()
-  private val possibleDeclarations = List[String]("attribute", "name", "number")
+  private val possibleDeclarations = List[String](Settings.ARG_TYPE_ATTRIBUTE, Settings.ARG_TYPE_NAME, Settings.ARG_TYPE_NUMBER)
   processFile()
 
   /** Returns the filename of the declaration*/
@@ -62,8 +62,8 @@ class PredicateDeclarations(val filename: String) {
   def getPredicateRole(predicate: String) = {
     val predicateArgsDeclaration = declarations(predicate)
 
-    if (predicateArgsDeclaration.length == 1) { "annotation" }
-    else if (predicateArgsDeclaration.contains("attribute") || predicateArgsDeclaration.contains("number")) { "attribute" }
-    else { "hyperedge" }
+    if (predicateArgsDeclaration.length == 1) { Settings.ROLE_ANNOTATION }
+    else if (predicateArgsDeclaration.contains(Settings.ARG_TYPE_ATTRIBUTE) || predicateArgsDeclaration.contains(Settings.ARG_TYPE_NUMBER)) { Settings.ROLE_ATTRIBUTE }
+    else { Settings.ROLE_HYPEREDGE }
   }
 }

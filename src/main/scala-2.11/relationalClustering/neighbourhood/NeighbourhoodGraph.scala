@@ -1,12 +1,12 @@
 package relationalClustering.neighbourhood
 
 import relationalClustering.representation.{Predicate, KnowledgeBase}
+import relationalClustering.utils.Settings
 
 /**
   * Implements neighbourhood graph functionality that is used to estimate indirect links measure within similarity measure
   *
   * @constructor creates a neighbourhood graph for a given object name and domain, with the given depth and knowledge base
-  *
   * @param rootObject name of the root object: [[String]]
   * @param domain domain of the root element: [[String]]
   * @param depth depth of the neighbourhood graph: [[Int]]
@@ -55,7 +55,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * */
   private def constructNodeEdges(node: Node) = {
     //includes only relationship into account here
-    getKnowledgeBase.getPredicateNames.map(kBase.getPredicate).filter(_.getRole == "hyperedge").filter(_.getDomains.contains(node.getDomain)).foreach(pred => {
+    getKnowledgeBase.getPredicateNames.map(kBase.getPredicate).filter(_.getRole == Settings.ROLE_HYPEREDGE).filter(_.getDomains.contains(node.getDomain)).foreach(pred => {
       constructEdgeGivenPredicate(node, pred)
     })
   }

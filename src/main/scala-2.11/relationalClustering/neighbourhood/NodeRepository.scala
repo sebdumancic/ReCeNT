@@ -1,6 +1,7 @@
 package relationalClustering.neighbourhood
 
 import relationalClustering.representation.KnowledgeBase
+import relationalClustering.utils.Settings
 
 /**
   * Implements the functionality of the node repository so that all node are created only once
@@ -51,7 +52,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
     * Facts in the form of Predicate(Object,Value), where [Value] is declared as 'attribute' and [Object] as 'name', are considered attributes
     * */
   private def addAttributes(node: Node) = {
-    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == "attribute" ).filter(_.getDomains.contains(node.getDomain)).foreach( predicate => {
+    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ATTRIBUTE ).filter(_.getDomains.contains(node.getDomain)).foreach(predicate => {
       val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter( _._1 == "attribute" )
       predicate.getTrueGroundings.filter( _.contains(node.getEntity)).foreach( grounding => {
         attributePosition.foreach( pos => {
@@ -68,7 +69,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
     * Facts in form of Predicate(Object), where [Object] is declared as 'name', are considered annotations
     * */
   private def addAnnotations(node: Node) = {
-    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == "annotation").filter( _.getDomains.contains(node.getDomain)).foreach( ann => {
+    getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ANNOTATION).filter( _.getDomains.contains(node.getDomain)).foreach( ann => {
       node.addAnnotation(ann.getName)
     })
   }
