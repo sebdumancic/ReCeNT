@@ -17,4 +17,7 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param bag2 list of elements of the second bag
     * */
   def compareBags(bag1: List[String], bag2: List[String]): Double
+
+  /** Should measure be normalized and inverted to be turned into a similarity measure */
+  def needsToBeInverted : Boolean
 }
