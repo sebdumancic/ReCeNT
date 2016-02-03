@@ -45,8 +45,11 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   protected def getObjectSimilarity(domains: List[String]): (List[String], DenseMatrix[Double])
 
-  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)*/
-  def getFilename: String
+  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
+    *
+    * @param domains list of domains of interest
+    * */
+  def getFilename(domains: List[String]): String
 
   /** Method implementing an interface to assess the similarity of edges connecting objects from specified domains
     *
