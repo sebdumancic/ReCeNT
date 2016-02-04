@@ -11,6 +11,6 @@ class ChiSquared(override protected val identity: String) extends AbstractBagCom
   }
 
   protected def similarity(hist1: List[Double], hist2: List[Double]) = {
-    hist1.zip(hist2).map( x => math.pow(x._1 - x._2, 2.0)/(x._1 + x._2)).map( x => if (x.isNaN) 0.0 else x).sum
+    hist1.zip(hist2).map( x => math.pow(x._1 - x._2, 2.0)/math.max(x._1 + x._2, 0.00000001)).sum // smooting added to avoid divisin by zero
   }
 }
