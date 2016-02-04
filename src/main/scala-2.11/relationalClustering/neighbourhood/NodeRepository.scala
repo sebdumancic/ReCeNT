@@ -70,7 +70,9 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
     * */
   private def addAnnotations(node: Node) = {
     getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ANNOTATION).filter( _.getDomains.contains(node.getDomain)).foreach( ann => {
-      node.addAnnotation(ann.getName)
+      if (ann.getTrueGroundings.contains(List[String](node.getEntity))) {
+        node.addAnnotation(ann.getName)
+      }
     })
   }
 
