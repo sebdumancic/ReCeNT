@@ -16,7 +16,18 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param bag1 list of elements of the first bag
     * @param bag2 list of elements of the second bag
     * */
-  def compareBags(bag1: List[String], bag2: List[String]): Double
+  def compareBags(bag1: List[String], bag2: List[String]): Double = {
+    val histElements = commonElements(bag1, bag2)
+
+    similarity(bagToHistogram(bag1, histElements), bagToHistogram(bag2, histElements))
+  }
+
+  /** Implements a desired similarity measure over histograms
+    *
+    * @param hist1 normalized histogram
+    * @param hist2 normalized histogram
+    * */
+  protected def similarity(hist1: List[Double], hist2: List[Double]) : Double
 
   /** Should measure be normalized and inverted to be turned into a similarity measure */
   def needsToBeInverted : Boolean
