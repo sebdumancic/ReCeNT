@@ -21,14 +21,4 @@ class Spectral(override protected val rootFolder: String) extends AbstractSKLear
 
     pars.toMap
   }
-
-  protected def readClusters = {
-    var clusters = collection.mutable.Set[List[String]]()
-
-    Helper.readFile(getResultFile).foreach( line => {
-      clusters = clusters + line.split("""\{""")(1).replace("}", "").split(";").toList
-    })
-
-    clusters.toSet
-  }
 }

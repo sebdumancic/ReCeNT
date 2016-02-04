@@ -1,6 +1,8 @@
 package relationalClustering.clustering
 
 import java.io.{FileWriter, File}
+import relationalClustering.utils.Helper
+
 import scala.sys.process._
 
 /**
@@ -90,9 +92,6 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     """.stripMargin
   }
 
-  /** Parses the resulting file and return the set of clusters */
-  protected def readClusters: Set[List[String]]
-
   /** Prepares python clustering script */
   protected def prepareScript() = {
     val writer = new FileWriter(s"$getRoot/${algName}_script.py")
@@ -118,6 +117,17 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     command(prepareParameters(filename, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
 
     readClusters
+  }
+
+  /** Parses the resulting file and return the set of clusters */
+  protected def readClusters: Set[List[String]] = {
+    var clusters = collection.mutable.Set[List[String]]()
+
+    Helper.readFile(getResultFile).foreach( line => {
+      clusters = clusters + line.split("""\{""")(1).replace("}", "").split(";").toList
+    })
+
+    clusters.toSet
   }
 
 }

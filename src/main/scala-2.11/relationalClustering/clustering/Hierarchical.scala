@@ -22,14 +22,4 @@ class Hierarchical(protected val linkage: String,
 
     pars.toMap
   }
-
-  protected def readClusters = {
-    var clusters = collection.mutable.Set[List[String]]()
-
-    Helper.readFile(getResultFile).foreach( line => {
-      clusters = clusters + line.split("""\{""")(1).replace("}", "").split(";").toList
-    })
-
-    clusters.toSet
-  }
 }
