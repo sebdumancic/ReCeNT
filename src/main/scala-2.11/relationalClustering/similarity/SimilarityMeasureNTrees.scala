@@ -6,8 +6,8 @@ import relationalClustering.representation.KnowledgeBase
 /**
   * Created by seb on 04.02.16.
   */
-abstract class SimilarityMeasureWithNeighbourhoodTrees(override protected val knowledgeBase: KnowledgeBase,
-                                                       override protected val depth: Int) extends AbstractSimilarityMeasure(knowledgeBase, depth) {
+abstract class SimilarityMeasureNTrees(override protected val knowledgeBase: KnowledgeBase,
+                                       override protected val depth: Int) extends AbstractSimilarityMeasure(knowledgeBase, depth) {
 
   /** caches neighbourhood graphs to be built only once
     * key (objectName, domain)
