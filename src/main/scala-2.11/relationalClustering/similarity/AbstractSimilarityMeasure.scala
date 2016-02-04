@@ -1,6 +1,6 @@
 package relationalClustering.similarity
 
-import breeze.linalg.DenseMatrix
+import breeze.linalg.{max, min, DenseMatrix}
 import relationalClustering.neighbourhood.NodeRepository
 import relationalClustering.representation.KnowledgeBase
 
@@ -57,6 +57,28 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @return (ordering of hyperEdges, similarity matrix)
     * */
   def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double])
+
+  /** Normalizes the given matrix by its largest value
+    *
+    * @param matrix matrix to normalize: [[DenseMatrix]]
+    * */
+  def normalizeMatrix(matrix: DenseMatrix[Double]): DenseMatrix[Double] = {
+    val minValue = min(matrix)
+    val matrixToUse = minValue < 0.0 match {
+      case true => matrix - DenseMatrix.tabulate(matrix.rows, matrix.cols){ case x => minValue }
+      case false => matrix
+    }
+    val normConstant = math.abs(max(matrixToUse))
+    matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => normConstant }
+  }
+
+  /** Normalizes and inverts a given matrix (1 - normalized matrix)
+    *
+    * @param matrix matrix to invert: [[DenseMatrix]]
+    * */
+  def normalizeAndInvert(matrix: DenseMatrix[Double]) = {
+    DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix)
+  }
 
 
 }
