@@ -95,8 +95,12 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
   /** Prepares python clustering script */
   protected def prepareScript() = {
     val writer = new FileWriter(s"$getRoot/${algName}_script.py")
-    writer.write(getScript)
-    writer.close()
+    try {
+      writer.write(getScript)
+    }
+    finally {
+      writer.close()
+    }
   }
 
   /** Returns the command to run
