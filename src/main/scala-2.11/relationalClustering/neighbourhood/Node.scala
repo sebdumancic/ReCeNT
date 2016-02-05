@@ -125,10 +125,10 @@ class Node(protected val entity: String,
     * @param parentPosition position of the parent node in the arguments of the relation: Int
     * */
   def addChild(child: Node, predicate: Predicate, parentPosition: Int) = {
-    if ((child.getEntity != getEntity || child.getDomain != getDomain) && !getParentEdges.map(_.getParent).contains(child)) {
+    if (child.getEntity != getEntity || child.getDomain != getDomain) {
       children = children + new Edge(this, child, predicate, parentPosition)
     }
-  } //takes care of cycle edges
+  }
 
   /** Returns the set of all edge originating in the node */
   def getChildEdges = {
@@ -177,8 +177,7 @@ class Node(protected val entity: String,
     * @return String
     * */
   def asString(prefix: String): String = {
-    s"$getEntity[$getDomain]\n" +
-      prefix + "|---" + getChildNodes.map(_.asString(s"$prefix|   ")).mkString(s"\n$prefix|---")
+    s"$getEntity[$getDomain]\n"
   }
 
   override def toString = {

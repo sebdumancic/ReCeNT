@@ -124,9 +124,10 @@ class NeighbourhoodGraph(protected val rootObject: String,
         resultSummary(currentLevel) = collection.mutable.Map[String, List[String]]()
       }
 
-      //expand all nodes in a frontier, store the information
+      //expand all nodes in a frontier, store the information (if the root element in encountered again, exclude it)
       frontier.foreach(cNode => {
-        cNode.getChildNodes.foreach(child => {
+        cNode.getChildNodes.filter( _.getEntity != getRoot.getEntity).foreach(child => {
+          // condition to prevent expanding on the root element again
           newFrontier = newFrontier :+ child
 
           if (!resultSummary(currentLevel).contains(child.getDomain)) {
@@ -182,8 +183,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
       frontier.foreach( cNode => {
         levelWise(currentDepth) = levelWise(currentDepth) ++ cNode.getChildEdges.toList.map( _.getEdgeType )
 
-        //expand new frontier
-        cNode.getChildNodes.foreach(child => {
+        //expand new frontier (excluding the root element)
+        cNode.getChildNodes.filter( _.getEntity != getRoot.getEntity).foreach(child => {
           newFrontier = newFrontier + child
         })
       })
@@ -215,8 +216,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
       //collecting over nodes at current level
       domains.foreach( dom => {
         levelContent(dom) = frontier.filter( _.getDomain == dom ).foldLeft(List[(String,String)]())( (acc, cNode) => {
-          //expand the frontier
-          cNode.getChildNodes.foreach(child => {
+          //expand the frontier (excluding the root element if encountered again)
+          cNode.getChildNodes.filter( _.getEntity != getRoot.getEntity).foreach(child => {
             newFrontier = newFrontier + child
           })
 
