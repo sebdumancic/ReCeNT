@@ -1,8 +1,8 @@
 package relationalClustering.similarity
 
-import java.io.{FileWriter, BufferedWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 
-import breeze.linalg.{max, min, DenseMatrix}
+import breeze.linalg.{DenseMatrix, max, min}
 import relationalClustering.neighbourhood.NodeRepository
 import relationalClustering.representation.KnowledgeBase
 
@@ -51,11 +51,15 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     *
     * @param domains domains of interest
     * @param folder folder to save file
+    * @return filename of the file containing similarity matrix
+    *
     * */
   def getObjectSimilaritySave(domains: List[String], folder: String) = {
-    val (elems, sim) = getObjectSimilarity(domains)
-    saveMatrixToFile(folder, domains, elems, sim)
-    (elems, sim)
+    if (!new File(getFilename(domains)).exists()) {
+      val (elems, sim) = getObjectSimilarity(domains)
+      saveMatrixToFile(folder, domains, elems, sim)
+    }
+    getFilename(domains)
   }
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
