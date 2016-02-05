@@ -1,12 +1,10 @@
 package relationalClustering.clustering
 
-import relationalClustering.utils.Helper
-
 /**
   * Created by seb on 04.02.16.
   */
 class Hierarchical(protected val linkage: String,
-                   override protected val rootFolder: String) extends AbstractSKLearnCluster(rootFolder){
+                   override protected val rootFolder: String) extends AbstractSKLearnCluster("hierarchical",rootFolder){
 
   protected def getResultFile = {
     s"$getRoot/result.txt"
