@@ -1,5 +1,7 @@
 package relationalClustering.similarity
 
+import java.io.{FileWriter, BufferedWriter}
+
 import breeze.linalg.{max, min, DenseMatrix}
 import relationalClustering.neighbourhood.NodeRepository
 import relationalClustering.representation.KnowledgeBase
@@ -81,6 +83,34 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   def normalizeAndInvert(matrix: DenseMatrix[Double]) = {
     DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix)
+  }
+
+
+  /** Saves matrix in the file
+    *
+    * @param name name of the file (filePath)
+    * @param domainElements ordered list of element names
+    * @param similarityMatrix similarity matrix corresponding to the provided list of elements
+    */
+  def saveMatrixToFile(name: String, domainElements: List[String], similarityMatrix: DenseMatrix[Double]) = {
+    val writer = new BufferedWriter(new FileWriter(name))
+    try {
+      writer.write("#" + domainElements.mkString(";") + "\n") //print element names
+
+      //matrix content
+      for (rowI <- 0 until similarityMatrix.rows) {
+        for (columnI <- 0 until similarityMatrix.cols) {
+          writer.write(similarityMatrix(rowI, columnI) + "")
+          if (columnI < (similarityMatrix.cols - 1)) {
+            writer.write(";")
+          }
+        }
+        writer.write("\n")
+      }
+    }
+    finally {
+      writer.close()
+    }
   }
 
 
