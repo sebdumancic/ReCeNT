@@ -46,7 +46,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
   /** Returns the root elements attributes (including annotations)*/
   def getRootAttributes = {
-    getRoot.getAttributeValuePairs ++ getRoot.getAnnotations.map( x => new Tuple2(x, "true"))
+    getRoot.getAttributeValuePairs ++ getRoot.getAnnotations
   }
 
   /** Constructs all the edges for the node, by traversing all the hyperedge predicates
@@ -220,7 +220,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
             newFrontier = newFrontier + child
           })
 
-          acc ++ cNode.getAttributeValuePairs.toList ++ cNode.getAnnotations.toList.map( x => new Tuple2(x, "true"))
+          acc ++ cNode.getAttributeValuePairs.toList ++ cNode.getAnnotations.toList
         })
       })
 

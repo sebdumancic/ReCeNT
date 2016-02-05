@@ -15,7 +15,7 @@ class Node(protected val entity: String,
   protected var parents = Set[Edge]()
   protected var children = Set[Edge]()
   protected val attributes = collection.mutable.Map[String, String]()
-  protected val annotations = collection.mutable.Set[String]()
+  protected val annotations = collection.mutable.Map[String, String]()
 
   /** Returns the domain of the root element */
   def getDomain = {
@@ -68,7 +68,15 @@ class Node(protected val entity: String,
     * @param ann name of the annotation: String
     * */
   def addAnnotation(ann: String) = {
-    annotations += ann
+    annotations(ann) = "true"
+  }
+
+  /** Adds false annotation - a node does not have such annotation
+    *
+    * @param ann name of the annotation
+    * */
+  def addFalseAnnotation(ann: String) = {
+    annotations(ann) = "false"
   }
 
   /** check whether the node has annotation specified
@@ -85,7 +93,7 @@ class Node(protected val entity: String,
     * @return Set of all annotations of the Node: Set[String]
     * */
   def getAnnotations = {
-    annotations.toSet
+    annotations.map(t => new Tuple2(t._1, t._2)).toSet
   }
 
   /** Adds the Edge to the parent Node
