@@ -11,6 +11,6 @@ class ChiSquared() extends AbstractBagCompare("chiSquared") {
   }
 
   protected def similarity(hist1: List[Double], hist2: List[Double]) = {
-    hist1.zip(hist2).map( x => math.pow(x._1 - x._2, 2.0)/math.max(x._1 + x._2, 0.00000001)).sum // smooting added to avoid divisin by zero
+    hist1.zip(hist2).map( x => math.pow(x._1 - x._2, 2.0)/math.max(x._1 + x._2, 0.00000001)).sum // smoothing added to avoid division by zero
   }
 }
