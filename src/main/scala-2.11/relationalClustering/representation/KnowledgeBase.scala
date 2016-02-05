@@ -2,7 +2,7 @@ package relationalClustering.representation
 
 import java.io.{BufferedWriter, FileWriter}
 
-import relationalClustering.utils.{PredicateDeclarations, Helper}
+import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 
 /**
@@ -22,7 +22,7 @@ class KnowledgeBase(private val databases: Seq[String],
                    ) {
 
   private val predicates = collection.mutable.Map[String, Predicate]()
-  private val predicate_regex = """(.*?)\((.*?)\).*""".r
+  private val predicateRegex = """(.*?)\((.*?)\).*""".r
   private val domainObjects = collection.mutable.Map[String, Domain]()
 
   constructPredicates()
@@ -100,7 +100,7 @@ class KnowledgeBase(private val databases: Seq[String],
   private def constructPredicates() = {
     for(predicate <- header.split("\n")) {
       if (predicate.length > 2 && !predicate.contains("//")) {
-        val predicate_regex(predicate_name, predicate_args) = predicate
+        val predicateRegex(predicate_name, predicate_args) = predicate
         createPredicate(cleanForm(predicate_name), predicate_args.split(",").toList) // cleans predicate name in case it is in the autoencoder form
       }
 
@@ -114,7 +114,7 @@ class KnowledgeBase(private val databases: Seq[String],
     * Each encountered object is also added to its domain
     * */
   def addTrueGrounding(grounding: String) = {
-    val predicate_regex(predicate_name, predicate_arguments) = grounding
+    val predicateRegex(predicate_name, predicate_arguments) = grounding
     val argument_list = predicate_arguments.split(",").toList
     getPredicate(predicate_name).setTrueGrounding(argument_list.map( _.trim ))
 
