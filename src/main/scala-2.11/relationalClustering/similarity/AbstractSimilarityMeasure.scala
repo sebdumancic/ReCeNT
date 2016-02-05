@@ -69,7 +69,10 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       case false => matrix
     }
     val normConstant = math.abs(max(matrixToUse))
-    matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => normConstant }
+    normConstant == 0.0 match {
+      case true => matrixToUse
+      case false => matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => normConstant }
+    }
   }
 
   /** Normalizes and inverts a given matrix (1 - normalized matrix)
