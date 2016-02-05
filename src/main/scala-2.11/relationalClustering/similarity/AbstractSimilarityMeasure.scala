@@ -59,7 +59,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       val (elems, sim) = getObjectSimilarity(domains)
       saveMatrixToFile(folder, domains, elems, sim)
     }
-    getFilename(domains)
+    s"$folder/${getFilename(domains)}"
   }
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
