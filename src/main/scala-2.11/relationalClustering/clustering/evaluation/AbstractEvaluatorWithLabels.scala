@@ -5,7 +5,7 @@ import java.io.FileWriter
 /**
   * Created by seb on 05.02.16.
   */
-abstract class AbstractEvaluatorWithLabels extends AbstractEvaluator {
+abstract class AbstractEvaluatorWithLabels(override protected val rootFolder: String) extends AbstractEvaluator(rootFolder) {
 
   /** Validate the provided clusters
     *
