@@ -1,6 +1,7 @@
 package relationalClustering.clustering
 
-import java.io.{FileWriter, File}
+import java.io.{File, FileWriter}
+
 import relationalClustering.utils.Helper
 
 import scala.sys.process._
@@ -117,6 +118,11 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * */
   protected def prepareParameters(inputFile: String, k: Int): Map[String, String]
 
+  /** Clustering method
+    *
+    * @param filename path to the file containing a similarity matrix and object names (as the first line)
+    * @param k desired number of clusters
+    * */
   def clusterFromFile(filename: String, k: Int) = {
     command(prepareParameters(filename, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
 
