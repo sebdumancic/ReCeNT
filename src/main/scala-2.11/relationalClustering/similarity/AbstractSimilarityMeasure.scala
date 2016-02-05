@@ -47,6 +47,17 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   def getObjectSimilarity(domains: List[String]): (List[String], DenseMatrix[Double])
 
+  /** Get the similarity matrix and saves it to the file
+    *
+    * @param domains domains of interest
+    * @param folder folder to save file
+    * */
+  def getObjectSimilaritySave(domains: List[String], folder: String) = {
+    val (elems, sim) = getObjectSimilarity(domains)
+    saveMatrixToFile(folder, domains, elems, sim)
+    (elems, sim)
+  }
+
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
     *
     * @param domains list of domains of interest
@@ -88,12 +99,12 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
 
   /** Saves matrix in the file
     *
-    * @param name name of the file (filePath)
+    * @param folder name of the file (filePath)
     * @param domainElements ordered list of element names
     * @param similarityMatrix similarity matrix corresponding to the provided list of elements
     */
-  def saveMatrixToFile(name: String, domainElements: List[String], similarityMatrix: DenseMatrix[Double]) = {
-    val writer = new BufferedWriter(new FileWriter(name))
+  def saveMatrixToFile(folder: String, domains: List[String], domainElements: List[String], similarityMatrix: DenseMatrix[Double]) = {
+    val writer = new BufferedWriter(new FileWriter(s"$folder/${getFilename(domains)}"))
     try {
       writer.write("#" + domainElements.mkString(";") + "\n") //print element names
 
