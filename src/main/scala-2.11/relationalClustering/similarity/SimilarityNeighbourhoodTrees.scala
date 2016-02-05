@@ -65,7 +65,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val attrs1 = ng1.getRootAttributes
     val attrs2 = ng2.getRootAttributes
 
-    attrs1.foldLeft(0)( (acc, attr) => acc + (if (attrs2.contains(attr)) 1 else 0)).toDouble
+    attrs1.intersect(attrs2).size
   }
 
   /** Computes the attribute neighbourhood similarity of two neighbourhood graphs, per level and vertex type
