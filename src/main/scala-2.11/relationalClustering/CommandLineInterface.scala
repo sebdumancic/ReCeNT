@@ -2,6 +2,7 @@ package relationalClustering
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.ChiSquared
+import relationalClustering.clustering.evaluation.{AdjustedRandIndex, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees
@@ -28,6 +29,9 @@ object CommandLineInterface {
   val similarity = parser.option[String](List("similarity"), "[RCNT|HS|RIBL|HSAG]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared]", "bag similarity measure")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
+  val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
+  val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
+  val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI]", "cluster validation method")
 
 
   def main(args: Array[String]) {
@@ -66,5 +70,15 @@ object CommandLineInterface {
     println("FOUND CLUSTERS")
     clusters.zipWithIndex.foreach( cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
 
+
+    //if validation is to be performed
+    if (validate.value.getOrElse(false)) {
+      val labContainer = new LabelsContainer(labels.value.get)
+      val validator = valMethod.value.getOrElse("ARI") match {
+        case "ARI" => new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
+      }
+
+      println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, labContainer)}")
+    }
   }
 }
