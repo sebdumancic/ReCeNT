@@ -37,7 +37,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   protected def getObjectsFromDomains(domains: List[String]) = {
     domains.foldLeft(List[(String,String)]())( (acc, dom) => {
       acc ++ getKB.getDomain(dom).getElements.map( x => new Tuple2(x, dom))
-    })
+    }).sortBy(_._1)
   }
 
   /** Method implementing an interface for accessing similarity of object(s) from specified domain(s)
