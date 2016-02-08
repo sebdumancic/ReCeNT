@@ -5,7 +5,7 @@ import relationalClustering.bagComparison.ChiSquared
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
-import relationalClustering.similarity.SimilarityNeighbourhoodTrees
+import relationalClustering.similarity.{SimilarityNTv2, SimilarityNeighbourhoodTrees}
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 /**
@@ -26,7 +26,7 @@ object CommandLineInterface {
   val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
-  val similarity = parser.option[String](List("similarity"), "[RCNT|HS|RIBL|HSAG]", "similarity measure")
+  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|HS|RIBL|HSAG]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared]", "bag similarity measure")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
@@ -53,6 +53,14 @@ object CommandLineInterface {
                                          depth.value.getOrElse(0),
                                          weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                                          bagComparison)
+      case "RCNTv2" =>
+        val bagComparison = bag.value.getOrElse("chiSquared") match {
+          case "chiSquared" => new ChiSquared()
+        }
+        new SimilarityNTv2(KnowledgeBase,
+                           depth.value.getOrElse(0),
+                           weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
+                           bagComparison)
     }
 
     val clusters = algorithm.value.getOrElse("Spectral") match {
