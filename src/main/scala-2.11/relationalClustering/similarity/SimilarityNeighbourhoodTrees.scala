@@ -142,8 +142,8 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
       val simValue = simFunc(getNeighbourhoodGraph(elements(ind1)._1, elements(ind1)._2), getNeighbourhoodGraph(elements(ind2)._1, elements(ind2)._2))
 
-      similarityMatrix(ind1, ind2) = simValue
-      similarityMatrix(ind2, ind1) = simValue
+      similarityMatrix(ind1, ind2) += simValue
+      similarityMatrix(ind2, ind1) += simValue
     }
 
     shouldBeInverted match {
