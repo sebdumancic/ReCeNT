@@ -31,7 +31,12 @@ class LabelsContainer(private val filename: String) {
     * @return element's label: [[String]]
     * */
   def getLabel(element: String) = {
-    labels(element)
+    if (labels.contains(element)) {
+      labels(element)
+    }
+    else {
+      "xxxxxx"  //if no label is assigned
+    }
   }
 
   /** Returns the label id for the element in question
@@ -40,6 +45,12 @@ class LabelsContainer(private val filename: String) {
     * @return label id [[Int]]
     * */
   def getLabelId(element: String) = {
-    allLabels.indexOf(getLabel(element))
+    val label = getLabel(element)
+    if (label == "xxxxxx") {
+      -1
+    }
+    else {
+      allLabels.indexOf(getLabel(element))
+    }
   }
 }
