@@ -73,6 +73,9 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
       if (ann.getTrueGroundings.contains(List[String](node.getEntity))) {
         node.addAnnotation(ann.getName)
       }
+      else {
+        node.addFalseAnnotation(ann.getName)
+      }
     })
   }
 
