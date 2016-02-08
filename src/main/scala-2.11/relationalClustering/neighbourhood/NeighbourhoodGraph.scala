@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.{Predicate, KnowledgeBase}
+import relationalClustering.representation.{KnowledgeBase, Predicate}
 import relationalClustering.utils.Settings
 
 /**
@@ -22,6 +22,9 @@ class NeighbourhoodGraph(protected val rootObject: String,
                          protected val nodeRepo: NodeRepository) {
 
   val root = nodeRepo.getNode(rootObject, domain) //new Node(rootObject, domain)
+  var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = null //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
+  var edgeDistributionCache: Map[Int, List[String]] = null
+  var attributeDistributionCache: Map[Int, Map[String, List[(String,String)]]] = null
   construct()
 
   /** Return the knowledge base of an NG*/
@@ -112,7 +115,11 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * @return Map[Int, Map[String, List[String] ] ] (level -> domain -> list of objects)
     *
     * */
-  def collectVertexIdentity() = {
+  def collectVertexIdentity(): collection.mutable.Map[Int,collection.mutable.Map[String,List[String]]] = {
+    if (vertexIdentityCache != null) {
+      return vertexIdentityCache
+    }
+
     val resultSummary = collection.mutable.Map[Int,collection.mutable.Map[String,List[String]]]()
     var currentLevel = 0
     var frontier = List[Node](getRoot)
@@ -140,6 +147,9 @@ class NeighbourhoodGraph(protected val rootObject: String,
       newFrontier = List[Node]()
       currentLevel += 1
     }
+
+    vertexIdentityCache = resultSummary
+
     resultSummary
   }
 
@@ -169,7 +179,11 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @return Map[Int, List[String] ]; depth -> list of edge types
     * */
-  def getEdgeDistribution = {
+  def getEdgeDistribution: Map[Int, List[String]] = {
+    if (edgeDistributionCache != null) {
+      return edgeDistributionCache
+    }
+
     val levelWise = collection.mutable.Map[Int, List[String]]() // depth -> List[Edge distribution]
 
     var currentDepth = 0
@@ -194,6 +208,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
       currentDepth = currentDepth + 1
     }
 
+    edgeDistributionCache = levelWise.toMap
+
     levelWise.toMap
   }
 
@@ -201,7 +217,11 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @return Map[Int, Map[String, List[(String,String)] ] ] level -> type -> list of attribute-values
     * */
-  def getAttributeValueDistribution = {
+  def getAttributeValueDistribution: Map[Int, Map[String, List[(String,String)]]] = {
+    if (attributeDistributionCache != null) {
+      return attributeDistributionCache
+    }
+
     val returnData = collection.mutable.Map[Int, Map[String, List[(String,String)]]]()
 
     var currentDepth = 0
@@ -232,6 +252,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
       newFrontier = Set[Node]()
       currentDepth = currentDepth + 1
     }
+
+    attributeDistributionCache = returnData.toMap
 
     returnData.toMap
   }
