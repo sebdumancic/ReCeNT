@@ -8,11 +8,13 @@ import relationalClustering.utils.Settings
   *
   * @constructor constructs the repository for a certain knowledge base
   * @param knowledgeBase knowledge base for the Nodes
+  * @param local is repository local for a neighbourhood graph
   *
   * Node repository takes care of the attributes and annotations associated with a node
   * Created by seb on 02.02.16.
   */
-class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
+class NodeRepository(protected val knowledgeBase: KnowledgeBase,
+                     protected val local: Boolean = false) {
 
   // Cache for created nodes: name of the object -> Node
   protected val createdNodes = collection.mutable.Map[String,Node]()
@@ -20,6 +22,11 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase) {
   /** Returns a knowledge base */
   def getKB = {
     knowledgeBase
+  }
+
+  /** Returns true if repository is local, otherwise false */
+  def isLocal = {
+    local
   }
 
   /** Adds the node to the node cache
