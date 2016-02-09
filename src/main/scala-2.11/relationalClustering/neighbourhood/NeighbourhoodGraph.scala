@@ -6,7 +6,7 @@ import relationalClustering.utils.Settings
 /**
   * Implements neighbourhood graph functionality that is used to estimate indirect links measure within similarity measure
   *
-  * @constructor creates a neighbourhood graph for a given object name and domain, with the given depth and knowledge base
+  * @constructor creates a neighbourhood graph for a given object name and domain, with the given depth and knowledge base, from provided NodeRepository
   * @param rootObject name of the root object: [[String]]
   * @param domain domain of the root element: [[String]]
   * @param depth depth of the neighbourhood graph: [[Int]]
@@ -26,6 +26,18 @@ class NeighbourhoodGraph(protected val rootObject: String,
   var edgeDistributionCache: Map[Int, List[String]] = null
   var attributeDistributionCache: Map[Int, Map[String, List[(String,String)]]] = null
   construct()
+
+  /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
+    *
+    * @constructor creates a neighbourhood graph for a given object name and domain, with the given depth and knowledge base
+    * @param rootObject name of the root object: [[String]]
+    * @param domain domain of the root element: [[String]]
+    * @param depth depth of the neighbourhood graph: [[Int]]
+    * @param kBase knowledge base to construct: [[KnowledgeBase]]
+    * */
+  def this(rootObject: String, domain: String, depth: Int, kBase: KnowledgeBase) = {
+    this(rootObject, domain, depth, kBase, new NodeRepository(kBase, true))
+  }
 
   /** Return the knowledge base of an NG*/
   def getKnowledgeBase = {
@@ -80,7 +92,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
           //connect the nodes
           val childNode = nodeRepo.getNode(child._1, predicate.getDomains(child._2))
-          node.addChild(childNode, predicate, focusNodePosition)
+          node.addChild(childNode, predicate, focusNodePosition, nodeRepo.isLocal)
           childNode.addParent(node, predicate, focusNodePosition)
         })
       })

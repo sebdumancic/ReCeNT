@@ -10,7 +10,8 @@ import relationalClustering.representation.KnowledgeBase
 class SimilarityNTv2(override protected val knowledgeBase: KnowledgeBase,
                      override protected val depth: Int,
                      override protected val weights: List[Double],
-                     override protected val bagCompare: AbstractBagCompare) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare) {
+                     override protected val bagCompare: AbstractBagCompare,
+                     override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, useLocalRepo) {
 
   override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph): Double = {
     val firstGraph = ng1.getAttributeValueDistribution(0)

@@ -18,7 +18,8 @@ import relationalClustering.representation.KnowledgeBase
 class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: KnowledgeBase,
                                    override protected val depth: Int,
                                    protected val weights: List[Double],
-                                   protected val bagCompare: AbstractBagCompare) extends AbstractSimilarityNTrees(knowledgeBase, depth) {
+                                   protected val bagCompare: AbstractBagCompare,
+                                   override protected val useLocalRepo: Boolean = false) extends AbstractSimilarityNTrees(knowledgeBase, depth, useLocalRepo) {
 
   require(weights.length == 5, s" You should provide 5 weights not ${weights.length} ($weights)")
   require(weights.sum == 1.0, s"Weights should sum to one, not ${weights.sum}")
