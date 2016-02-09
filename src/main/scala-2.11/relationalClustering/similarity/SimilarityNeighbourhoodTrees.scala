@@ -29,7 +29,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains list of domains of interest
     * */
   def getFilename(domains: List[String]) = {
-    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}.txt"
+    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
   /***********************
