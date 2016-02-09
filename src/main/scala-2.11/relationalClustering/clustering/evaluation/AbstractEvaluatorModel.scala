@@ -13,7 +13,7 @@ abstract class AbstractEvaluatorModel(override protected val rootFolder: String)
     * @param elementOrder ordered list of elements in a matrix
     * @param similarityMatrixFilename distance matrix of the examples in a cluster
     * */
-  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFilename: String)
+  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFilename: String): Double
 
   /** Turns a list of examples into cluster labels
     *
