@@ -55,7 +55,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     *
     * */
   def getObjectSimilaritySave(domains: List[String], folder: String) = {
-    if (!new File(getFilename(domains)).exists()) {
+    if (!new File(s"$folder/${getFilename(domains)}").exists()) {
       val (elems, sim) = getObjectSimilarity(domains)
       saveMatrixToFile(folder, domains, elems, sim)
     }
