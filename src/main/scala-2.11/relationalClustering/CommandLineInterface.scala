@@ -32,7 +32,7 @@ object CommandLineInterface {
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
   val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
   val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI]", "cluster validation method")
-  val useLocalRepository = parser.flag[Boolean](List("useLocalRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
+  val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
 
 
   def main(args: Array[String]) {
