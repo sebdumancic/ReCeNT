@@ -70,12 +70,12 @@ object CommandLineInterface {
       case "Spectral" =>
         val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
         val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
-        cluster.clusterFromFile(filename, k.value.getOrElse(2))
+        cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
 
       case "Hierarchical" =>
         val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
         val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
-        cluster.clusterFromFile(filename, k.value.getOrElse(2))
+        cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
     }
 
     println("FOUND CLUSTERS")
