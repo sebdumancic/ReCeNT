@@ -7,8 +7,7 @@ import scala.sys.process._
 /**
   * Created by seb on 09.02.16.
   */
-class SilhouetteScore(override protected val rootFolder: String,
-                      override protected val similarityMatrixFile: String) extends AbstractEvaluatorModel(rootFolder, similarityMatrixFile) {
+class SilhouetteScore(override protected val rootFolder: String) extends AbstractEvaluatorModel(rootFolder) {
 
   protected val script =
     """
@@ -48,16 +47,16 @@ class SilhouetteScore(override protected val rootFolder: String,
     s"labels.txt"
   }
 
-  protected def command = {
-    s"python $getRoot/cluster_evaluate_script.py --similarityMatrix $similarityMatrixFile --labels $getRoot/$labelsFile --score silhouette "
+  protected def command(similarityFile: String) = {
+    s"python $getRoot/cluster_evaluate_script.py --similarityMatrix $similarityFile --labels $getRoot/$labelsFile --score silhouette "
   }
 
 
-  def validate(clusters: Set[List[String]], elementOrder: List[String]) = {
+  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
     val labels = getLabels(clusters, elementOrder)
     saveLabelsToFile(labels, s"$labelsFile")
 
-    val stream = command.!!
+    val stream = command(similarityMatrixFile).!!
     stream.split(":")(1).toDouble
   }
 

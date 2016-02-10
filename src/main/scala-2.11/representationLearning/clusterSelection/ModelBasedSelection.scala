@@ -20,6 +20,6 @@ class ModelBasedSelection(protected val similarityMatrixFileName: String,
   }
 
   def selectFromClusters(clusterSet: List[Set[List[String]]]) = {
-    clusterSet.map( cluster => new Tuple2(cluster, evaluateSingle.validate(cluster, getElementOrder))).maxBy(_._2)._1
+    clusterSet.map( cluster => new Tuple2(cluster, evaluateSingle.validate(cluster, getElementOrder, getSimilarityMatrixFile))).maxBy(_._2)._1
   }
 }

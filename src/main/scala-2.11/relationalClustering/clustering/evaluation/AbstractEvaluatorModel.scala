@@ -5,15 +5,14 @@ import java.io.FileWriter
 /**
   * Created by seb on 09.02.16.
   */
-abstract class AbstractEvaluatorModel(override protected val rootFolder: String,
-                                      protected val similarityMatrixFile: String) extends AbstractEvaluator(rootFolder) {
+abstract class AbstractEvaluatorModel(override protected val rootFolder: String) extends AbstractEvaluator(rootFolder) {
 
   /** Performs model-based evaluation of clusters
     *
     * @param clusters clusters to evaluate
     * @param elementOrder ordered list of elements in a matrix
     * */
-  def validate(clusters: Set[List[String]], elementOrder: List[String]): Double
+  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String): Double
 
   /** Turns a list of examples into cluster labels
     *
