@@ -240,8 +240,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     var frontier = getRoot.getChildNodes.toSet
     var newFrontier = Set[Node]()
 
-    // +1 necessary so that depth 0 include all immediate connections
-    while (currentDepth <= getMaxDepth + 1) {
+    while (currentDepth <= getMaxDepth) {
       val levelContent = collection.mutable.Map[String, List[(String,String)]]()
       val domains = frontier.map( _.getDomain )
 
