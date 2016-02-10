@@ -58,7 +58,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
     *
     * Facts in the form of Predicate(Object,Value), where [Value] is declared as 'attribute' and [Object] as 'name', are considered attributes
     * */
-  private def addAttributes(node: Node) = {
+  protected def addAttributes(node: Node) = {
     getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ATTRIBUTE ).filter(_.getDomains.contains(node.getDomain)).foreach(predicate => {
       val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter( _._1 == Settings.ARG_TYPE_ATTRIBUTE )
       predicate.getTrueGroundings.filter( _.contains(node.getEntity)).foreach( grounding => {
@@ -75,7 +75,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
     *
     * Facts in form of Predicate(Object), where [Object] is declared as 'name', are considered annotations
     * */
-  private def addAnnotations(node: Node) = {
+  protected def addAnnotations(node: Node) = {
     getKB.getPredicateNames.map( getKB.getPredicate).filter( _.getRole == Settings.ROLE_ANNOTATION).filter( _.getDomains.contains(node.getDomain)).foreach( ann => {
       if (ann.getTrueGroundings.contains(List[String](node.getEntity))) {
         node.addAnnotation(ann.getName)
@@ -90,7 +90,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
     *
     * @param node node to be extended by descriptions: [[Node]]
     * */
-  private def addDescriptions(node: Node) = {
+  protected def addDescriptions(node: Node) = {
     addAnnotations(node)
     addAttributes(node)
   }
