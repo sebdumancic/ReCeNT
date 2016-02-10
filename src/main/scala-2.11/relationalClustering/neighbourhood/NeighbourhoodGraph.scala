@@ -36,7 +36,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * @param kBase knowledge base to construct: [[KnowledgeBase]]
     * */
   def this(rootObject: String, domain: String, depth: Int, kBase: KnowledgeBase) = {
-    this(rootObject, domain, depth, kBase, new NodeRepository(kBase, true))
+    this(rootObject, domain, depth, kBase, new LocalNodeRepository(kBase))
   }
 
   /** Return the knowledge base of an NG*/
@@ -92,7 +92,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
           //connect the nodes
           val childNode = nodeRepo.getNode(child._1, predicate.getDomains(child._2))
-          node.addChild(childNode, predicate, focusNodePosition, nodeRepo.isLocal)
+          node.addChild(childNode, predicate, focusNodePosition)
           childNode.addParent(node, predicate, focusNodePosition)
         })
       })

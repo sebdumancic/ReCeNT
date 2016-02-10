@@ -123,10 +123,9 @@ class Node(protected val entity: String,
     * @param child child node: Node
     * @param predicate originating relation of the edge: Predicate
     * @param parentPosition position of the parent node in the arguments of the relation: Int
-    * @param localRepo local [[NodeRepository]] indicator - if true, recursive links are prevented in creation of a [[NeighbourhoodGraph]]
     * */
-  def addChild(child: Node, predicate: Predicate, parentPosition: Int, localRepo: Boolean = false) = {
-    if ((child.getEntity != getEntity || child.getDomain != getDomain) && ( !localRepo || !getParentEdges.map(_.getParent).contains(child))) {
+  def addChild(child: Node, predicate: Predicate, parentPosition: Int) = {
+    if (child.getEntity != getEntity || child.getDomain != getDomain) {
       children = children + new Edge(this, child, predicate, parentPosition)
     }
   }
