@@ -51,7 +51,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     *
     * @param domains domains of interest
     * @param folder folder to save file
-    * @return filename of the file containing similarity matrix
+    * @return filename of the file containing similarity matrix, and the element ordering
     *
     * */
   def getObjectSimilaritySave(domains: List[String], folder: String) = {
@@ -59,7 +59,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       val (elems, sim) = getObjectSimilarity(domains)
       saveMatrixToFile(folder, domains, elems, sim)
     }
-    (s"$folder/${getFilename(domains)}", getObjectSimilarity(domains))
+    (s"$folder/${getFilename(domains)}", getObjectsFromDomains(domains))
   }
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
