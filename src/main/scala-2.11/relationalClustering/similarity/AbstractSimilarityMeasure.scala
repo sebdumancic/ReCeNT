@@ -5,6 +5,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import breeze.linalg.{DenseMatrix, max, min}
 import relationalClustering.neighbourhood.NodeRepository
 import relationalClustering.representation.KnowledgeBase
+import relationalClustering.utils.Settings
 
 /** Abstract Similarity measure class
   * Created by seb on 18.01.16.
@@ -38,6 +39,34 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     domains.foldLeft(List[(String,String)]())( (acc, dom) => {
       acc ++ getKB.getDomain(dom).getElements.map( x => new Tuple2(x, dom))
     }).sortBy(_._1)
+  }
+
+  /** Checks whether a hyperedge is contained in a predicate domains
+    *
+    * @param domains domains of the hyperEdge
+    * @param testHyperEdge domains of a predicate
+    * */
+  protected def hyperEdgeContained(domains: List[String], testHyperEdge: List[String]) = {
+    val domainCounts = domains.map( dom => new Tuple2(dom, domains.count(_ == dom))).toSet
+
+    domainCounts.map( cand => testHyperEdge.count(_ == cand._1) >= cand._2).reduce(_ && _)
+  }
+
+  /** Extracts all the hyper-edges in a graph
+    *
+    * @param domains hyperEdge domains (should be sorted alphabetically!)
+    * */
+  def getHyperEdges(domains: List[String]) = {
+    require(domains.length > 1, "Hyperedge requires at least two domains to be specified")
+    require(domains == domains.sorted, "Domains have to be sorted alphabetically")
+
+    getKB.getPredicateNames.map(getKB.getPredicate).filter( _.getRole == Settings.ROLE_HYPEREDGE).filter( pred => hyperEdgeContained(domains, pred.getDomains)).foldLeft(Set[List[String]]())( (acc, pred) =>{
+      val doms = pred.getDomains
+      val validTuples = pred.getTrueGroundings.foldLeft(Set[List[String]]())( (acc_i, ground) => {
+        acc_i ++ ground.zip(doms).combinations(domains.length).map( _.sortBy(_._2)).filter( curGround => curGround.map(_._2) == domains).map( c => c.map(_._1))
+      })
+      acc ++ validTuples
+    })
   }
 
   /** Method implementing an interface for accessing similarity of object(s) from specified domain(s)
