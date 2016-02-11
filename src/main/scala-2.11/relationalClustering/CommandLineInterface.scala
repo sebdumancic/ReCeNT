@@ -47,6 +47,7 @@ object CommandLineInterface {
     val predicateDeclarations = new PredicateDeclarations(declarationFile.value.get)
     val KnowledgeBase = new KnowledgeBase(dbs.value, Helper.readFile(head.value.get).mkString("\n"), predicateDeclarations)
 
+
     val bagComparison = bag.value.getOrElse("chiSquared") match {
       case "chiSquared" => new ChiSquared()
     }
@@ -55,6 +56,7 @@ object CommandLineInterface {
       case "union" => new UnionCombination()
       case "intersection" => new IntersectionCombination()
     }
+
 
     val similarityMeasure = similarity.value.getOrElse("RCNT") match {
       case "RCNT" =>
@@ -75,6 +77,7 @@ object CommandLineInterface {
 
 
 
+
     val clusters = algorithm.value.getOrElse("Spectral") match {
       case "Spectral" =>
         val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
@@ -86,6 +89,8 @@ object CommandLineInterface {
         val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
         cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
     }
+
+
 
     println("FOUND CLUSTERS")
     clusters.zipWithIndex.foreach( cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
