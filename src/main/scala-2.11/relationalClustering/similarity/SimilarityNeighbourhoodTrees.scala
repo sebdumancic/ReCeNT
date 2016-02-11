@@ -170,7 +170,143 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @return (ordering of hyperEdges, similarity matrix)
     * */
   def getHyperEdgeSimilarity(domains: List[String]) = {
-    new NotImplementedError("HyperEdge similarity not implemented yet!")
-    (List[List[String]](), DenseMatrix.zeros[Double](1,1))
+    val hyperEdges = getHyperEdges(domains)
+
+    val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
+      List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
+    )
+
+    val returnMat = weights.zipWithIndex.filter(_._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
+      acc + accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1}
+    })
+
+    (hyperEdges, returnMat)
+  }
+
+  /** computes the similarity between hyperEdge in vertices according to their attributes
+    *
+    * @param ngs1 the first hyperedge (ordered set of vertices)
+    * @param ngs2 the second hyperedge
+    * @return [[Double]]
+    * */
+  protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+    val ngOneCombined = ngs1.map(_.getRootAttributes).foldLeft(Set[(String,String)]())((acc, attrSet) => {
+      bagCombine.combineBags(acc.toList, attrSet.toList).toSet
+    })
+    val ngTwoCombined = ngs2.map(_.getRootAttributes).foldLeft(Set[(String,String)]())( (acc, attrSet) => {
+      bagCombine.combineBags(acc.toList, attrSet.toList).toSet
+    })
+
+    ngOneCombined.intersect(ngTwoCombined).size.toDouble
+  }
+
+  /** Computes the similarity between hyperEdges accoring to the attribute neighbourhoods of the vertices it connects
+    *
+    * @param ngs1 the first hyperedge
+    * @param ngs2 the second hyperedge
+    * @return [[Double]]
+    * */
+  protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+    val firstNeighbourhoods = ngs1.map(_.getAttributeValueDistribution)
+    val secondNeighbourhoods = ngs2.map(_.getAttributeValueDistribution)
+
+    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
+      val firstDepthFilteredAttrs = firstNeighbourhoods.map( _(depth))
+      val secondDepthFilteredAttrs = secondNeighbourhoods.map(_(depth))
+      val keys = firstDepthFilteredAttrs.map( _.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet).union(
+        secondDepthFilteredAttrs.map( _.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet)
+      )
+      acc + keys.foldLeft(0.0)( (acc_i, vType) => {
+        val firstBag = firstDepthFilteredAttrs.map( _.getOrElse(vType, List[(String,String)]())).foldLeft(List[(String,String)]())((acc, attrSet) => {
+          bagCombine.combineBags(acc, attrSet)
+        })
+        val secondBag = secondDepthFilteredAttrs.map(_.getOrElse(vType, List[(String,String)]())).foldLeft(List[(String,String)]())( (acc, attrSet) => {
+          bagCombine.combineBags(acc, attrSet)
+        })
+        acc_i + math.abs(bagCompare.compareBags(firstBag.map(e => s"${e._1}${e._2}"), secondBag.map(e => s"${e._1}${e._2}")))
+      })
+    })
+  }
+
+  /** Calculates the number of connections between vertices in two hyperedges
+    *
+    * @param ngs1 the first hyperedge
+    * @param ngs2 the second hyperedge
+    * @return [[Double]]
+    * */
+  protected def hyperEdgeConnections(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+    val depthOneVertices = ngs2.map( _.collectVertexIdentity()(0)).map( x => x.foldLeft(List[String]())( (acc, dom) => {
+      acc ++ dom._2
+    })).reduce(_ ++ _)
+
+    ngs1.map( _.getRoot.getEntity).foldLeft(0.0)( (acc, elem) => {
+      acc + depthOneVertices.count( _ == elem).toDouble
+    })
+  }
+
+  /** Calculates the similarity in vertex neighbourhoods of the vertices in hyperedges
+    *
+    * @param ngs1 the first hyperedge
+    * @param ngs2 the second hyperedge
+    * @return [[Double]]
+    * */
+  protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+    val firstVertices = ngs1.map( _.collectVertexIdentity())
+    val secondVertices = ngs2.map(_.collectVertexIdentity())
+
+    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
+      val firstDepthFiltered = firstVertices.map( _(depth))
+      val secondDepthFiltered = secondVertices.map(_(depth))
+      val iterables = firstDepthFiltered.map(_.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet).union(
+        secondDepthFiltered.map(_.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet)
+      )
+      acc + iterables.foldLeft(0.0)( (acc_i, vType) => {
+        val firstBag = firstDepthFiltered.map(_.getOrElse(vType, List[String]())).foldLeft(List[String]())( (acc, vSet) => bagCombine.combineBags(acc, vSet))
+        val secondBag = secondDepthFiltered.map(_.getOrElse(vType, List[String]())).foldLeft(List[String]())( (acc, vSet) => bagCombine.combineBags(acc, vSet))
+        acc_i + math.abs(bagCompare.compareBags(firstBag, secondBag))
+      })
+    })
+  }
+
+  /** Calculates the edge distribution similarity between vertices in a hyperedge
+    *
+    * @param ngs1 the first hyperedge
+    * @param ngs2 the second hyperedge
+    * @return [[Double]]
+    * */
+  protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+    val firstDistribution = ngs1.map(_.getEdgeDistribution)
+    val secondDistribution = ngs2.map(_.getEdgeDistribution)
+
+    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
+      val firstDepthFiltered = firstDistribution.map( _(depth))
+      val secondDepthfiltered = secondDistribution.map(_(depth))
+
+      acc + math.abs(bagCompare.compareBags(firstDepthFiltered.foldLeft(List[String]())( (acc, eSet) => bagCombine.combineBags(acc, eSet)),
+                                            secondDepthfiltered.foldLeft(List[String]())( (acc, eSet) => bagCombine.combineBags(acc, eSet))))
+    })
+  }
+
+  /** Accumulates the similarity measure of provided elements in a matrix
+    *
+    * @param elements a list of hyperedges
+    * @param domains domains of elements in a hyperedge
+    * @param simFunction similarity measure
+    * */
+  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double, shouldBeInverted: Boolean) = {
+    val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
+
+    for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
+      val simValue = simFunction(elements(ind1).zipWithIndex.map(x => getNeighbourhoodGraph(x._1, domains(x._2))),
+                                 elements(ind2).zipWithIndex.map( x => getNeighbourhoodGraph(x._1, domains(x._2))))
+
+      similarityMatrix(ind1, ind2) += simValue
+      similarityMatrix(ind2, ind1) += simValue
+    }
+
+    shouldBeInverted match {
+      case true => normalizeAndInvert(similarityMatrix)
+      case false => normalizeMatrix(similarityMatrix)
+    }
   }
 }
