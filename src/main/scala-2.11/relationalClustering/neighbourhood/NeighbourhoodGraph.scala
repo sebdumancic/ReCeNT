@@ -24,7 +24,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   val root = nodeRepo.getNode(rootObject, domain) //new Node(rootObject, domain)
   var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = null //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
   var edgeDistributionCache: Map[Int, List[String]] = null
-  var attributeDistributionCache: Map[Int, Map[String, List[(String,String)]]] = null
+  var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = null
   construct()
 
   /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
@@ -229,42 +229,40 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @return Map[Int, Map[String, List[(String,String)] ] ] level -> type -> list of attribute-values
     * */
-  def getAttributeValueDistribution: Map[Int, Map[String, List[(String,String)]]] = {
-    if (attributeDistributionCache != null) {
-      return attributeDistributionCache
-    }
+  def getAttributeValueDistribution: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = {
 
-    val returnData = collection.mutable.Map[Int, Map[String, List[(String,String)]]]()
+    val returnData = collection.mutable.Map[Int, collection.mutable.Map[String, List[(String,String)]]]()
 
-    var currentDepth = 0
-    var frontier = getRoot.getChildNodes.toSet
+    var currentLevel = 0
+    var frontier = Set[Node](getRoot)
     var newFrontier = Set[Node]()
 
-    while (currentDepth <= getMaxDepth) {
-      val levelContent = collection.mutable.Map[String, List[(String,String)]]()
-      val domains = frontier.map( _.getDomain )
+    while (currentLevel <= getMaxDepth) {
 
-      //collecting over nodes at current level
-      domains.foreach( dom => {
-        levelContent(dom) = frontier.filter( _.getDomain == dom ).foldLeft(List[(String,String)]())( (acc, cNode) => {
-          //expand the frontier (excluding the root element if encountered again)
-          cNode.getChildNodes.filter( _.getEntity != getRoot.getEntity).foreach(child => {
-            newFrontier = newFrontier + child
-          })
+      if (!returnData.contains(currentLevel)) {
+        returnData(currentLevel) = collection.mutable.Map[String, List[(String,String)]]()
+      }
 
-          acc ++ cNode.getAttributeValuePairs.toList ++ cNode.getAnnotations.toList
+      // expand children
+      frontier.foreach( cNode => {
+        cNode.getChildNodes.toSet.filter(_.getEntity != getRoot.getEntity).foreach( child => {
+
+          if (!returnData(currentLevel).contains(child.getDomain)) {
+            returnData(currentLevel)(child.getDomain) = List[(String, String)]()
+          }
+
+          // add attributes to collection
+          returnData(currentLevel)(child.getDomain) = returnData(currentLevel)(child.getDomain) ++: child.getAttributeValuePairs.toList
+
+          //add child to the frontier
+          newFrontier = newFrontier + child
         })
       })
 
-      //put content in returnData
-      returnData(currentDepth) = levelContent.toMap
-
-      frontier = newFrontier.map( x => x )
+      frontier = newFrontier.map( x => x)
       newFrontier = Set[Node]()
-      currentDepth = currentDepth + 1
+      currentLevel += 1
     }
-
-    attributeDistributionCache = returnData.toMap
 
     returnData.toMap
   }
