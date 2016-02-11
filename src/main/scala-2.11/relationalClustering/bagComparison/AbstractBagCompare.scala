@@ -16,7 +16,7 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param bag1 list of elements of the first bag
     * @param bag2 list of elements of the second bag
     * */
-  def compareBags(bag1: List[String], bag2: List[String]): Double = {
+  def compareBags[T](bag1: List[T], bag2: List[T]): Double = {
     val histElements = commonElements(bag1, bag2)
 
     similarity(bagToHistogram(bag1, histElements), bagToHistogram(bag2, histElements))
@@ -38,7 +38,7 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param bag2 list of all elements in bag two
     * @return list of all common elements
     * */
-  protected def commonElements(bag1: List[String], bag2: List[String]) = {
+  protected def commonElements[T](bag1: List[T], bag2: List[T]) = {
     val distinctElements = bag1.toSet.union(bag2.toSet)
 
     distinctElements.isEmpty match {
@@ -53,7 +53,7 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param histogramElements ordered elements in the histogram
     * @return list[Double]
     * */
-  protected def bagToHistogram(bag: List[String], histogramElements: List[String]) = {
+  protected def bagToHistogram[T](bag: List[T], histogramElements: List[T]) = {
     normalizeBySum(histogramElements.map(x => bag.count( _ == x))).map(x => if (x.isNaN) 0.0 else x)
   }
 
