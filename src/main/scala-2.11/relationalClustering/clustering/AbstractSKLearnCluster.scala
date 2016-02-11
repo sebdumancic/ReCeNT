@@ -126,7 +126,9 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
   def clusterFromFile(filename: String, k: Int) = {
     command(prepareParameters(filename, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
 
-    readClusters
+    val clusters = readClusters
+    cleanArtifacts
+    clusters
   }
 
   /** Parses the resulting file and return the set of clusters */
@@ -138,6 +140,14 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     })
 
     clusters.toSet
+  }
+
+  protected def cleanArtifacts = {
+    val script = new File(s"$getRoot/${algName}_script.py")
+    val results = new File(getResultFile)
+
+    script.delete()
+    results.delete()
   }
 
 }
