@@ -29,7 +29,7 @@ object CommandLineInterface {
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
   val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|HS|RIBL|HSAG]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared]", "bag similarity measure")
-  val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination mrthod")
+  val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
   val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
