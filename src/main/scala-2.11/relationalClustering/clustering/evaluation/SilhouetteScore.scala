@@ -1,6 +1,6 @@
 package relationalClustering.clustering.evaluation
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
 
 import scala.sys.process._
 
@@ -57,7 +57,16 @@ class SilhouetteScore(override protected val rootFolder: String) extends Abstrac
     saveLabelsToFile(labels, s"$labelsFile")
 
     val stream = command(similarityMatrixFile).!!
+    cleanArtifacts
     stream.split(":")(1).toDouble
+  }
+
+  protected def cleanArtifacts = {
+    val labels = new File(s" $getRoot/$labelsFile")
+    val script = new File(s"$getRoot/cluster_evaluate_script.py")
+
+    labels.delete()
+    script.delete()
   }
 
 }
