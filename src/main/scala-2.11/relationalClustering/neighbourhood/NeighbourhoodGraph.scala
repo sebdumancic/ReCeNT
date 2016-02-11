@@ -230,6 +230,9 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * @return Map[Int, Map[String, List[(String,String)] ] ] level -> type -> list of attribute-values
     * */
   def getAttributeValueDistribution: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = {
+    if (attributeDistributionCache != null) {
+      return attributeDistributionCache
+    }
 
     val returnData = collection.mutable.Map[Int, collection.mutable.Map[String, List[(String,String)]]]()
 
@@ -263,6 +266,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
       newFrontier = Set[Node]()
       currentLevel += 1
     }
+
+    attributeDistributionCache = returnData.toMap
 
     returnData.toMap
   }
