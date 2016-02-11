@@ -66,7 +66,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
         acc_i ++ ground.zip(doms).combinations(domains.length).map( _.sortBy(_._2)).filter( curGround => curGround.map(_._2) == domains).map( c => c.map(_._1))
       })
       acc ++ validTuples
-    })
+    }).toList.sortBy(_.mkString)
   }
 
   /** Method implementing an interface for accessing similarity of object(s) from specified domain(s)
