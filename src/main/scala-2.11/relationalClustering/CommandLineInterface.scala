@@ -2,6 +2,7 @@ package relationalClustering
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.ChiSquared
+import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
@@ -28,6 +29,7 @@ object CommandLineInterface {
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
   val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|HS|RIBL|HSAG]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared]", "bag similarity measure")
+  val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination mrthod")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
   val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
@@ -45,26 +47,33 @@ object CommandLineInterface {
     val predicateDeclarations = new PredicateDeclarations(declarationFile.value.get)
     val KnowledgeBase = new KnowledgeBase(dbs.value, Helper.readFile(head.value.get).mkString("\n"), predicateDeclarations)
 
+    val bagComparison = bag.value.getOrElse("chiSquared") match {
+      case "chiSquared" => new ChiSquared()
+    }
+
+    val bagCombinationMethod = bagCombination.value.getOrElse("intersection") match {
+      case "union" => new UnionCombination()
+      case "intersection" => new IntersectionCombination()
+    }
+
     val similarityMeasure = similarity.value.getOrElse("RCNT") match {
       case "RCNT" =>
-        val bagComparison = bag.value.getOrElse("chiSquared") match {
-          case "chiSquared" => new ChiSquared()
-        }
         new SimilarityNeighbourhoodTrees(KnowledgeBase,
                                          depth.value.getOrElse(0),
                                          weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                                          bagComparison,
+                                         bagCombinationMethod,
                                          useLocalRepository.value.getOrElse(false))
       case "RCNTv2" =>
-        val bagComparison = bag.value.getOrElse("chiSquared") match {
-          case "chiSquared" => new ChiSquared()
-        }
         new SimilarityNTv2(KnowledgeBase,
                            depth.value.getOrElse(0),
                            weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                            bagComparison,
+                           bagCombinationMethod,
                            useLocalRepository.value.getOrElse(false))
     }
+
+
 
     val clusters = algorithm.value.getOrElse("Spectral") match {
       case "Spectral" =>

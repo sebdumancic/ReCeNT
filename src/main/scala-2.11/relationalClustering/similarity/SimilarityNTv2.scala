@@ -1,6 +1,7 @@
 package relationalClustering.similarity
 
 import relationalClustering.bagComparison.AbstractBagCompare
+import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.KnowledgeBase
 
@@ -11,7 +12,8 @@ class SimilarityNTv2(override protected val knowledgeBase: KnowledgeBase,
                      override protected val depth: Int,
                      override protected val weights: List[Double],
                      override protected val bagCompare: AbstractBagCompare,
-                     override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, useLocalRepo) {
+                     override protected val bagCombine: AbstractBagCombine,
+                     override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, useLocalRepo) {
 
   override def getFilename(domains: List[String]) = {
     s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_useLocalRepo${useLocal}_compatible.txt"

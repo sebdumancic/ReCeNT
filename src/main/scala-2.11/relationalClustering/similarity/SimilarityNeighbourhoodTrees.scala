@@ -2,6 +2,7 @@ package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.bagComparison.AbstractBagCompare
+import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.KnowledgeBase
 
@@ -19,6 +20,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
                                    override protected val depth: Int,
                                    protected val weights: List[Double],
                                    protected val bagCompare: AbstractBagCompare,
+                                   protected val bagCombine: AbstractBagCombine,
                                    override protected val useLocalRepo: Boolean = false) extends AbstractSimilarityNTrees(knowledgeBase, depth, useLocalRepo) {
 
   require(weights.length == 5, s" You should provide 5 weights not ${weights.length} ($weights)")
