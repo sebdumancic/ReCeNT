@@ -97,12 +97,33 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   def getFilename(domains: List[String]): String
 
+  /** Uniquely identifies the filename to save hyperedge similarity matrix (once calculated it can be reused)
+    *
+    * @param domains list of domains of interest
+    * */
+  def getFilenameHyperEdges(domains: List[String]): String
+
   /** Method implementing an interface to assess the similarity of edges connecting objects from specified domains
     *
     * @param domains list of domains that hyperedges connect: [[List]]
     * @return (ordering of hyperEdges, similarity matrix)
     * */
   def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double])
+
+  /** Get the hyper-edge similarity matrix and save it to file
+    *
+    * @param domains domains of the hyperedges
+    * @param folder folder to save the file to
+    * @return fileName, an ordering of elements
+    * */
+  def getHyperEdgeSimilaritySave(domains: List[String], folder: String) = {
+    if (!new File(s"$folder/${getFilenameHyperEdges(domains)}").exists()) {
+      val (elems, sim) = getHyperEdgeSimilarity(domains)
+      saveMatrixToFile(folder, domains, elems.map( _.mkString(":")), sim)
+    }
+
+    (s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
+  }
 
   /** Normalizes the given matrix by its largest value
     *
