@@ -5,7 +5,7 @@ package relationalClustering.bagComparison.bagCombination
   */
 class IntersectionCombination extends AbstractBagCombine("intersection") {
 
-  def combineBags(bag1: List[String], bag2: List[String]) = {
+  def combineBags[T](bag1: List[T], bag2: List[T]) = {
     bag1.intersect(bag2)
   }
 }

@@ -16,5 +16,5 @@ abstract class AbstractBagCombine(protected val identity: String) {
     * @param bag2 the second bag of elements
     * @return bag combination
     * */
-  def combineBags(bag1: List[String], bag2: List[String]): List[String]
+  def combineBags[T](bag1: List[T], bag2: List[T]): List[T]
 }
