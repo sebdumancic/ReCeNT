@@ -142,6 +142,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     clusters.toSet
   }
 
+  /** Cleans the artifacts produced by the class*/
   protected def cleanArtifacts = {
     val script = new File(s"$getRoot/${algName}_script.py")
     val results = new File(getResultFile)
