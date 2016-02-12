@@ -34,7 +34,7 @@ object LearnNewRepresentation {
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
-  val query = parser.multiOption[String](List("query"), "comma-separated list", "list of domains to cluster; if not set, all domains are clustered")
+  val query = parser.option[String](List("query"), "comma-separated list", "list of domains to cluster; if not set, all domains are clustered")
   val maxNumberOfClusters = parser.option[Int](List("maxClusters"), "n", "maximal number of clusters to create, per domain")
   val selectionMethod = parser.option[String](List("selection"), "predefined|silhouette", "how to select the number of clusters per domain")
   val outputName = parser.option[String](List("output"), "string", "name of the file to save new layer [default:newLayer.*]")
@@ -54,7 +54,7 @@ object LearnNewRepresentation {
     // domains to cluster
     val domainsToCluster = query.value.isEmpty match {
       case true => KnowledgeBase.getAllDomains.keys.toList
-      case false => query.value.toList
+      case false => query.value.get.split(",").toList
     }
 
     // number of clusters per domain
