@@ -3,8 +3,8 @@ package representationLearning
 import java.io.{BufferedWriter, FileWriter}
 
 import org.clapper.argot.ArgotParser
-import relationalClustering.bagComparison.ChiSquared
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
+import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, Unionsimilarity}
 import relationalClustering.clustering.evaluation.SilhouetteScore
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
@@ -30,7 +30,7 @@ object LearnNewRepresentation {
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
   val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|HS|RIBL|HSAG]", "similarity measure")
-  val bag = parser.option[String](List("bagSimilarity"), "[chiSquared]", "bag similarity measure")
+  val bag = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
@@ -71,7 +71,10 @@ object LearnNewRepresentation {
     // similarity measure to use
 
     val bagComparison = bag.value.getOrElse("chiSquared") match {
-      case "chiSquared" => new ChiSquared()
+      case "chiSquared" => new ChiSquaredDistance()
+      case "minimum" => new MinimumSimilarity()
+      case "maximum" => new MaximumSimilarity()
+      case "union" => new Unionsimilarity()
     }
 
     val bagCombinationMethod = bagCombination.value.getOrElse("intersection") match {
