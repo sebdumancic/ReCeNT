@@ -53,6 +53,7 @@ class SilhouetteScore(override protected val rootFolder: String) extends Abstrac
 
 
   def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
+    prepareScript()
     val labels = getLabels(clusters, elementOrder)
     saveLabelsToFile(labels, s"$labelsFile")
 
