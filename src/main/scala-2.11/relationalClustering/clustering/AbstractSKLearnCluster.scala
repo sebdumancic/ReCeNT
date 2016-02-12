@@ -124,6 +124,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param k desired number of clusters
     * */
   def clusterFromFile(filename: String, k: Int) = {
+    prepareScript()
     command(prepareParameters(filename, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
 
     val clusters = readClusters
