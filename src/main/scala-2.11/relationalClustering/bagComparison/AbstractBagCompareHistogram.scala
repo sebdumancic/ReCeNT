@@ -3,13 +3,7 @@ package relationalClustering.bagComparison
 /**
   * Created by seb on 03.02.16.
   */
-abstract class AbstractBagCompare(protected val identity: String) {
-
-
-  /** Returns the identity of the bag compare function */
-  def name = {
-    identity
-  }
+abstract class AbstractBagCompareHistogram(override protected val identity: String) extends AbstractBagComparison(identity) {
 
   /** Takes two bags and compares them
     *
@@ -28,9 +22,6 @@ abstract class AbstractBagCompare(protected val identity: String) {
     * @param hist2 normalized histogram
     * */
   protected def similarity(hist1: List[Double], hist2: List[Double]) : Double
-
-  /** Should measure be normalized and inverted to be turned into a similarity measure */
-  def needsToBeInverted : Boolean
 
   /** Extract the union of all elements in two bags; in case there are no element, put a fake element in a bag to avoid problems later
     *

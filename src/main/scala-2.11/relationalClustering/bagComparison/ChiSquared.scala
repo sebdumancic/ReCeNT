@@ -4,7 +4,7 @@ package relationalClustering.bagComparison
   * Implements a Chi Squared distance between two normalized histograms
   * Created by seb on 04.02.16.
   */
-class ChiSquared() extends AbstractBagCompare("chiSquared") {
+class ChiSquared() extends AbstractBagCompareHistogram("chiSquared") {
 
   def needsToBeInverted = {
     true

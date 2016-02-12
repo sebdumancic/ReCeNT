@@ -1,7 +1,7 @@
 package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
-import relationalClustering.bagComparison.AbstractBagCompare
+import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.KnowledgeBase
@@ -13,13 +13,13 @@ import relationalClustering.representation.KnowledgeBase
   * @param knowledgeBase knowledge base: [[KnowledgeBase]]
   * @param depth depth of the neighbourhood graphs: [[Int]]
   * @param weights a list of weights (attributes, attribute neighbourhood, connections, vertex neighbourhoods, edge distribution), must sum to 1.0: [[List]]
-  * @param bagCompare bag comparison class: [[AbstractBagCompare]]
+  * @param bagCompare bag comparison class: [[AbstractBagComparison]]
   * Created by seb on 03.02.16.
   */
 class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: KnowledgeBase,
                                    override protected val depth: Int,
                                    protected val weights: List[Double],
-                                   protected val bagCompare: AbstractBagCompare,
+                                   protected val bagCompare: AbstractBagComparison,
                                    protected val bagCombine: AbstractBagCombine,
                                    override protected val useLocalRepo: Boolean = false) extends AbstractSimilarityNTrees(knowledgeBase, depth, useLocalRepo) {
 
