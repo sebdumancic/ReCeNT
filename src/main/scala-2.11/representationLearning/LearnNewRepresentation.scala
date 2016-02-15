@@ -162,7 +162,7 @@ object LearnNewRepresentation {
       // CLUSTER LINKS BETWEEN THESE DOMAINS
       if (clusterEdges.value.getOrElse(false) && domainsToCluster.length > 1) {
 
-        domainsToCluster.combinations(2).foreach(comb => {
+        domainsToCluster.sorted.combinations(2).foreach(comb => {
           var createdClusters = List[Set[List[String]]]()
           val filename = similarityMeasure.getHyperEdgeSimilaritySave(comb, rootFolder.value.getOrElse("./tmp"))
 
