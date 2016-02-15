@@ -39,6 +39,14 @@ class NeighbourhoodGraph(protected val rootObject: String,
     this(rootObject, domain, depth, kBase, new LocalNodeRepository(kBase))
   }
 
+  /** Clears all the cached values */
+  def clearCache() = {
+    vertexIdentityCache = null
+    edgeDistributionCache = null
+    attributeDistributionCache = null
+    nodeRepo.clearCache()
+  }
+
   /** Return the knowledge base of an NG*/
   def getKnowledgeBase = {
     kBase

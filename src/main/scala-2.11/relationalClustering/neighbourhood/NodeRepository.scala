@@ -95,4 +95,10 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
     addAttributes(node)
   }
 
+  /** Clears the cache of the node repository
+    * */
+  def clearCache() = {
+    createdNodes.clear()
+  }
+
 }

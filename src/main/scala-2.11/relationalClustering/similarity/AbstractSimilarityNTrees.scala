@@ -31,4 +31,9 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     neighbourhoodGraphCache(keytoUse)
   }
 
+  /** Clears the neighbourhood graph cache*/
+  def clearCache() = {
+    neighbourhoodGraphCache.clear()
+  }
+
 }
