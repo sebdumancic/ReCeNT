@@ -143,11 +143,17 @@ object LearnNewRepresentation {
           kbWriter.write(clust._1.map(elem => s"Cluster_${domain._1}${clust._2}($elem)").mkString("\n") + "\n")
         })
 
+        //clearing the cache for the next domain
+        similarityMeasure.clearCache()
 
         // additional newline for easier reading
         headerWriter.write(s"\n")
         declarationsWriter.write(s"\n")
         kbWriter.write("\n")
+
+        headerWriter.flush()
+        declarationsWriter.flush()
+        kbWriter.flush()
 
       })
     }
