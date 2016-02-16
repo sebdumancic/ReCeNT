@@ -1,6 +1,6 @@
 package representationLearning
 
-import java.io.{BufferedWriter, FileWriter, PrintWriter}
+import java.io.{BufferedWriter, FileWriter}
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
@@ -40,6 +40,7 @@ object LearnNewRepresentation {
   val outputName = parser.option[String](List("output"), "string", "name of the file to save new layer [default:newLayer.*]")
   val k = parser.option[Int](List("k"), "n", "desired number of clusters in 'predefined' selection method is used")
   val kPerDomain = parser.option[String](List("kDomain"), "comma-separated list of domain:numClusters", "number of clusters per domain")
+  val clusterEdges = parser.flag[Boolean](List("clusterHyperedges"), "should hyperedges be clusters as well (between the specified domains)")
 
   def main(args: Array[String]) {
     parser.parse(args)
@@ -143,7 +144,7 @@ object LearnNewRepresentation {
           kbWriter.write(clust._1.map(elem => s"Cluster_${domain._1}${clust._2}($elem)").mkString("\n") + "\n")
         })
 
-        //clearing the cache for the next domain
+        // clear the cache for the next domain
         similarityMeasure.clearCache()
 
         // additional newline for easier reading
@@ -156,13 +157,50 @@ object LearnNewRepresentation {
         kbWriter.flush()
 
       })
+
+
+      // CLUSTER LINKS BETWEEN THESE DOMAINS
+      if (clusterEdges.value.getOrElse(false) && domainsToCluster.length > 1) {
+
+        domainsToCluster.sorted.combinations(2).foreach(comb => {
+          var createdClusters = List[Set[List[String]]]()
+          val filename = similarityMeasure.getHyperEdgeSimilaritySave(comb, rootFolder.value.getOrElse("./tmp"))
+
+          (2 until maxNumberOfClusters.value.getOrElse(10)).foreach(numCl => {
+            createdClusters = createdClusters :+ clustering.clusterFromFile(filename._1, numCl)
+          })
+
+          // cluster selection method
+          val clusterSelector = selectionMethod.value.getOrElse("predefined") match {
+            case "predefined" => new PredefinedNumber(k.value.getOrElse(2))
+            case "silhouette" =>
+              val clusterEvaluation = new SilhouetteScore(rootFolder.value.getOrElse("./tmp"))
+              new ModelBasedSelection(filename._1, filename._2.map(_.mkString(",")), clusterEvaluation)
+          }
+
+          val selectedCluster = clusterSelector.selectFromClusters(createdClusters)
+          selectedCluster.zipWithIndex.foreach(clust => {
+            headerWriter.write(s"Cluster_${comb.mkString("_")}${clust._2}(${comb.mkString(",")})\n")
+            declarationsWriter.write(s"Cluster_${comb.mkString("_")}${clust._2}(${comb.map(x => "name")})\n")
+            kbWriter.write(clust._1.map(elem => s"Cluster_${comb.mkString("_")}${clust._2}($elem)").mkString("\n") + "\n")
+          })
+
+          // clear the cache for the next domain
+          similarityMeasure.clearCache()
+
+          // additional newline for easier reading
+          headerWriter.write(s"\n")
+          declarationsWriter.write(s"\n")
+          kbWriter.write("\n")
+
+          headerWriter.flush()
+          declarationsWriter.flush()
+          kbWriter.flush()
+
+        })
+      }
+
     }
-    catch {
-        case e: Exception => println(s"ERROR: ${e.getMessage} \n ${e.getStackTrace}")
-          val error = new PrintWriter(rootFolder.value.getOrElse("./tmp") + "/errorstack.log")
-          e.printStackTrace(error)
-          error.close()
-     }
     finally {
       kbWriter.close()
       headerWriter.close()

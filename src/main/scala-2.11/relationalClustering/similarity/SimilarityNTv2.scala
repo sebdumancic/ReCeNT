@@ -20,7 +20,7 @@ class SimilarityNTv2(override protected val knowledgeBase: KnowledgeBase,
   }
 
   override def getFilenameHyperEdges(domains: List[String]) = {
-    s"hyperedges_${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_compatible.txt"
+    s"${domains.mkString("_")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_compatible.txt"
   }
 
   override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph): Double = {
