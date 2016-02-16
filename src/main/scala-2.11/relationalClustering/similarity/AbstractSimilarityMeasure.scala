@@ -152,7 +152,10 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     *
     * @param matrix matrix to invert: [[DenseMatrix]]
     * */
-  def normalizeAndInvert(matrix: DenseMatrix[Double]) = {
+  def normalizeAndInvert(matrix: DenseMatrix[Double]): DenseMatrix[Double] = {
+    if (max(matrix) == 0.0 ) {
+      return matrix
+    }
     DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix)
   }
 
