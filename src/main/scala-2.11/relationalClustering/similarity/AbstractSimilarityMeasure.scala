@@ -88,7 +88,10 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       val (elems, sim) = getObjectSimilarity(domains)
       saveMatrixToFile(folder, domains, elems, sim)
     }
-    (s"$folder/${getFilename(domains)}", getObjectsFromDomains(domains))
+
+    val absolutePath = new File(s"$folder/${getFilename(domains)}")
+
+    (absolutePath.getAbsolutePath, getObjectsFromDomains(domains))
   }
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
@@ -122,7 +125,10 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       saveMatrixToFile(folder, domains, elems.map( _.mkString(":")), sim)
     }
 
-    (s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
+    val absolutePath = new File(s"$folder/${getFilenameHyperEdges(domains)}")
+
+    //(s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
+    (absolutePath.getAbsolutePath,getHyperEdges(domains) )
   }
 
   /** Normalizes the given matrix by its largest value
