@@ -35,7 +35,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   }
 
   def getFilenameHyperEdges(domains: List[String]) = {
-    s"${domains.mkString("_")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
   /***********************
