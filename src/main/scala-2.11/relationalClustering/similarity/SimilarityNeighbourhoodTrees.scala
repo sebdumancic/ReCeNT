@@ -56,7 +56,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
-      acc + DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1)
+      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1))
     })
 
     (objects.map(_._1), returnMat)
@@ -181,7 +181,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter(_._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
-      acc + accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1}
+      acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1})
     })
 
     (hyperEdges, returnMat)
