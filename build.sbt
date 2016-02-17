@@ -4,7 +4,7 @@ version := "2.1"
 
 scalaVersion := "2.11.7"
 
-mainClass in assembly := some("representationClustering.CommandLineInterface")
+mainClass in assembly := some("relationalClustering.CommandLineInterface")
 assemblyJarName := "RelationalClustering.jar"
 
 libraryDependencies += "org.clapper" %% "argot" % "1.0.3"
