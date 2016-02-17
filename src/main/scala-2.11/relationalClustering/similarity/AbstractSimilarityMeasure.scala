@@ -86,7 +86,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   def getObjectSimilaritySave(domains: List[String], folder: String) = {
     if (!new File(s"$folder/${getFilename(domains)}").exists()) {
       val (elems, sim) = getObjectSimilarity(domains)
-      saveMatrixToFile(folder, domains, elems, sim)
+      saveMatrixToFile(s"$folder/${getFilename(domains)}", domains, elems, sim)
     }
 
     val absolutePath = new File(s"$folder/${getFilename(domains)}")
@@ -122,7 +122,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   def getHyperEdgeSimilaritySave(domains: List[String], folder: String) = {
     if (!new File(s"$folder/${getFilenameHyperEdges(domains)}").exists()) {
       val (elems, sim) = getHyperEdgeSimilarity(domains)
-      saveMatrixToFile(folder, domains, elems.map( _.mkString(":")), sim)
+      saveMatrixToFile(s"$folder/${getFilenameHyperEdges(domains)}", domains, elems.map( _.mkString(":")), sim)
     }
 
     val absolutePath = new File(s"$folder/${getFilenameHyperEdges(domains)}")
@@ -162,12 +162,12 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
 
   /** Saves matrix in the file
     *
-    * @param folder name of the file (filePath)
+    * @param filename name of the file (filePath)
     * @param domainElements ordered list of element names
     * @param similarityMatrix similarity matrix corresponding to the provided list of elements
     */
-  def saveMatrixToFile(folder: String, domains: List[String], domainElements: List[String], similarityMatrix: DenseMatrix[Double]) = {
-    val writer = new BufferedWriter(new FileWriter(s"$folder/${getFilename(domains)}"))
+  def saveMatrixToFile(filename: String, domains: List[String], domainElements: List[String], similarityMatrix: DenseMatrix[Double]) = {
+    val writer = new BufferedWriter(new FileWriter(s"$filename"))
     try {
       writer.write("#" + domainElements.mkString(";") + "\n") //print element names
 
