@@ -174,7 +174,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
       //matrix content
       for (rowI <- 0 until similarityMatrix.rows) {
         for (columnI <- 0 until similarityMatrix.cols) {
-          writer.write(similarityMatrix(rowI, columnI) + "")
+          writer.write(BigDecimal(similarityMatrix(rowI, columnI)).setScale(5, BigDecimal.RoundingMode.HALF_UP).toDouble + "")
           if (columnI < (similarityMatrix.cols - 1)) {
             writer.write(";")
           }
