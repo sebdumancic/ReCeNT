@@ -62,8 +62,10 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |    print " using k={} instead of k={}".format(ktoUse, args.k[0])
       |    clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(distanceMatrix)
       |elif algorithm == 'Agglomerative':
+      |    ktoUse = min([args.k[0], np.linalg.matrix_rank(distanceMatrix) - 1])
+      |    print " using k={} instead of k={}".format(ktoUse, args.k[0])
       |    distance = 1.0 - np.divide(distanceMatrix, distanceMatrix.max())
-      |    clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average').fit(distance)
+      |    clusters = AgglomerativeClustering(n_clusters=ktoUse, affinity='precomputed', linkage='average').fit(distance)
       |else:
       |    print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
       |    clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(distanceMatrix)
