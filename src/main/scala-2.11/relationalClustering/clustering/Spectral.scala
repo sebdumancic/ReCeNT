@@ -1,7 +1,5 @@
 package relationalClustering.clustering
 
-import relationalClustering.utils.Helper
-
 /**
   * Created by seb on 04.02.16.
   */
