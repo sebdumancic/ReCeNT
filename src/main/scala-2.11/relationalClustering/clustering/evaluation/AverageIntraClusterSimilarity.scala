@@ -12,7 +12,8 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
   /** Calculates the average intra cluster similarity */
   def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
     val similarityMatrix = readMatrixFromFile(similarityMatrixFile, elementOrder.length)
-    clusters.map( clust => intraClusterSimilarity(clust, elementOrder, similarityMatrix)).sum/clusters.size.toDouble
+    val agg = clusters.map( clust => intraClusterSimilarity(clust, elementOrder, similarityMatrix)) //.sum/clusters.size.toDouble
+    agg.sum/clusters.size.toDouble
   }
 
   /** Calculates the intra cluster similarity
@@ -22,13 +23,16 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
     * @param similarityMatrix similarity matrix
     * @return [[Double]]
     * */
-  protected def intraClusterSimilarity(cluster: List[String], elementOrder: List[String], similarityMatrix: DenseMatrix[Double]) = {
-    (2.0/(cluster.length*(cluster.length - 1)).toDouble) * cluster.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
-      acc + cluster.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
-        val sim = similarityMatrix(elementOrder.indexOf(elem._1), elementOrder.indexOf(elem_i._1))
-        acc_i + (if (sim.isNaN) 0.0 else sim)
-      })
-    })
+  protected def intraClusterSimilarity(cluster: List[String], elementOrder: List[String], similarityMatrix: DenseMatrix[Double]): Double = {
+    cluster.length < 2 match {
+      case true => 0.0
+      case false =>
+        (2.0/(cluster.length*(cluster.length - 1)).toDouble) * cluster.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
+          acc + cluster.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
+            acc_i + similarityMatrix(elementOrder.indexOf(elem._1), elementOrder.indexOf(elem_i._1))
+          })
+        })
+    }
   }
 
   /** Reads a matrix from file
