@@ -24,7 +24,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
                                    override protected val useLocalRepo: Boolean = false) extends AbstractSimilarityNTrees(knowledgeBase, depth, useLocalRepo) {
 
   require(weights.length == 5, s" You should provide 5 weights not ${weights.length} ($weights)")
-  require(weights.sum == 1.0, s"Weights should sum to one, not ${weights.sum}")
+  require(BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Weights should sum to one, not ${BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
     *
