@@ -187,5 +187,8 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     }
   }
 
+  /** Clears any cache a measure might use*/
+  def clearCache(): Unit
+
 
 }
