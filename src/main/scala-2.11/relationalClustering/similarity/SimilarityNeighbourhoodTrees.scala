@@ -38,6 +38,12 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
+  /*def setParameters(pars: List[Double]) = {
+    require(pars.length == weights.length, s"Parameters don't match (${pars.length} != ${weights.length})")
+    require(BigDecimal(pars.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Parameter values should sum to one, not ${BigDecimal(pars.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
+    weights = pars
+  }*/
+
   /***********************
     *
     *    OBJECT SIMILARITY
