@@ -3,10 +3,10 @@ package relationalClustering
 import java.io.{BufferedWriter, File, FileWriter}
 import java.util.Calendar
 
-import breeze.linalg.{min, max, DenseMatrix}
-import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.{Predicate, KnowledgeBase}
-import relationalClustering.utils.{PredicateDeclarations, Helper, Histogram, HistogramDistance}
+import breeze.linalg.{DenseMatrix, max, min}
+import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.representation.{KnowledgeBase, Predicate}
+import relationalClustering.utils.{Helper, Histogram, HistogramDistance, PredicateDeclarations}
 
 import scala.sys.process._
 import scala.util.Random
@@ -17,7 +17,7 @@ import scala.util.Random
  *
  * Created by seb on 13.10.15.
  */
-class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
+@deprecated class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
                                          val jumpStep: Int,
                                          val normalize: Boolean,
                                          val rootFolder: String,
@@ -51,6 +51,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private val riblLiteralCache = collection.mutable.Map[(String, Int), List[String]]()
   private val riblSimLCache = collection.mutable.Map[String, Double]()
   private val attrValuesCache = collection.mutable.Set[String]()
+  private val nodeRepo = new NodeRepository(getKnowledgeBase)
   createAttributeNodes()
 
   private def getKnowledgeBase = { knowledgeBase }
@@ -64,7 +65,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
   private def getRIBL = { asRIBL }
   private def getNeighbourhoodGraph(element: String, domain: String, depth: Int) = {
     val accessIndex = new Tuple3(element, domain, depth)
-    if (!neighbourhoodGraphCache.contains(accessIndex)) { neighbourhoodGraphCache(accessIndex) = new NeighbourhoodGraph(element, domain, depth, getKnowledgeBase) }
+    if (!neighbourhoodGraphCache.contains(accessIndex)) { neighbourhoodGraphCache(accessIndex) = new NeighbourhoodGraph(element, domain, depth, getKnowledgeBase) } //original NeighbourhoodGraph(element, domain, depth, getKnowledgeBase, nodeRepo)
     neighbourhoodGraphCache(accessIndex)
   }
   private def getAnyNeighbourhoodGraph(element: String, domain: String) = {
@@ -162,7 +163,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       |    clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(distanceMatrix)
       |elif algorithm == 'Agglomerative':
       |    distance = 1.0 - np.divide(distanceMatrix, distanceMatrix.max())
-      |    clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average').fit(distance)
+      |    clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='ward').fit(distance)
       |else:
       |    print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
       |    clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(distanceMatrix)
@@ -214,7 +215,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     }
 
     val domainElements = domainsToCombine.reduceLeft((x, y) => {
-      for {xs <- x; ys <- y} yield xs ::: ys }).filter( x => x.toSet.size == domains.length ).map( x => { if ( domains.toSet.size == domains.length) {x} else {x.sorted}}).toList
+      for {xs <- x; ys <- y} yield xs ::: ys }).filter( x => x.toSet.size == domains.length ).map( x => { if ( domains.toSet.size == domains.length) {x} else {x.sorted}}).toList.sortBy(_.head)
 
     calculateSimilarityMatrix(domainElements, domains)
   }
@@ -559,7 +560,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
    */
   private def interTupleConnections(tuple1: List[String], tuple2: List[String], domains: List[String]) = {
     tuple1.indices.foldLeft(0)( (acc, elemInd) => {
-      val graph = getNeighbourhoodGraph(tuple1(elemInd), domains(elemInd), 0).collectTypeInformation() //new NeighbourhoodGraph(tuple1(elemInd), domains(elemInd), 0, getKnowledgeBase).collectTypeInformation()
+      val graph = getNeighbourhoodGraph(tuple1(elemInd), domains(elemInd), 0).collectVertexIdentity() //new NeighbourhoodGraph(tuple1(elemInd), domains(elemInd), 0, getKnowledgeBase).collectTypeInformation()
 
       acc + tuple2.zipWithIndex.filter( _._2 >= elemInd).foldLeft(0)( (acc_i, tupleElem) => {
         if (graph(0).contains(domains(tupleElem._2)) && graph(0)(domains(tupleElem._2)).contains(tupleElem._1)) { acc_i + 1 }
@@ -653,8 +654,8 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
     //going over different domains
     domains.toSet.foldLeft(0.0)( (acc, dom) => {
       //                                                                               new NeighbourhoodGraph(x._1, domains(x._2), getJumpStep, getKnowledgeBase)
-      val firstGraph = tuple1.zipWithIndex.filter( x => domains(x._2) == dom).map(x => getNeighbourhoodGraph(x._1, domains(x._2), getJumpStep).collectTypeInformation()).reduce(graphNeighbourhoodIntersection)
-      val secondGraph = tuple2.zipWithIndex.filter( x => domains(x._2) == dom).map(x => getNeighbourhoodGraph(x._1, domains(x._2), getJumpStep).collectTypeInformation()).reduce(graphNeighbourhoodIntersection)
+      val firstGraph = tuple1.zipWithIndex.filter( x => domains(x._2) == dom).map(x => getNeighbourhoodGraph(x._1, domains(x._2), getJumpStep).collectVertexIdentity()).reduce(graphNeighbourhoodIntersection)
+      val secondGraph = tuple2.zipWithIndex.filter( x => domains(x._2) == dom).map(x => getNeighbourhoodGraph(x._1, domains(x._2), getJumpStep).collectVertexIdentity()).reduce(graphNeighbourhoodIntersection)
 
       //go over levels
       if (getOverlapMeasure != "histogram") {
@@ -673,7 +674,8 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
         acc + (0 to getJumpStep).foldLeft(0.0)( (acc_i, level) => {
           acc_i + (firstGraph(level).keySet ++ secondGraph(level).keySet).foldLeft(0.0)( (acc_ii, dom) => {
             val histograms = Histogram.create(firstGraph(level).getOrElse(dom, List[String]()), secondGraph(level).getOrElse(dom, List[String]()))
-            acc_ii + math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
+            val res = math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
+            acc_ii + res //+ math.abs(HistogramDistance.chiSquared(histograms._1, histograms._2))
           })
         })
       }
@@ -682,8 +684,8 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
 
   def attributeNeighbourhoodSimilarity(tuple1: List[String], tuple2: List[String], domains: List[String]) = {
 
-    val firstGraphs = tuple1.zipWithIndex.map( elem => getAnyNeighbourhoodGraph(elem._1, domains(elem._2)).collectTypeInformation(0))
-    val secondGraphs = tuple2.zipWithIndex.map( elem => getAnyNeighbourhoodGraph(elem._1, domains(elem._2)).collectTypeInformation(0))
+    val firstGraphs = tuple1.zipWithIndex.map( elem => getAnyNeighbourhoodGraph(elem._1, domains(elem._2)).collectVertexIdentity(0))
+    val secondGraphs = tuple2.zipWithIndex.map( elem => getAnyNeighbourhoodGraph(elem._1, domains(elem._2)).collectVertexIdentity(0))
 
     val firstAttributes = firstGraphs.zipWithIndex.map( x => x._1.keys.foldLeft(List[String]())( (acc, dom) => {
       acc ::: x._1(dom).foldLeft(List[String]())( (acc_i, elem) => acc_i ::: getAttributes("", elem))
@@ -851,12 +853,12 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
       val finalRes = level == 0 match {
         case true =>
           neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
-            acc ++ predicate.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+            acc ++ predicate.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${predicate.getName}(" + x.mkString(",") + ")").toList
           }) ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter(_.arity == 1).foldLeft(List[String]())((acc_1, pred) => {
             acc_1 ++ pred.getTrueGroundings.filter(_.contains(neighbourhoodGraph.getRoot.getEntity)).map(x => s"${pred.getName}(" + x.mkString(",") + ")").toList
           })
         case false =>
-          val allLevelInformation = neighbourhoodGraph.collectTypeInformation()
+          val allLevelInformation = neighbourhoodGraph.collectVertexIdentity()
 
           //cd depth corresponds to the vertices at (level - 1) depth in neighbourhood graph
           val previousLevelsVertices = (0 until level - 1).foldLeft(Set[String]())((acc, cLevel) => {
@@ -870,7 +872,7 @@ class RelationalClusteringInitialization(val knowledgeBase: KnowledgeBase,
           }).filter(v => !previousLevelsVertices.contains(v) && !attrValuesCache.contains(v))
 
           (neighbourhoodGraph.getEdgeDistribution(level).map(x => x.take(x.length - 1)).distinct.map(getKnowledgeBase.getPredicate).foldLeft(List[String]())((acc, predicate) => {
-            acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map(x => s"${predicate.name}(" + x.mkString(",") + ")").toList
+            acc ++ predicate.getTrueGroundings.filter(x => levelVertices.intersect(x.toSet).nonEmpty && previousLevelsVertices.intersect(x.toSet).isEmpty).map(x => s"${predicate.getName}(" + x.mkString(",") + ")").toList
           }) ++ levelVertices.diff(previousLevelsVertices).foldLeft(List[String]())((acc_c, vertex) => {
             acc_c ++ getKnowledgeBase.getPredicateNames.map(getKnowledgeBase.getPredicate).filter(_.arity == 1).foldLeft(List[String]())((acc_p, pred) => {
               acc_p ++ pred.getTrueGroundings.filter(_.contains(vertex)).map(x => s"${pred.getName}(" + x.mkString(",") + ")").toList

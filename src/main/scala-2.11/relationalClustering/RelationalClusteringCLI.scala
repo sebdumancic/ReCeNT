@@ -4,7 +4,7 @@ import java.io.FileWriter
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.representation.KnowledgeBase
-import relationalClustering.utils.{PredicateDeclarations, Helper}
+import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 import scala.sys.process._
 
@@ -75,7 +75,7 @@ object RelationalClusteringCLI {
       case file: String => new PredicateDeclarations(file)
     }
 
-    val knowledgeBase = new KnowledgeBase(dbs.value, header)
+    val knowledgeBase = new KnowledgeBase(dbs.value, header, declarations)
     val clusteringAlgorithm = new RelationalClusteringInitialization(knowledgeBase,
                                                                      depth.value.getOrElse(2),
                                                                      true,
@@ -114,7 +114,7 @@ object RelationalClusteringCLI {
       createAriScript()
       require(labelsHeader.hasValue, "no header for label predicates")
 
-      val labelsKnowledgeBase = new KnowledgeBase(labels.value, Helper.readFile(labelsHeader.value.get).mkString("\n"))
+      val labelsKnowledgeBase = new KnowledgeBase(labels.value, Helper.readFile(labelsHeader.value.get).mkString("\n"), declarations)
       val sortedPredicates = labelsKnowledgeBase.getPredicateNames
       require( sortedPredicates.map( labelsKnowledgeBase.getPredicate ).count( _.arity == 1) == sortedPredicates.size, "not all label predicates are 1-arity")
 
