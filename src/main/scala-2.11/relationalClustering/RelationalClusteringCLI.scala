@@ -11,7 +11,7 @@ import scala.sys.process._
 /**
   * Created by seb on 02.12.15.
   */
-object RelationalClusteringCLI {
+@deprecated object RelationalClusteringCLI {
 
 
   //parser specification
