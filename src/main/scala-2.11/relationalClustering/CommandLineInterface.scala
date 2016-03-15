@@ -6,7 +6,7 @@ import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
-import relationalClustering.similarity.{SimilarityNTv2, SimilarityNeighbourhoodTrees}
+import relationalClustering.similarity.{NevilleSimilarityMeasure, SimilarityNTv2, SimilarityNeighbourhoodTrees}
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 /**
@@ -76,6 +76,8 @@ object CommandLineInterface {
                            bagComparison,
                            bagCombinationMethod,
                            useLocalRepository.value.getOrElse(false))
+      case "HS" =>
+        new NevilleSimilarityMeasure(KnowledgeBase)
     }
 
 
