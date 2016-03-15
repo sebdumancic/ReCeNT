@@ -59,11 +59,6 @@ class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBa
     new Exception(s"Neville's similarity metrics cannot cluster hyperedges!!!")
 
     val hyperEdges = getHyperEdges(domains)
-
-    val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
-    )
-
     val returnMat = DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length)
 
     (hyperEdges, returnMat)
