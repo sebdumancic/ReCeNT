@@ -3,7 +3,7 @@ package relationalClustering.bagComparison
 /**
   * Created by seb on 12.02.16.
   */
-class Unionsimilarity extends AbstractBagComparison("union"){
+class UnionBagSimilarity extends AbstractBagComparison("union"){
 
   def needsToBeInverted = {
     false

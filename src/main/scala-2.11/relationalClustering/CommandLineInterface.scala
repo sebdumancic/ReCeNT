@@ -2,7 +2,7 @@ package relationalClustering
 
 import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
-import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, Unionsimilarity}
+import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.KnowledgeBase
@@ -52,7 +52,7 @@ object CommandLineInterface {
       case "chiSquared" => new ChiSquaredDistance()
       case "minimum" => new MinimumSimilarity()
       case "maximum" => new MaximumSimilarity()
-      case "union" => new Unionsimilarity()
+      case "union" => new UnionBagSimilarity()
     }
 
     val bagCombinationMethod = bagCombination.value.getOrElse("intersection") match {
