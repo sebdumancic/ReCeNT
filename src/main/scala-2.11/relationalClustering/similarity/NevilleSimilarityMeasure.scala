@@ -52,6 +52,14 @@ class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBa
     (objects.map(_._1), returnMat :* linkMatrix)
   }
 
+  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
+    *
+    * @param domains list of domains of interest
+    * */
+  override def getFilename(domains: List[String]) = {
+    s"${domains.mkString(",")}_neville_localRepo$useLocal.txt"
+  }
+
 
 
   /** Override to make sure the exception is thrown*/
