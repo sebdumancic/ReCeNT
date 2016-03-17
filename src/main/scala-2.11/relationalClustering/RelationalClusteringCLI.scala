@@ -3,7 +3,7 @@ package relationalClustering
 import java.io.FileWriter
 
 import org.clapper.argot.ArgotParser
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 import scala.sys.process._

@@ -5,7 +5,7 @@ import java.util.Calendar
 
 import breeze.linalg.{DenseMatrix, max, min}
 import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
-import relationalClustering.representation.{KnowledgeBase, Predicate}
+import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.{Helper, Histogram, HistogramDistance, PredicateDeclarations}
 
 import scala.sys.process._
