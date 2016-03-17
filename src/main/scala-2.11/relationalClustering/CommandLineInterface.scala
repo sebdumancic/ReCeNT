@@ -5,7 +5,7 @@ import relationalClustering.bagComparison.bagCombination.{IntersectionCombinatio
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer}
 import relationalClustering.clustering.{Hierarchical, Spectral}
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.{NevilleSimilarityMeasure, SimilarityNTv2, SimilarityNeighbourhoodTrees}
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 

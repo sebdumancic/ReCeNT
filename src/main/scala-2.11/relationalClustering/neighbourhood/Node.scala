@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.Predicate
+import relationalClustering.representation.domain.Predicate
 
 /** Implements the node functionality in the [[relationalClustering.neighbourhood.NeighbourhoodGraph]]
   *

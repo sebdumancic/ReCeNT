@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.Predicate
+import relationalClustering.representation.domain.Predicate
 
 /**
   * Created by seb on 10.02.16.

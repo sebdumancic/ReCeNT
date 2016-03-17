@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
 
 /**

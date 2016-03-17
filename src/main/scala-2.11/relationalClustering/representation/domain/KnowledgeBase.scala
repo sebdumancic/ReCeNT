@@ -1,4 +1,4 @@
-package relationalClustering.representation
+package relationalClustering.representation.domain
 
 import java.io.{BufferedWriter, FileWriter}
 

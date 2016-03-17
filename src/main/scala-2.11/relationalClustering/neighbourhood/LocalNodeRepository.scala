@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 
 /**
   * Created by seb on 10.02.16.

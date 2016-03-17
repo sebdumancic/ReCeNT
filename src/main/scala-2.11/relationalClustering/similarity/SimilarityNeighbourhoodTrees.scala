@@ -4,7 +4,7 @@ import breeze.linalg.DenseMatrix
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 
 /**
   * Implements the similarity measure using neighbourhood trees

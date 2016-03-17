@@ -1,4 +1,4 @@
-package relationalClustering.representation
+package relationalClustering.representation.domain
 
 /**
   * Created by seb on 16.12.15.

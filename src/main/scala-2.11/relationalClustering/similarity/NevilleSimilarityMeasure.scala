@@ -4,7 +4,7 @@ import breeze.linalg.DenseMatrix
 import relationalClustering.bagComparison.SimpleCountSimilarity
 import relationalClustering.bagComparison.bagCombination.UnionCombination
 import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
 
 /**

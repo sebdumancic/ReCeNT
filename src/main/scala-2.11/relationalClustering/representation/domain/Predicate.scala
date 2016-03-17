@@ -1,4 +1,4 @@
-package relationalClustering.representation
+package relationalClustering.representation.domain
 
 /**
  *  This class implements predicate functionality for finding candidates to combine.

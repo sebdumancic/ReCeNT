@@ -3,7 +3,7 @@ package relationalClustering.similarity
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 
 /**
   * Created by seb on 08.02.16.

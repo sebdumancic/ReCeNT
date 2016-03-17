@@ -4,7 +4,7 @@ import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.UnionCombination
 import relationalClustering.clustering.AbstractSKLearnCluster
 import relationalClustering.clustering.evaluation.AbstractEvaluatorModel
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees
 
 /**

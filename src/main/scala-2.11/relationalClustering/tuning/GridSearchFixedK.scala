@@ -3,7 +3,7 @@ package relationalClustering.tuning
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.clustering.AbstractSKLearnCluster
 import relationalClustering.clustering.evaluation.AbstractEvaluatorModel
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.AbstractSimilarityMeasure
 
 /** Implements brute force search over the best parameters for similarity measure

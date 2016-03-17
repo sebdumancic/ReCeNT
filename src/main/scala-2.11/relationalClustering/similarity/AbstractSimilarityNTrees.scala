@@ -1,7 +1,7 @@
 package relationalClustering.similarity
 
 import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 
 /**
   * Created by seb on 04.02.16.

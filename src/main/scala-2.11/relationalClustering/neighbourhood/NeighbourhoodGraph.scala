@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.{KnowledgeBase, Predicate}
+import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.Settings
 
 /**

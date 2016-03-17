@@ -4,7 +4,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 
 import breeze.linalg.{DenseMatrix, max, min}
 import relationalClustering.neighbourhood.NodeRepository
-import relationalClustering.representation.KnowledgeBase
+import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
 
 /** Abstract Similarity measure class
