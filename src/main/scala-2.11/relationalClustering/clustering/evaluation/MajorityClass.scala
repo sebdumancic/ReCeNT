@@ -13,11 +13,9 @@ class MajorityClass extends AbstractEvaluatorWithLabels("./tmp") {
     * */
   def validate(clusters: Set[List[String]], labels: LabelsContainer) = {
 
-    val labs = clusters.map( clust => new Tuple2(clust, AssignMajorityClass(clust, labels))).foldLeft(Set[(String,String)]())( (acc, cl) => {
+    clusters.map( clust => new Tuple2(clust, AssignMajorityClass(clust, labels))).foldLeft(Set[(String,String)]())( (acc, cl) => {
       acc ++ cl._1.map( el => new Tuple2(labels.getLabel(el), cl._2))
-    }).filter( _._1 != "xxxxxx")
-
-    labs.count( elemCl => elemCl._2 == elemCl._1).toDouble/labs.size.toDouble
+    }).count( elemCl => elemCl._2 == elemCl._1).toDouble/clusters.map( _.size).sum
   }
 
   /** Returns the majority class in a cluster
