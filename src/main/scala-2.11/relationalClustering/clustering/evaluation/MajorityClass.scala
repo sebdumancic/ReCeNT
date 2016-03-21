@@ -13,9 +13,14 @@ class MajorityClass extends AbstractEvaluatorWithLabels("./tmp") {
     * */
   def validate(clusters: Set[List[String]], labels: LabelsContainer) = {
 
-    clusters.map( clust => new Tuple2(clust, AssignMajorityClass(clust, labels))).foldLeft(Set[(String,String)]())( (acc, cl) => {
-      acc ++ cl._1.map( el => new Tuple2(labels.getLabel(el), cl._2))
-    }).count( elemCl => elemCl._2 == elemCl._1).toDouble/clusters.map( _.size).sum
+    // counts the number of examples within the class that have the same true label than the majority label
+    val goodOnes = clusters.map( cl => new Tuple2(cl, AssignMajorityClass(cl, labels))).foldLeft(List[(String,String)]())( (acc, clust) => {
+      acc ++ clust._1.distinct.map( x => new Tuple2(labels.getLabel(x), clust._2))
+    }).count( x => x._1 == x._2)
+
+    val total = clusters.foldLeft(0.0)( (acc, cl) => acc + cl.length.toDouble)
+
+    goodOnes.toDouble/total
   }
 
   /** Returns the majority class in a cluster
@@ -25,9 +30,9 @@ class MajorityClass extends AbstractEvaluatorWithLabels("./tmp") {
     * */
   protected def AssignMajorityClass(cluster: List[String], labels: LabelsContainer) = {
     val labs = cluster.map( ex => labels.getLabel(ex))
-    val counts = labs.distinct.map( lab => labs.count( _ == lab))
+    val counts = labs.distinct.map( l => new Tuple2(l, labs.count( _ == l)))
 
-    labs.zip(counts).maxBy(_._2)._1
+    counts.maxBy(_._2)._1
   }
 
 

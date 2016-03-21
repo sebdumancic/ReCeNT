@@ -101,8 +101,6 @@ object CommandLineInterface {
         cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
     }
 
-
-
     println("FOUND CLUSTERS")
     clusters.zipWithIndex.foreach( cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
 
