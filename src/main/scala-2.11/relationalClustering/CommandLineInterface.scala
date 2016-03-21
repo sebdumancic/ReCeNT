@@ -3,7 +3,7 @@ package relationalClustering
 import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
-import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer}
+import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.{HSAG, NevilleSimilarityMeasure, SimilarityNTv2, SimilarityNeighbourhoodTrees}
@@ -33,7 +33,7 @@ object CommandLineInterface {
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
   val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
-  val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster]", "cluster validation method")
+  val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster|majorityClass]", "cluster validation method")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
 
 
@@ -117,6 +117,9 @@ object CommandLineInterface {
         case "intraCluster" =>
           val validator = new AverageIntraClusterSimilarity()
           println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, globalElementOrder, globalFilename)}")
+        case "majorityClass" =>
+          val validator = new MajorityClass()
+          println(s"${valMethod.value.get} score: ${validator.validate(clusters, labContainer)}")
       }
 
     }
