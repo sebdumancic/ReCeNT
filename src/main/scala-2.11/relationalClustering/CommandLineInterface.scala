@@ -6,7 +6,7 @@ import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.domain.KnowledgeBase
-import relationalClustering.similarity.{HSAG, NevilleSimilarityMeasure, SimilarityNTv2, SimilarityNeighbourhoodTrees}
+import relationalClustering.similarity._
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 /**
@@ -27,7 +27,7 @@ object CommandLineInterface {
   val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
-  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|HS|RIBL|HSAG]", "similarity measure")
+  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
@@ -76,8 +76,14 @@ object CommandLineInterface {
                            bagComparison,
                            bagCombinationMethod,
                            useLocalRepository.value.getOrElse(false))
-      case "HS" =>
-        new NevilleSimilarityMeasure(KnowledgeBase)
+      case "RCNTnoId" =>
+        new SimilarityNTNoIdentities(KnowledgeBase,
+                                     depth.value.getOrElse(0),
+                                     weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
+                                     bagComparison,
+                                     bagCombinationMethod,
+                                     useLocalRepository.value.getOrElse(false))
+      case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
     }
 
