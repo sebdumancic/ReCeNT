@@ -17,6 +17,18 @@ class SimilarityNTNoIdentities(override protected val knowledgeBase: KnowledgeBa
                                override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, useLocalRepo){
 
 
+  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
+    *
+    * @param domains list of domains of interest
+    * */
+  override def getFilename(domains: List[String]) = {
+    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_noidentities.txt"
+  }
+
+  override def getFilenameHyperEdges(domains: List[String]) = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo${useLocal}_noidentities.txt"
+  }
+
   /** Compares the distributions over vertex types, depth-wise
     *
     * @param ng1 the first element's [[NeighbourhoodGraph]]
@@ -55,4 +67,5 @@ class SimilarityNTNoIdentities(override protected val knowledgeBase: KnowledgeBa
   }
 
 
+  // TODO: change the similarity computation in hyperedges part as well
 }
