@@ -48,49 +48,53 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |inputFile = args.input[0]
       |outputClusters = args.output[0]
       |
-      |distanceMatrix = np.loadtxt(inputFile, delimiter=";", comments="#")
+      |similarityMatrix = np.loadtxt(inputFile, delimiter=";", comments="#")
       |domainObjects = map(lambda x: x.strip(), open(inputFile).readline().replace("#", "").split(";"))
       |
-      |if algorithm == "DBscan":
-      |    clusters = DBSCAN(eps=args.eps[0], min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(distanceMatrix)
-      |elif algorithm == "Affinity" and args.pref:
-      |    clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0]).fit(distanceMatrix)
-      |elif algorithm == "Affinity":
-      |    clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed').fit(distanceMatrix)
-      |elif algorithm == "Spectral":
-      |    ktoUse = min([args.k[0], np.linalg.matrix_rank(distanceMatrix) - 1])
-      |    print " using k={} instead of k={}".format(ktoUse, args.k[0])
-      |    clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(distanceMatrix)
-      |elif algorithm == 'Agglomerative':
-      |    ktoUse = min([args.k[0], np.linalg.matrix_rank(distanceMatrix) - 1])
-      |    print " using k={} instead of k={}".format(ktoUse, args.k[0])
-      |    distance = 1.0 - np.divide(distanceMatrix, distanceMatrix.max())
-      |    clusters = AgglomerativeClustering(n_clusters=ktoUse, affinity='precomputed', linkage='average').fit(distance)
+      |maxVal = similarityMatrix.max()
+      |
+      |if maxVal == 0.0:
+      |    writerCl = open(outputClusters, 'w')
+      |    writerCl.write("0={" + ";".join(domainObjects) + "}\n")
+      |    writerCl.close()
       |else:
-      |    print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
-      |    clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(distanceMatrix)
-      |
-      |elementsInCluster = {}
-      |
-      |for (element, cluster) in zip(domainObjects, clusters.labels_):
-      |    if cluster not in elementsInCluster:
-      |        elementsInCluster[cluster] = []
-      |    elementsInCluster[cluster].append(element)
-      |
-      |writer = open(outputClusters, 'w')
-      |
-      |oneBig = []
-      |
-      |for item in elementsInCluster:
-      |    if len(elementsInCluster[item]) > 1:
-      |        writer.write("{}=".format(item) + "{" + ";".join(elementsInCluster[item]) + "}\n")
+      |    if algorithm == "DBscan":
+      |        clusters = DBSCAN(eps=args.eps[0], min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
+      |    elif algorithm == "Affinity" and args.pref:
+      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0]).fit(similarityMatrix)
+      |    elif algorithm == "Affinity":
+      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed').fit(similarityMatrix)
+      |    elif algorithm == "Spectral":
+      |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
+      |        print " using k={} instead of k={}".format(ktoUse, args.k[0])
+      |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(similarityMatrix)
+      |    elif algorithm == 'Agglomerative':
+      |        distance = 1.0 - np.divide(similarityMatrix, similarityMatrix.max())
+      |        clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average')
       |    else:
-      |        oneBig.append(elementsInCluster[item][0])
+      |        print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
+      |        clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
       |
-      |if len(oneBig) > 0:
-      |    writer.write("{}=".format(len(elementsInCluster)) + "{" + ";".join(oneBig) + "}\n")
-      |writer.close()
+      |    elementsInCluster = {}
       |
+      |    for (element, cluster) in zip(domainObjects, clusters.labels_):
+      |        if cluster not in elementsInCluster:
+      |            elementsInCluster[cluster] = []
+      |        elementsInCluster[cluster].append(element)
+      |
+      |    writer = open(outputClusters, 'w')
+      |
+      |    oneBig = []
+      |
+      |    for item in elementsInCluster:
+      |        if len(elementsInCluster[item]) > 1:
+      |            writer.write("{}=".format(item) + "{" + ";".join(elementsInCluster[item]) + "}\n")
+      |        else:
+      |            oneBig.append(elementsInCluster[item][0])
+      |
+      |    if len(oneBig) > 0:
+      |        writer.write("{}=".format(len(elementsInCluster)) + "{" + ";".join(oneBig) + "}\n")
+      |    writer.close()
       |
     """.stripMargin
   }
