@@ -69,6 +69,8 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |        print " using k={} instead of k={}".format(ktoUse, args.k[0])
       |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(similarityMatrix)
       |    elif algorithm == 'Agglomerative':
+      |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
+      |        print " using k={} instead of k={}".format(ktoUse, args.k[0])
       |        distance = 1.0 - np.divide(similarityMatrix, similarityMatrix.max())
       |        clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average').fit(distance)
       |    else:
