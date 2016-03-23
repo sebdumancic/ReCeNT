@@ -70,7 +70,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(similarityMatrix)
       |    elif algorithm == 'Agglomerative':
       |        distance = 1.0 - np.divide(similarityMatrix, similarityMatrix.max())
-      |        clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average')
+      |        clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average').fit(distance)
       |    else:
       |        print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
       |        clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
