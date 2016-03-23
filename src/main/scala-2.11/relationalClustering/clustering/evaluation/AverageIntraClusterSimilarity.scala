@@ -25,7 +25,7 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
     * */
   protected def intraClusterSimilarity(cluster: List[String], elementOrder: List[String], similarityMatrix: DenseMatrix[Double]): Double = {
     cluster.length < 2 match {
-      case true => 1.0
+      case true => 0.0
       case false =>
         (2.0/(cluster.length*(cluster.length - 1)).toDouble) * cluster.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
           acc + cluster.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
