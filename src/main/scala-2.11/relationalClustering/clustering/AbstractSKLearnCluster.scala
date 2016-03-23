@@ -86,16 +86,9 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |
       |    writer = open(outputClusters, 'w')
       |
-      |    oneBig = []
-      |
       |    for item in elementsInCluster:
-      |        if len(elementsInCluster[item]) > 1:
-      |            writer.write("{}=".format(item) + "{" + ";".join(elementsInCluster[item]) + "}\n")
-      |        else:
-      |            oneBig.append(elementsInCluster[item][0])
+      |        writer.write("{}=".format(item) + "{" + ";".join(elementsInCluster[item]) + "}\n")
       |
-      |    if len(oneBig) > 0:
-      |        writer.write("{}=".format(len(elementsInCluster)) + "{" + ";".join(oneBig) + "}\n")
       |    writer.close()
       |
     """.stripMargin
