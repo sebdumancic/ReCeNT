@@ -17,8 +17,8 @@ import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 
 class KnowledgeBase(private val databases: Seq[String],
-                   private val header: String,
-                   private val predicateDeclarations: PredicateDeclarations
+                    private val header: String,
+                    private val predicateDeclarations: PredicateDeclarations
                    ) {
 
   private val predicates = collection.mutable.Map[String, Predicate]()
