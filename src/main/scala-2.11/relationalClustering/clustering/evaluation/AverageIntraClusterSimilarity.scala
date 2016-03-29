@@ -13,7 +13,7 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
   def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
     val similarityMatrix = readMatrixFromFile(similarityMatrixFile, elementOrder.length)
     val agg = clusters.map( clust => intraClusterSimilarity(clust, elementOrder, similarityMatrix)) //.sum/clusters.size.toDouble
-    agg.sum/clusters.size.toDouble
+    agg.sum///clusters.size.toDouble
   }
 
   /** Calculates the intra cluster similarity
