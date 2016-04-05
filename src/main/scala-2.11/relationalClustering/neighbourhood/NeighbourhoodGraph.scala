@@ -279,4 +279,50 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
     returnData.toMap
   }
+
+  /** Checks whether a clause is valid -> if there are more than two distinct variables, the edge should be present
+    *
+    * @param clause a clause to check
+    * @param edgeName edge that should be present
+    * @return true if the clause is valid
+    * */
+  protected def checkValidityOfClause(clause: List[String], edgeName: String): Boolean = {
+    val vars = clause.flatMap(x => x.split("""\(""")(1).split(",")).filter(x => x == x.toLowerCase).distinct
+
+    if (!vars.contains("x")) { false }
+    else if (vars.length == 1 && vars.contains("x")) { true }
+    else if (vars.length > 1 && vars.contains("x") && clause.map( _.startsWith(edgeName)).reduce(_ || _)) {
+      true
+    }
+    else {false}
+  }
+
+  /** Returns the set of all clauses that can be constructed from this neighbourhood graph
+    *
+    * @param maxLength maximal length of a clause
+    * */
+  def getClauses(maxLength: Int) = {
+
+    //attribute clauses
+    val rootAttributeClauses = (getRoot.getAnnotations.map( x => s"${x._1}(x)") ++ getRoot.getAttributeValuePairs.map( x => s"${x._1}(x,${x._2})")).toList
+
+    // go over existing edges types involving the root element
+    getRoot.getChildEdges.map(_.getPredicate).foldLeft(Set[List[String]]())( (acc, pred) => {
+
+      // go over existing edges
+      acc ++ pred.getTrueGroundings.filter( _.contains(getRoot.getEntity)).foldLeft(Set[List[String]]())( (acc_1, edge) => {
+
+        val nodes = edge.zipWithIndex.filter(_._1 != getRoot.getEntity).map(node => (nodeRepo.getNode(node._1, pred.getDomains(node._2)), node._2))
+        val edgeName = s"${pred.getName}(${edge.zipWithIndex.map(ar => if (ar._1 == getRoot.getEntity) "x" else s"v${ar._2}").mkString(",")})"
+        val allAtoms = nodes.flatMap(x => {
+          x._1.getAnnotations.map( an => s"${an._1}(v${x._2})") ++ x._1.getAttributeValuePairs.map( at => s"${at._1}(v${x._2},${at._2})")
+        }) ++ (rootAttributeClauses :+ edgeName)
+
+        acc_1 ++ (2 to maxLength).foldLeft(Set[List[String]]())( (acc_ii, len) => {
+          acc_ii ++  allAtoms.combinations(len).filter(x => checkValidityOfClause(x, pred.getName.split("""\(""").head)).map( x => x.sorted)
+        })
+
+      })
+    })
+  }
 }
