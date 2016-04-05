@@ -25,6 +25,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = null //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
   var edgeDistributionCache: Map[Int, List[String]] = null
   var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = null
+  var clauseCache: Set[List[String]] = null
   construct()
 
   /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
@@ -301,13 +302,17 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @param maxLength maximal length of a clause
     * */
-  def getClauses(maxLength: Int) = {
+  def getClauses(maxLength: Int): Set[List[String]] = {
+
+    if (clauseCache != null) {
+      return clauseCache
+    }
 
     //attribute clauses
     val rootAttributeClauses = (getRoot.getAnnotations.map( x => s"${x._1}(x)") ++ getRoot.getAttributeValuePairs.map( x => s"${x._1}(x,${x._2})")).toList
 
     // go over existing edges types involving the root element
-    getRoot.getChildEdges.map(_.getPredicate).foldLeft(Set[List[String]]())( (acc, pred) => {
+    clauseCache = getRoot.getChildEdges.map(_.getPredicate).foldLeft(Set[List[String]]())( (acc, pred) => {
 
       // go over existing edges
       acc ++ pred.getTrueGroundings.filter( _.contains(getRoot.getEntity)).foldLeft(Set[List[String]]())( (acc_1, edge) => {
@@ -324,5 +329,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
       })
     })
+
+    clauseCache
   }
 }
