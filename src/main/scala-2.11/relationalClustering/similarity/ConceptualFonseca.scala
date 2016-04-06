@@ -19,7 +19,7 @@ class ConceptualFonseca(override protected val knowledgeBase: KnowledgeBase,
     val attrs1 = ng1.getClauses(getDepth)
     val attrs2 = ng2.getClauses(getDepth)
 
-    attrs1.intersect(attrs2).size.toDouble/attrs1.union(attrs2).size.toDouble
+    attrs1.intersect(attrs2).size.toDouble/math.max(attrs1.union(attrs2).size.toDouble, 1.0)
   }
 
 }
