@@ -43,8 +43,16 @@ class Edge(protected val parentNode: Node,
     s"${getPredicate.getName}$getParentPosition"
   }
 
+  /** Returns true is it is a unary Edge (child is null)*/
+  def isUnary = {
+    childNode == null
+  }
+
   override def toString = {
-    s"$getParent --[${getPredicate.getName}],[$getParentPosition]--> $getChild"
+    childNode == null match {
+      case true => s"$getParent --[${getPredicate.getName}],[$getParentPosition]"
+      case false => s"$getParent --[${getPredicate.getName}],[$getParentPosition]--> $getChild"
+    }
   }
 
   override def equals(other: Any) = other match {
