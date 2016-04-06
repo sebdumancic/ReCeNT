@@ -48,6 +48,14 @@ class Edge(protected val parentNode: Node,
     childNode == null
   }
 
+  /** Returns the arity of an edge */
+  def arity = {
+    childNode == null match {
+      case true => 1
+      case false => 2
+    }
+  }
+
   override def toString = {
     childNode == null match {
       case true => s"$getParent --[${getPredicate.getName}],[$getParentPosition]"
