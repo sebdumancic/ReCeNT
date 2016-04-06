@@ -26,6 +26,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   var edgeDistributionCache: Map[Int, List[String]] = null
   var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = null
   var clauseCache: Set[List[String]] = null
+  var edgeCache: Set[Edge] = null
   construct()
 
   /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
@@ -331,5 +332,37 @@ class NeighbourhoodGraph(protected val rootObject: String,
     })
 
     clauseCache
+  }
+
+  /** Returns the set of all edges in a neighbourhood graph */
+  def getAllEdges: Set[Edge] = {
+    if (edgeCache != null){
+      return edgeCache
+    }
+    val edges = collection.mutable.Set[Edge]()
+
+    var currentDepth = 0
+    var frontier = Set[Node](getRoot)
+    var newFrontier = Set[Node]()
+
+    while (currentDepth <= getMaxDepth) {
+
+      frontier.foreach( cNode => {
+        cNode.getChildEdges.foreach( child => {
+          edges += child
+          if (child.getChild != getRoot) {
+            newFrontier = newFrontier + child.getChild
+          }
+        })
+      })
+
+      frontier = newFrontier.map(x => x)
+      newFrontier = Set[Node]()
+
+      currentDepth += 1
+    }
+
+    edgeCache = edges.toSet
+    edgeCache
   }
 }
