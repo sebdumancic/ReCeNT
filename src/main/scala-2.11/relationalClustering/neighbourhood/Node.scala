@@ -1,6 +1,6 @@
 package relationalClustering.neighbourhood
 
-import relationalClustering.representation.domain.Predicate
+import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 
 /** Implements the node functionality in the [[relationalClustering.neighbourhood.NeighbourhoodGraph]]
   *
@@ -169,6 +169,11 @@ class Node(protected val entity: String,
     * */
   def getPredicateChildren(predicate: Predicate) = {
     children.filter(_.getPredicate == predicate).toList.map(_.getChild)
+  }
+
+  /** Returns annotations as unary edges (necessary for RKOH kernel)*/
+  def getAnnotationsAsUnaryEdges(KB: KnowledgeBase) = {
+    getAnnotations.map( ann => new Edge(this, null, KB.getPredicate(ann._1), 0))
   }
 
   /** Prints the node with a given prefix
