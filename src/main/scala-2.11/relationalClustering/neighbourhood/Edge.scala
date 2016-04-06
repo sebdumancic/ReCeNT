@@ -56,6 +56,14 @@ class Edge(protected val parentNode: Node,
     }
   }
 
+  /** Returns vertices as a list */
+  def getVertices = {
+    isUnary match {
+      case true => List(getParent)
+      case false => List(getParent, getChild)
+    }
+  }
+
   override def toString = {
     childNode == null match {
       case true => s"$getParent --[${getPredicate.getName}],[$getParentPosition]"
