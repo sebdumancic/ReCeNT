@@ -15,7 +15,7 @@ class ConceptualFonseca(override protected val knowledgeBase: KnowledgeBase,
   }
 
   override def getFilename(domains: List[String]) = {
-    s"${domains.mkString(",")}_depth${depth}_conceptualclusteringfonseca.txt"
+    s"${domains.mkString(",")}_clause${getClauseLength}_conceptualclusteringfonseca.txt"
   }
 
   override protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
