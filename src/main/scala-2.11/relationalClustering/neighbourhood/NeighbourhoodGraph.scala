@@ -335,7 +335,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   }
 
   /** Returns the set of all edges in a neighbourhood graph */
-  def getAllEdges: Set[Edge] = {
+  def getAllEdges(addUnary: Boolean = false): Set[Edge] = {
     if (edgeCache != null){
       return edgeCache
     }
@@ -362,7 +362,10 @@ class NeighbourhoodGraph(protected val rootObject: String,
       currentDepth += 1
     }
 
-    edgeCache = edges.toSet
+    edgeCache = addUnary match {
+      case false => edges.toSet
+      case true => edges.toSet ++ getRoot.getAnnotationsAsUnaryEdges(getKnowledgeBase)
+    }
     edgeCache
   }
 }
