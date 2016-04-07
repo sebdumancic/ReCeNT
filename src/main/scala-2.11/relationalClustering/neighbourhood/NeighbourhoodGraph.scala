@@ -385,17 +385,17 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
     while (currentDepth <= getMaxDepth) {
       frontier.foreach( fNode => {
-        nodeSet += s"v ${fNode.getEntity}::${fNode.getDomain} ${fNode.getAttributeValuePairs.map( p => s"${p._1}${p._2}").mkString(",")}"
+        nodeSet += s"v ${fNode.getEntity} ${fNode.getAttributeValuePairs.map( p => s"${p._1}:${p._2}").mkString(",")}"
 
         fNode.getChildEdges.filter(e => e.getChild != getRoot).foreach( edge => {
-          edgeSet += s"e ${fNode.getEntity}::${fNode.getDomain} ${edge.getChild.getEntity}::${edge.getChild.getDomain} ${edge.getEdgeType}"
+          edgeSet += s"e ${fNode.getEntity} ${edge.getChild.getEntity} ${edge.getEdgeType}"
 
           newFrontier = newFrontier + edge.getChild
         })
       })
 
       newFrontier.foreach(cNode => {
-        nodeSet += s"v ${cNode.getEntity}::${cNode.getDomain} ${cNode.getAttributeValuePairs.map( p => s"${p._1}${p._2}").mkString(",")}"
+        nodeSet += s"v ${cNode.getEntity} ${cNode.getAttributeValuePairs.map( p => s"${p._1}:${p._2}").mkString(",")}"
       })
 
       frontier = newFrontier.map( x => x)
