@@ -324,12 +324,12 @@ class NeighbourhoodGraph(protected val rootObject: String,
           x._1.getAnnotations.map( an => s"${an._1}(v${x._2})") ++ x._1.getAttributeValuePairs.map( at => s"${at._1}(v${x._2},${at._2})")
         }) ++ (rootAttributeClauses :+ edgeName)
 
-        acc_1 ++ (2 to maxLength).foldLeft(Set[List[String]]())( (acc_ii, len) => {
+        acc_1 ++ (1 to maxLength).foldLeft(Set[List[String]]())( (acc_ii, len) => {
           acc_ii ++  allAtoms.combinations(len).filter(x => checkValidityOfClause(x, pred.getName.split("""\(""").head)).map( x => x.sorted)
         })
 
       })
-    })
+    }) ++ rootAttributeClauses.map(x => List(x))
 
     clauseCache
   }
