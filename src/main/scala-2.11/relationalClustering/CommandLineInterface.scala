@@ -7,6 +7,7 @@ import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageInt
 import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
+import relationalClustering.similarity.kernels.RKOHKernel
 import relationalClustering.utils.{Helper, PredicateDeclarations}
 
 /**
@@ -27,7 +28,7 @@ object CommandLineInterface {
   val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
-  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG]", "similarity measure")
+  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG|CCFonseca]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
@@ -35,6 +36,7 @@ object CommandLineInterface {
   val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
   val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster|majorityClass]", "cluster validation method")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
+  val clauseLength = parser.option[Int](List("clauseLength"), "n", "maximal length of clause for CCFonseca and RKOH kernel")
 
 
   def main(args: Array[String]) {
@@ -85,7 +87,8 @@ object CommandLineInterface {
                                      useLocalRepository.value.getOrElse(false))
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
-      case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
+      case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, depth.value.getOrElse(0))
+      case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), depth.value.getOrElse(0))
     }
 
 
