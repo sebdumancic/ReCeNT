@@ -87,7 +87,7 @@ object CommandLineInterface {
                                      useLocalRepository.value.getOrElse(false))
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
-      case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, depth.value.getOrElse(0))
+      case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, clauseLength.value.getOrElse(2))
       case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), clauseLength.value.getOrElse(2))
     }
 
