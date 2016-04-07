@@ -93,47 +93,50 @@ object CommandLineInterface {
     }
 
     if (exportNTs.value.getOrElse(false)) {
+      println(s"Printing trees to ${rootFolder.value.getOrElse("./tmp")}/gspan...")
       PrintNTrees.saveAll(query.value.get.split(",").toList.head, KnowledgeBase, depth.value.getOrElse(0), rootFolder.value.getOrElse("./tmp"))
     }
+    else {
 
-    var globalFilename = ""
-    var globalElementOrder: List[String] = null
+      var globalFilename = ""
+      var globalElementOrder: List[String] = null
 
-    val clusters = algorithm.value.getOrElse("Spectral") match {
-      case "Spectral" =>
-        val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-        globalFilename = filename._1
-        globalElementOrder = filename._2.map(_._1)
-        val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
-        cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+      val clusters = algorithm.value.getOrElse("Spectral") match {
+        case "Spectral" =>
+          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          globalFilename = filename._1
+          globalElementOrder = filename._2.map(_._1)
+          val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
+          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
 
-      case "Hierarchical" =>
-        val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-        globalFilename = filename._1
-        globalElementOrder = filename._2.map(_._1)
-        val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
-        cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
-    }
-
-    println("FOUND CLUSTERS")
-    clusters.zipWithIndex.foreach( cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
-
-
-    //if validation is to be performed
-    if (validate.value.getOrElse(false)) {
-      val labContainer = new LabelsContainer(labels.value.get)
-      valMethod.value.getOrElse("ARI") match {
-        case "ARI" =>
-          val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
-          println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, labContainer)}")
-        case "intraCluster" =>
-          val validator = new AverageIntraClusterSimilarity()
-          println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, globalElementOrder, globalFilename)}")
-        case "majorityClass" =>
-          val validator = new MajorityClass()
-          println(s"${valMethod.value.get} score: ${validator.validate(clusters, labContainer)}")
+        case "Hierarchical" =>
+          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          globalFilename = filename._1
+          globalElementOrder = filename._2.map(_._1)
+          val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
+          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
       }
 
+      println("FOUND CLUSTERS")
+      clusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
+
+
+      //if validation is to be performed
+      if (validate.value.getOrElse(false)) {
+        val labContainer = new LabelsContainer(labels.value.get)
+        valMethod.value.getOrElse("ARI") match {
+          case "ARI" =>
+            val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, labContainer)}")
+          case "intraCluster" =>
+            val validator = new AverageIntraClusterSimilarity()
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, globalElementOrder, globalFilename)}")
+          case "majorityClass" =>
+            val validator = new MajorityClass()
+            println(s"${valMethod.value.get} score: ${validator.validate(clusters, labContainer)}")
+        }
+
+      }
     }
   }
 }
