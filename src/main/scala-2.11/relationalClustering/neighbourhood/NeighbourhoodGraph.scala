@@ -1,5 +1,7 @@
 package relationalClustering.neighbourhood
 
+import java.io.{BufferedWriter, FileWriter}
+
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.Settings
 
@@ -367,5 +369,44 @@ class NeighbourhoodGraph(protected val rootObject: String,
       case true => edges.toSet ++ getRoot.getAnnotationsAsUnaryEdges(getKnowledgeBase)
     }
     edgeCache
+  }
+
+  /** Saves the neighbourhood graph in a gSpan format
+    *
+    * @param filename file to save in
+    * */
+  def saveAsGspan(filename: String) = {
+    val nodeSet = collection.mutable.Set[String]()
+    val edgeSet = collection.mutable.Set[String]()
+
+    var frontier = Set(getRoot)
+    var newFrontier = Set[Node]()
+    var currentDepth = 0
+
+    while (currentDepth <= getMaxDepth) {
+      frontier.foreach( fNode => {
+        nodeSet += s"v ${fNode.getEntity}::${fNode.getDomain} ${fNode.getAttributeValuePairs.map( p => s"${p._1}${p._2}").mkString(",")}"
+
+        fNode.getChildEdges.filter(e => e.getChild != getRoot).foreach( edge => {
+          edgeSet += s"e ${fNode.getEntity}::${fNode.getDomain} ${edge.getChild.getEntity}::${edge.getChild.getDomain} ${edge.getEdgeType}"
+
+          newFrontier = newFrontier + edge.getChild
+        })
+      })
+
+      newFrontier.foreach(cNode => {
+        nodeSet += s"v ${cNode.getEntity}::${cNode.getDomain} ${cNode.getAttributeValuePairs.map( p => s"${p._1}${p._2}").mkString(",")}"
+      })
+
+      frontier = newFrontier.map( x => x)
+      newFrontier = Set[Node]()
+      currentDepth += 1
+    }
+
+    val writer = new BufferedWriter(new FileWriter(filename))
+    writer.write(nodeSet.mkString("\n"))
+    writer.write("\n")
+    writer.write(edgeSet.mkString("\n"))
+    writer.close()
   }
 }

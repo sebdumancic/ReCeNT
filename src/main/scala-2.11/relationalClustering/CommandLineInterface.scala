@@ -8,7 +8,7 @@ import relationalClustering.clustering.{Hierarchical, Spectral}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
-import relationalClustering.utils.{Helper, PredicateDeclarations}
+import relationalClustering.utils.{Helper, PredicateDeclarations, PrintNTrees}
 
 /**
   * Created by seb on 05.02.16.
@@ -37,6 +37,7 @@ object CommandLineInterface {
   val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster|majorityClass]", "cluster validation method")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
   val clauseLength = parser.option[Int](List("clauseLength"), "n", "maximal length of clause for CCFonseca and RKOH kernel")
+  val exportNTs = parser.flag[Boolean](List("exportNTrees"), "should neighbouthood trees be exported as gspan")
 
 
   def main(args: Array[String]) {
@@ -91,6 +92,9 @@ object CommandLineInterface {
       case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), clauseLength.value.getOrElse(2))
     }
 
+    if (exportNTs.value.getOrElse(false)) {
+      PrintNTrees.saveAll(query.value.get.split(",").toList.head, KnowledgeBase, depth.value.getOrElse(0), rootFolder.value.getOrElse("./tmp"))
+    }
 
     var globalFilename = ""
     var globalElementOrder: List[String] = null
