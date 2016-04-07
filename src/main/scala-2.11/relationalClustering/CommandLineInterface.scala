@@ -88,7 +88,7 @@ object CommandLineInterface {
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
       case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, depth.value.getOrElse(0))
-      case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), depth.value.getOrElse(0))
+      case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), clauseLength.value.getOrElse(2))
     }
 
 
