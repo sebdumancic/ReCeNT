@@ -4,7 +4,7 @@ import org.clapper.argot.ArgotParser
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
-import relationalClustering.clustering.{Hierarchical, Spectral}
+import relationalClustering.clustering.{DBScan, Hierarchical, Spectral}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
@@ -27,7 +27,7 @@ object CommandLineInterface {
   val k = parser.option[Int](List("k"), "n", "number of clusters to create")
   val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
-  val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical]", "algorithm to perform clustering")
+  val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical|DBscan]", "algorithm to perform clustering")
   val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG|CCFonseca]", "similarity measure")
   val bag = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
@@ -38,6 +38,7 @@ object CommandLineInterface {
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
   val clauseLength = parser.option[Int](List("clauseLength"), "n", "maximal length of clause for CCFonseca and RKOH kernel")
   val exportNTs = parser.flag[Boolean](List("exportNTrees"), "should neighbouthood trees be exported as gspan")
+  val DBscanEps = parser.option[Double](List("eps"), "d", "eps value for DBscan")
 
 
   def main(args: Array[String]) {
@@ -114,6 +115,12 @@ object CommandLineInterface {
           globalFilename = filename._1
           globalElementOrder = filename._2.map(_._1)
           val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
+          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+        case "DBscan" =>
+          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          globalFilename = filename._1
+          globalElementOrder = filename._2.map(_._1)
+          val cluster = new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
           cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
       }
 
