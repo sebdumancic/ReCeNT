@@ -59,7 +59,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |    writerCl.close()
       |else:
       |    if algorithm == "DBscan":
-      |        clusters = DBSCAN(eps=args.eps[0], min_samples=max(int(len(domainObjects) * 0.05), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
+      |        clusters = DBSCAN(eps=float(args.eps[0]), min_samples=max(int(len(domainObjects) * 0.05), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
       |    elif algorithm == "Affinity" and args.pref:
       |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0]).fit(similarityMatrix)
       |    elif algorithm == "Affinity":
