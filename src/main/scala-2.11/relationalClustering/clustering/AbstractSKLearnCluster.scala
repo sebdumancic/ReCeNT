@@ -61,9 +61,9 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |    if algorithm == "DBscan":
       |        clusters = DBSCAN(eps=float(args.eps[0]), min_samples=max(int(len(domainObjects) * 0.05), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
       |    elif algorithm == "Affinity" and args.pref:
-      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0]).fit(similarityMatrix)
+      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0], convergence_iter=50).fit(similarityMatrix)
       |    elif algorithm == "Affinity":
-      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed').fit(similarityMatrix)
+      |        clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed',convergence_iter=50).fit(similarityMatrix)
       |    elif algorithm == "Spectral":
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        print " using k={} instead of k={}".format(ktoUse, args.k[0])
