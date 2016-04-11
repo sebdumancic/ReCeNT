@@ -57,8 +57,8 @@ class RKOHKernel(override protected val knowledgeBase: KnowledgeBase,
               val p1Edges = (p1.getVertices(i).getChildEdges ++ p1.getVertices(i).getParentEdges).filter( ed => ed.arity >= j).filter(ed => ed.getVertices(j).getEntity == p1.getVertices(i).getEntity)
               val p2Edges = (p2.getVertices(i).getChildEdges ++ p2.getVertices(i).getParentEdges).filter( ed => ed.arity >= j).filter(ed => ed.getVertices(j).getEntity == p2.getVertices(i).getEntity)
 
-              acc_a + p1Edges.foldLeft(0)( (acc_i, ed1) => {
-                acc_i + p2Edges.foldLeft(0)( (acc_ii, ed2) => {
+              acc_a + (p1Edges ++ p1UnaryEdges).foldLeft(0)( (acc_i, ed1) => {
+                acc_i + (p2Edges ++ p2UnaryEdges).foldLeft(0)( (acc_ii, ed2) => {
                   acc_ii + Kstep(ed1, ed2, iteration - 1)
                 })
               })
