@@ -10,6 +10,11 @@ class MaximumSimilarity extends AbstractBagComparison("max") {
   }
 
   def compareBags[T](bag1: List[T], bag2: List[T]) = {
-    bag1.intersect(bag2).size.toDouble/math.max(bag1.size, bag2.size).toDouble
+    val value = bag1.intersect(bag2).size.toDouble/math.max(bag1.size, bag2.size).toDouble
+    value.isNaN match {
+      case true => 0.0
+      case false => value
+    }
+
   }
 }
