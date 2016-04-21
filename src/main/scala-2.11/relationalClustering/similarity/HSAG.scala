@@ -2,6 +2,7 @@ package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.bagComparison.AbstractBagComparison
+import relationalClustering.neighbourhood.{NeighbourhoodGraph, Node}
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -23,6 +24,48 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     val returnMat = DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length)
 
     (hyperEdges, returnMat)
+  }
+
+  protected def contentSimilarity(ng1: Node, ng2: Node) = {
+    val value = bagCompare.compareBags(ng1.getAttributeValuePairs.toList, ng2.getAttributeValuePairs.toList)
+    value
+  }
+
+  protected def neighbourSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+    val value = ng2.getRoot.getChildNodes.foldLeft(0.0)( (acc, node) => {
+      acc + contentSimilarity(ng1.getRoot, node)
+    })/ng2.getRoot.getChildNodes.length
+
+    value.isNaN match {
+      case false => value
+      case true => 1.0
+    }
+  }
+
+  protected def contextSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+    (neighbourSimilarity(ng1, ng2) + neighbourSimilarity(ng2, ng1))/2.0
+  }
+
+  override protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+    contentSimilarity(ng1.getRoot, ng2.getRoot)
+  }
+
+  override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+    contextSimilarity(ng1, ng2)
+  }
+
+  override def getObjectSimilarity(domains: List[String]) = {
+    val objects = getObjectsFromDomains(domains)
+
+    val functionsWithNorm = List(bagCompare.needsToBeInverted, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
+      List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
+    )
+
+    val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
+      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1))
+    })
+
+    (objects.map(_._1), returnMat)
   }
 
 }
