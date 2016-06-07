@@ -10,7 +10,8 @@ import relationalClustering.neighbourhood.NeighbourhoodGraph
   */
 abstract class Cluster(protected val types: List[String],
                        protected val clusterName: String,
-                       protected val instances: Set[List[String]]) {
+                       protected val instances: Set[List[String]],
+                       protected val ntRepo: Map[(String,String), NeighbourhoodGraph]) {
 
   /** Returns the cluster type
     * */
