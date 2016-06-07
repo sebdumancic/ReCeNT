@@ -62,10 +62,14 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
-      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1))
+      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, w._2))
     })
 
     (objects.map(_._1), returnMat)
+  }
+
+  def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
+
   }
 
   /** Compute the attribute-value pair similarity between two root elements
@@ -149,7 +153,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param simFunc similarity functions that takes two neighbourhood trees as input and return a Double
     * @param shouldBeInverted flag indicating should the computed matrix be inverted in order to be a similarity measure: [[Boolean]]
     * */
-  protected def accumulateIntoMatrix(elements: List[(String,String)], simFunc: (NeighbourhoodGraph, NeighbourhoodGraph) => Double, shouldBeInverted: Boolean) = {
+  protected def accumulateIntoMatrix(elements: List[(String,String)], simFunc: (NeighbourhoodGraph, NeighbourhoodGraph) => Double, shouldBeInverted: Boolean, constInd: Int) = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
@@ -160,8 +164,8 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     }
 
     shouldBeInverted match {
-      case true => normalizeAndInvert(similarityMatrix)
-      case false => normalizeMatrix(similarityMatrix)
+      case true => normalizeAndInvert(similarityMatrix, constInd, "v")
+      case false => normalizeMatrix(similarityMatrix, constInd, "v")
     }
   }
 
@@ -187,7 +191,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter(_._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
-      acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1})
+      acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1, weight._2) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1})
     })
 
     (hyperEdges, returnMat)
@@ -303,7 +307,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains domains of elements in a hyperedge
     * @param simFunction similarity measure
     * */
-  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double, shouldBeInverted: Boolean) = {
+  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double, shouldBeInverted: Boolean, constId: Int) = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
@@ -315,8 +319,8 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     }
 
     shouldBeInverted match {
-      case true => normalizeAndInvert(similarityMatrix)
-      case false => normalizeMatrix(similarityMatrix)
+      case true => normalizeAndInvert(similarityMatrix, constId, "h")
+      case false => normalizeMatrix(similarityMatrix, constId, "h")
     }
   }
 }

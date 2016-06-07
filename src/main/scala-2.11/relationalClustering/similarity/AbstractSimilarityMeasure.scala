@@ -14,6 +14,8 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
                                          protected val depth: Int) {
 
   protected val nodeRepository = new NodeRepository(knowledgeBase)
+  protected val objectsNormConstants = collection.mutable.Map[Int, Double]()
+  protected val hyperEdgeNormConstants = collection.mutable.Map[Int, Double]()
 
   /** Returns the specified depth */
   def getDepth = {
@@ -134,14 +136,23 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   /** Normalizes the given matrix by its largest value
     *
     * @param matrix matrix to normalize: [[DenseMatrix]]
+    * @param constInd identifier for the normalization constant (in case of multiple components)
+    * @param typeFlag v for vertex constant, h for hyperedge constant
     * */
-  def normalizeMatrix(matrix: DenseMatrix[Double]): DenseMatrix[Double] = {
+  def normalizeMatrix(matrix: DenseMatrix[Double], constInd: Int, typeFlag: String): DenseMatrix[Double] = {
     val minValue = min(matrix)
     val matrixToUse = minValue < 0.0 match {
       case true => matrix - DenseMatrix.tabulate(matrix.rows, matrix.cols){ case x => minValue }
       case false => matrix
     }
     val normConstant = math.abs(max(matrixToUse))
+
+    // store the normalization constant, needed to assign new objects to the existing clusters
+    typeFlag match {
+      case "v" => objectsNormConstants(constInd) = normConstant
+      case "h" => hyperEdgeNormConstants(constInd) = normConstant
+    }
+
     normConstant == 0.0 match {
       case true => matrixToUse
       case false => matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => normConstant }
@@ -152,11 +163,11 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     *
     * @param matrix matrix to invert: [[DenseMatrix]]
     * */
-  def normalizeAndInvert(matrix: DenseMatrix[Double]): DenseMatrix[Double] = {
+  def normalizeAndInvert(matrix: DenseMatrix[Double], constInd: Int, typeFlag: String): DenseMatrix[Double] = {
     if (max(matrix) == 0.0 ) {
       return matrix
     }
-    DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix)
+    DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix, constInd, typeFlag)
   }
 
 
