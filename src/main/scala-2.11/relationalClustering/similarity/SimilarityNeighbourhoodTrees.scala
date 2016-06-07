@@ -68,8 +68,24 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     (objects.map(_._1), returnMat)
   }
 
+  /** Calculates similarity between two individual neighbourhood trees (normalizing constants have to be calculated before!!!)
+    *
+    * @param nt1 the first neighbourhood tree
+    * @param nt2 the second neighbourhood tree
+    * @return similarity
+    * */
   def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
 
+    val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
+      List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
+    )
+
+    weights.zipWithIndex.filter( _._1 > 0.0 ).foldLeft(0.0)( (acc, w) => {
+      acc + w._1 * (functionsWithNorm(w._2)._1 match {
+        case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/objectsNormConstants(w._2))
+        case false => functionsWithNorm(w._2)._2(nt1, nt2)/objectsNormConstants(w._2)
+      })
+    })
   }
 
   /** Compute the attribute-value pair similarity between two root elements
@@ -195,6 +211,26 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     })
 
     (hyperEdges, returnMat)
+  }
+
+  /** Calculates similarity between two individual hyperedges (normalizing constants have to be calculated before!!!)
+    *
+    * @param nt1 an ordered set of neighbourhood trees
+    * @param nt2 an ordered set of neirghbouyrhood trees
+    *
+    * */
+  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]) = {
+    val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
+      List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
+    )
+
+    weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
+      acc + w._1 * (functionsWithNorm(w._2)._1 match {
+        case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/hyperEdgeNormConstants(w._2))
+        case false => functionsWithNorm(w._2)._2(nt1, nt2)/hyperEdgeNormConstants(w._2)
+      })
+    })
+
   }
 
   /** computes the similarity between hyperEdge in vertices according to their attributes
