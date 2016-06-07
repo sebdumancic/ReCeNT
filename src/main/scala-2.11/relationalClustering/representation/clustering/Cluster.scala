@@ -1,14 +1,12 @@
 package relationalClustering.representation.clustering
 
-import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 
 
 /** Implements cluster functionality (container of instances)
   * Created by seb on 17.03.16.
   */
-abstract class Cluster(protected val types: List[String],
+class Cluster(protected val types: List[String],
                        protected val clusterName: String,
                        protected val instances: Set[List[String]],
                        protected val ntRepo: Map[(String,String), NeighbourhoodGraph]) {
@@ -25,5 +23,14 @@ abstract class Cluster(protected val types: List[String],
     clusterName
   }
 
-  def distance(nt: NeighbourhoodGraph, weights: List[Double], bagCompare: AbstractBagComparison, bagCombine: AbstractBagCombine): Double
+  /** Returns instance names
+    * */
+  def getInstances = {
+    instances
+  }
+
+  /** Returns a set of neighbourhood trees for the given instance*/
+  def getInstanceNeighbourhoodTree(instance: List[String]) = {
+    instance.zip(types).map( it => ntRepo(it._1, it._2))
+  }
 }
