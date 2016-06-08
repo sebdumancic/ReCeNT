@@ -54,4 +54,40 @@ object ClusterDistance {
   /** RELATION/HYPER-EDGE DISTANCES
     * */
 
+  /** Returns the average distance of an instance (hyper-edge) to all instances in the cluster
+    *
+    * @param instance a list of neighbourhood trees representing a hyper-edge
+    * @param cluster cluster of relational objects
+    * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
+    * @return similarity value
+    * */
+  def averageDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: SimilarityNeighbourhoodTrees) = {
+    require(cluster.getInstances.head.length == instance.length)
+    cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).sum/cluster.getInstances.size
+  }
+
+  /** Returns the maximal distance of an instance (hyper-edge) to all instances in the cluster
+    *
+    * @param instance a list of neighbourhood trees representing a hyper-edge
+    * @param cluster cluster of relational objects
+    * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
+    * @return similarity value
+    * */
+  def maximalDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: SimilarityNeighbourhoodTrees) = {
+    require(cluster.getInstances.head.length == instance.length)
+    cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).max
+  }
+
+  /** Returns the minimal distance of an instance (hyper-edge) to all instances in the cluster
+    *
+    * @param instance a list of neighbourhood trees representing a hyper-edge
+    * @param cluster cluster of relational objects
+    * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
+    * @return similarity value
+    * */
+  def minimalDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: SimilarityNeighbourhoodTrees) = {
+    require(cluster.getInstances.head.length == instance.length)
+    cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).min
+  }
+
 }
