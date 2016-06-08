@@ -2,6 +2,8 @@ package relationalClustering.clustering
 
 import java.io.{File, FileWriter}
 
+import relationalClustering.representation.clustering.{Cluster, Clustering}
+import relationalClustering.similarity.AbstractSimilarityNTrees
 import relationalClustering.utils.Helper
 
 import scala.sys.process._
@@ -124,13 +126,53 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param filename path to the file containing a similarity matrix and object names (as the first line)
     * @param k desired number of clusters
     * */
-  def clusterFromFile(filename: String, k: Int) = {
+  @deprecated def clusterFromFile(filename: String, k: Int) = {
     prepareScript()
     command(prepareParameters(filename, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
 
     val clusters = readClusters
     cleanArtifacts
     clusters
+  }
+
+  /** Clusters vertices of certain domain(s)
+    *
+    * @param domains domains of vertices
+    * @param similarityMeasure similarity measure to be used for clustering
+    * @param k number of clusters
+    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset + index]" where index is in range of [0,...,k]
+    * @return obtained clustering [[Clustering]]
+    * */
+  def clusterVertices(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
+    prepareScript()
+    val filename = similarityMeasure.getObjectSimilaritySave(domains, getRoot)
+    command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
+
+    val clusters = readClusters
+    cleanArtifacts
+    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset + cluster._2}",
+                                                     cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
+                    similarityMeasure, filename._2.map(item => List(item._1)), filename._1)
+  }
+
+  /** Clusters hyper-edges of certain domain(s)
+    *
+    * @param domains domains of hyper-edges
+    * @param similarityMeasure similarity measure to be used for clustering
+    * @param k number of clusters
+    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset + index]" where index is in range of [0,...,k]
+    * @return obtained clustering [[Clustering]]
+    * */
+  def clusterEdges(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
+    prepareScript()
+    val filename = similarityMeasure.getHyperEdgeSimilaritySave(domains, getRoot)
+    command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
+
+    val clusters = readClusters
+    cleanArtifacts
+    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset + cluster._2}",
+                                             cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
+                    similarityMeasure, filename._2, filename._1)
   }
 
   /** Parses the resulting file and return the set of clusters */

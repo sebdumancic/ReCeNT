@@ -101,54 +101,56 @@ object CommandLineInterface {
     }
     else {
 
-      var globalFilename = ""
-      var globalElementOrder: List[String] = null
-
-      val clusters = algorithm.value.getOrElse("Spectral") match {
+      val clustering = algorithm.value.getOrElse("Spectral") match {
         case "Spectral" =>
-          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
           globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)
+          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
 
         case "Hierarchical" =>
-          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
           globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)
+          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
         case "DBscan" =>
-          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
           globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)
+          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
         case "Affinity" =>
-          val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
+          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
           globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)
+          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
-          cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
+          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
       }
 
       println("FOUND CLUSTERS")
-      clusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.mkString(",")}"))
+      clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map( inst => inst.mkString(":")).mkString(",")}"))
 
 
       //if validation is to be performed
       if (validate.value.getOrElse(false)) {
+        val rightFormClusters = clustering.getClusters.map(cluster => cluster.getInstances.toList.map( _.mkString(":"))).toSet
         val labContainer = new LabelsContainer(labels.value.get)
         valMethod.value.getOrElse("ARI") match {
           case "ARI" =>
             val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, labContainer)}")
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(rightFormClusters, labContainer)}")
           case "intraCluster" =>
             val validator = new AverageIntraClusterSimilarity()
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clusters, globalElementOrder, globalFilename)}")
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(rightFormClusters, clustering.getElementOrdering.map( _.mkString(":")), clustering.getSimilarityFilename)}")
           case "majorityClass" =>
             val validator = new MajorityClass()
-            println(s"${valMethod.value.get} score: ${validator.validate(clusters, labContainer)}")
+            println(s"${valMethod.value.get} score: ${validator.validate(rightFormClusters, labContainer)}")
         }
 
       }
