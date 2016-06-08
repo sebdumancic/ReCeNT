@@ -31,6 +31,11 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     neighbourhoodGraphCache(keytoUse)
   }
 
+  /** Returns the set of constructed neighbourhood graphs */
+  def getNeighbourhoodGraphCache = {
+    neighbourhoodGraphCache.toMap
+  }
+
   /** Clears the neighbourhood graph cache*/
   def clearCache() = {
     neighbourhoodGraphCache.clear()
