@@ -103,33 +103,16 @@ object CommandLineInterface {
 
       val clustering = algorithm.value.getOrElse("Spectral") match {
         case "Spectral" =>
-          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-          globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
-          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
           cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
-
         case "Hierarchical" =>
-          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-          globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
-          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
           cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
         case "DBscan" =>
-          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-          globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
-          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
           cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
         case "Affinity" =>
-          /*val filename = similarityMeasure.getObjectSimilaritySave(query.value.get.split(",").toList, rootFolder.value.getOrElse("./tmp"))
-          globalFilename = filename._1
-          globalElementOrder = filename._2.map(_._1)*/
           val cluster = new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
-          //cluster.clusterFromFile(filename._1, k.value.getOrElse(2))
           cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
       }
 
