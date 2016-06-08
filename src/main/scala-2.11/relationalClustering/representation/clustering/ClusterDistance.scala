@@ -31,7 +31,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def maximumDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def maximalDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == 1)
     cluster.getInstances.map(obj => similarity.pairObjectSimilarity(instanceNT, cluster.getInstanceNeighbourhoodTree(obj).head)).max
   }
@@ -44,7 +44,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def minimumDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def minimalDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == 1)
     cluster.getInstances.map(obj => similarity.pairObjectSimilarity(instanceNT, cluster.getInstanceNeighbourhoodTree(obj).head)).min
   }
