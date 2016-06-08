@@ -3,7 +3,7 @@ package relationalClustering.similarity
 import java.io.{BufferedWriter, File, FileWriter}
 
 import breeze.linalg.{DenseMatrix, max, min}
-import relationalClustering.neighbourhood.NodeRepository
+import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
 
@@ -96,6 +96,14 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     (absolutePath.getAbsolutePath, getObjectsFromDomains(domains))
   }
 
+  /** Calculates similarity between two individual neighbourhood trees (normalizing constants have to be calculated before!!!)
+    *
+    * @param nt1 the first neighbourhood tree
+    * @param nt2 the second neighbourhood tree
+    * @return similarity
+    * */
+  def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph): Double
+
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
     *
     * @param domains list of domains of interest
@@ -132,6 +140,14 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     //(s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
     (absolutePath.getAbsolutePath,getHyperEdges(domains) )
   }
+
+  /** Calculates similarity between two individual hyperedges (normalizing constants have to be calculated before!!!)
+    *
+    * @param nt1 an ordered set of neighbourhood trees
+    * @param nt2 an ordered set of neirghbouyrhood trees
+    *
+    * */
+  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]): Double
 
   /** Normalizes the given matrix by its largest value
     *
