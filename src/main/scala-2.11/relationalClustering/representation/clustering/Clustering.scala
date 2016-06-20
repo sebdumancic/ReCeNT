@@ -1,5 +1,7 @@
 package relationalClustering.representation.clustering
 
+import java.io.{File, FileWriter}
+
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.similarity.AbstractSimilarityNTrees
 
@@ -89,6 +91,39 @@ class Clustering(protected val clusters: List[Cluster],
       case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)
       case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)
     }
+  }
+
+  /** Prints clustering to a file
+    *
+    * @param filePointer object representing a file to write in
+    * */
+  def printClusteringAsFacts(filePointer: FileWriter) = {
+    clusters.foreach(clust => {
+      filePointer.write(clust.getClusterFacts.mkString(File.separator) + File.separator)
+    })
+    filePointer.write(File.separator)
+  }
+
+  /** Prints definition of the predicates associated with the clustering
+    *
+    * @param filePointer object representing a file to write in
+    * */
+  def printClusteringDefinition(filePointer: FileWriter) = {
+    clusters.foreach( clust => {
+      filePointer.write(clust.getDefinition + File.separator)
+    })
+    filePointer.write(File.separator)
+  }
+
+  /** Prints a declaration of the predicates associated with the clustering
+    *
+    * @param filePointer object representing a file to write in
+    * */
+  def printClusteringDeclaration(filePointer: FileWriter) = {
+    clusters.foreach(clust => {
+      filePointer.write(clust.getClusterDeclaration + File.separator)
+    })
+    filePointer.write(File.separator)
   }
 
 }

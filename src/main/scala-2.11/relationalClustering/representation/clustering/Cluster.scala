@@ -31,8 +31,14 @@ class Cluster(protected val types: List[String],
     s"$getClusterName(${getTypes.mkString(",")})"
   }
 
+  /** Returns elements in cluster written as logical facts */
   def getClusterFacts = {
     getInstances.map(inst => s"$getClusterName(${inst.mkString(",")})")
+  }
+
+  /** Returns declaration of the predicate associated with the cluster */
+  def getClusterDeclaration = {
+    s"$getClusterName(${getTypes.map( t => "name").mkString(",")})"
   }
 
   /** Returns a set of neighbourhood trees for the given instance*/
