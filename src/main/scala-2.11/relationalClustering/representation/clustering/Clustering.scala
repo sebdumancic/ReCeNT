@@ -1,6 +1,6 @@
 package relationalClustering.representation.clustering
 
-import java.io.{File, FileWriter}
+import java.io.FileWriter
 
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.similarity.AbstractSimilarityNTrees
@@ -99,9 +99,9 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def printClusteringAsFacts(filePointer: FileWriter) = {
     clusters.foreach(clust => {
-      filePointer.write(clust.getClusterFacts.mkString(File.separator) + File.separator)
+      filePointer.write(clust.getClusterFacts.mkString(sys.props("line.separator")) + sys.props("line.separator"))
     })
-    filePointer.write(File.separator)
+    filePointer.write(sys.props("line.separator"))
   }
 
   /** Prints definition of the predicates associated with the clustering
@@ -110,9 +110,9 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def printClusteringDefinition(filePointer: FileWriter) = {
     clusters.foreach( clust => {
-      filePointer.write(clust.getDefinition + File.separator)
+      filePointer.write(clust.getDefinition + sys.props("line.separator"))
     })
-    filePointer.write(File.separator)
+    filePointer.write(sys.props("line.separator"))
   }
 
   /** Prints a declaration of the predicates associated with the clustering
@@ -121,9 +121,9 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def printClusteringDeclaration(filePointer: FileWriter) = {
     clusters.foreach(clust => {
-      filePointer.write(clust.getClusterDeclaration + File.separator)
+      filePointer.write(clust.getClusterDeclaration + sys.props("line.separator"))
     })
-    filePointer.write(File.separator)
+    filePointer.write(sys.props("line.separator"))
   }
 
 }
