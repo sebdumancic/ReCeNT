@@ -140,7 +140,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param domains domains of vertices
     * @param similarityMeasure similarity measure to be used for clustering
     * @param k number of clusters
-    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset + index]" where index is in range of [0,...,k]
+    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset]_[index]" where index is in range of [0,...,k]
     * @return obtained clustering [[Clustering]]
     * */
   def clusterVertices(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
@@ -150,7 +150,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
 
     val clusters = readClusters
     cleanArtifacts
-    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset + cluster._2}",
+    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset}_${cluster._2}",
                                                      cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
                     similarityMeasure, filename._2.map(item => List(item._1)), filename._1)
   }
@@ -160,7 +160,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param domains domains of hyper-edges
     * @param similarityMeasure similarity measure to be used for clustering
     * @param k number of clusters
-    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset + index]" where index is in range of [0,...,k]
+    * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset]_[index]" where index is in range of [0,...,k]
     * @return obtained clustering [[Clustering]]
     * */
   def clusterEdges(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
@@ -170,7 +170,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
 
     val clusters = readClusters
     cleanArtifacts
-    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset + cluster._2}",
+    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset}_${cluster._2}",
                                              cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
                     similarityMeasure, filename._2, filename._1)
   }
