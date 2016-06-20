@@ -122,18 +122,17 @@ object CommandLineInterface {
 
       //if validation is to be performed
       if (validate.value.getOrElse(false)) {
-        val rightFormClusters = clustering.getClusters.map(cluster => cluster.getInstances.toList.map( _.mkString(":"))).toSet
         val labContainer = new LabelsContainer(labels.value.get)
         valMethod.value.getOrElse("ARI") match {
           case "ARI" =>
             val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(rightFormClusters, labContainer)}")
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
           case "intraCluster" =>
             val validator = new AverageIntraClusterSimilarity()
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(rightFormClusters, clustering.getElementOrdering.map( _.mkString(":")), clustering.getSimilarityFilename)}")
+            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
           case "majorityClass" =>
             val validator = new MajorityClass()
-            println(s"${valMethod.value.get} score: ${validator.validate(rightFormClusters, labContainer)}")
+            println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
         }
 
       }

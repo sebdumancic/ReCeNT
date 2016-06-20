@@ -1,6 +1,7 @@
 package relationalClustering.clustering.evaluation
 
 import breeze.linalg.DenseMatrix
+import relationalClustering.representation.clustering.{Cluster, Clustering}
 
 import scala.io.Source
 
@@ -10,9 +11,9 @@ import scala.io.Source
 class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
 
   /** Calculates the average intra cluster similarity */
-  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
-    val similarityMatrix = readMatrixFromFile(similarityMatrixFile, elementOrder.length)
-    val agg = clusters.map( clust => intraClusterSimilarity(clust, elementOrder, similarityMatrix)) //.sum/clusters.size.toDouble
+  def validate(clusters: Clustering) = {
+    val similarityMatrix = readMatrixFromFile(clusters.getSimilarityFilename, clusters.getElementOrdering.length)
+    val agg = clusters.getClusters.map( clust => intraClusterSimilarity(clust, clusters.getElementOrdering.map(_.mkString(":")), similarityMatrix)) //.sum/clusters.size.toDouble
     agg.sum///clusters.size.toDouble
   }
 
@@ -23,12 +24,12 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
     * @param similarityMatrix similarity matrix
     * @return [[Double]]
     * */
-  protected def intraClusterSimilarity(cluster: List[String], elementOrder: List[String], similarityMatrix: DenseMatrix[Double]): Double = {
-    cluster.length < 2 match {
+  protected def intraClusterSimilarity(cluster: Cluster, elementOrder: List[String], similarityMatrix: DenseMatrix[Double]): Double = {
+    cluster.getSize < 2 match {
       case true => 1.0
       case false =>
-        (2.0/(cluster.length*(cluster.length - 1)).toDouble) * cluster.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
-          acc + cluster.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
+        (2.0/(cluster.getSize*(cluster.getSize - 1)).toDouble) * cluster.getInstances.map(_.mkString(":")).toList.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
+          acc + cluster.getInstances.map(_.mkString(":")).toList.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
             acc_i + similarityMatrix(elementOrder.indexOf(elem._1), elementOrder.indexOf(elem_i._1))
           })
         })

@@ -2,6 +2,8 @@ package relationalClustering.clustering.evaluation
 
 import java.io.FileWriter
 
+import relationalClustering.representation.clustering.Clustering
+
 import scala.sys.process._
 
 /**
@@ -44,7 +46,7 @@ class AdjustedRandIndex(override protected val rootFolder: String) extends Abstr
     * @param labels ground truth cluster indications
     * @return [[Double]]
     * */
-  def validate(clusters: Set[List[String]], labels: LabelsContainer) = {
+  def validate(clusters: Clustering, labels: LabelsContainer) = {
     saveTuplesToFile(combineWithGroundTruth(clusters, labels), s"$getRoot/ari_ground_truth.txt")
 
     val stream = s"python $getRoot/ari_script.py --input $getRoot/ari_ground_truth.txt".!!

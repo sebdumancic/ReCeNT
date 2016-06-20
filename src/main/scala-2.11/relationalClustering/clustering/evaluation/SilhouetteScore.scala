@@ -2,6 +2,8 @@ package relationalClustering.clustering.evaluation
 
 import java.io.{File, FileWriter}
 
+import relationalClustering.representation.clustering.Clustering
+
 import scala.sys.process._
 
 /**
@@ -52,12 +54,12 @@ class SilhouetteScore(override protected val rootFolder: String) extends Abstrac
   }
 
 
-  def validate(clusters: Set[List[String]], elementOrder: List[String], similarityMatrixFile: String) = {
+  def validate(clusters: Clustering) = {
     prepareScript()
-    val labels = getLabels(clusters, elementOrder)
+    val labels = getLabels(clusters, clusters.getElementOrdering.map(_.mkString(":")))
     saveLabelsToFile(labels, s"$labelsFile")
 
-    val stream = command(similarityMatrixFile).!!
+    val stream = command(clusters.getSimilarityFilename).!!
     cleanArtifacts
     stream.split(":")(1).toDouble
   }

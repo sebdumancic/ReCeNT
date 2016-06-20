@@ -2,6 +2,8 @@ package relationalClustering.clustering.evaluation
 
 import java.io.FileWriter
 
+import relationalClustering.representation.clustering.{Cluster, Clustering}
+
 /**
   * Created by seb on 05.02.16.
   */
@@ -13,7 +15,7 @@ abstract class AbstractEvaluatorWithLabels(override protected val rootFolder: St
     * @param labels ground truth cluster indications
     * @return [[Double]]
     * */
-  def validate(clusters: Set[List[String]], labels: LabelsContainer): Double
+  def validate(clusters: Clustering, labels: LabelsContainer): Double
 
   /** Transforms the cluster element in form (cluster id, element label id)
     *
@@ -21,8 +23,8 @@ abstract class AbstractEvaluatorWithLabels(override protected val rootFolder: St
     * @param cluster list of elements in a cluster
     * @param labels label container of the corresponding elements
     * */
-  protected def combineClusterWithGroundTruth(clusterId: Int, cluster: List[String], labels: LabelsContainer) = {
-    cluster.map( e => new Tuple2(clusterId, labels.getLabelId(e))).filter( _._2 != -1)
+  protected def combineClusterWithGroundTruth(clusterId: Int, cluster: Cluster, labels: LabelsContainer) = {
+    cluster.getInstances.map(_.mkString(":")).toList.map( e => new Tuple2(clusterId, labels.getLabelId(e))).filter( _._2 != -1)
   }
 
   /** Transforms the clusters in a list of (cluster id, labels id)
@@ -31,8 +33,8 @@ abstract class AbstractEvaluatorWithLabels(override protected val rootFolder: St
     * @param labels ground truth for elements in clusters
     * @return list of (cluster id, label)
     * */
-  protected def combineWithGroundTruth(clusters: Set[List[String]], labels: LabelsContainer) = {
-    clusters.zipWithIndex.foldLeft(List[(Int, Int)]())( (acc, clst) => {
+  protected def combineWithGroundTruth(clusters: Clustering, labels: LabelsContainer) = {
+    clusters.getClusters.zipWithIndex.foldLeft(List[(Int, Int)]())( (acc, clst) => {
       acc ++ combineClusterWithGroundTruth(clst._2, clst._1, labels)
     })
   }

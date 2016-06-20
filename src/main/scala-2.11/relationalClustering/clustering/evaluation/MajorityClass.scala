@@ -1,5 +1,7 @@
 package relationalClustering.clustering.evaluation
 
+import relationalClustering.representation.clustering.Clustering
+
 /**
   * Created by seb on 21.03.16.
   */
@@ -11,14 +13,14 @@ class MajorityClass extends AbstractEvaluatorWithLabels("./tmp") {
     * @param labels labels of the examples
     * @return accuracy of such assignment (#correctly assigned labels / #elements)
     * */
-  def validate(clusters: Set[List[String]], labels: LabelsContainer) = {
+  def validate(clusters: Clustering, labels: LabelsContainer) = {
 
     // counts the number of examples within the class that have the same true label than the majority label
-    val goodOnes = clusters.map( cl => new Tuple2(cl, AssignMajorityClass(cl, labels))).foldLeft(List[(String,String)]())( (acc, clust) => {
+    val goodOnes = clusters.getClusters.map( cl => new Tuple2(cl.getInstances.map(_.mkString(":")).toList, AssignMajorityClass(cl.getInstances.map(_.mkString(":")).toList, labels))).foldLeft(List[(String,String)]())( (acc, clust) => {
       acc ++ clust._1.distinct.map( x => new Tuple2(labels.getLabel(x), clust._2))
     }).count( x => x._1 == x._2)
 
-    val total = clusters.foldLeft(0.0)( (acc, cl) => acc + cl.length.toDouble)
+    val total = clusters.getClusters.foldLeft(0.0)( (acc, cl) => acc + cl.getSize.toDouble)
 
     goodOnes.toDouble/total
   }
