@@ -18,6 +18,11 @@ class Clustering(protected val clusters: List[Cluster],
     clusters
   }
 
+  /** Return the similarity measure object */
+  def getSimilarityMeasure = {
+    similarityMeasure
+  }
+
   /** Returns the filename containing the similarity matrix of elements in the clustering */
   def getSimilarityFilename = {
     similarityFilename
