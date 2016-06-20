@@ -45,4 +45,9 @@ class Cluster(protected val types: List[String],
   def getInstanceNeighbourhoodTree(instance: List[String]) = {
     instance.zip(types).map( it => ntRepo(it._1, it._2))
   }
+
+  /** Returns the number of elements in the cluster*/
+  def getSize = {
+    instances.size
+  }
 }
