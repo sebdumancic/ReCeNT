@@ -1,6 +1,6 @@
 package relationalClustering.representation.clustering
 
-import java.io.FileWriter
+import java.io.BufferedWriter
 
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.similarity.AbstractSimilarityNTrees
@@ -97,7 +97,7 @@ class Clustering(protected val clusters: List[Cluster],
     *
     * @param filePointer object representing a file to write in
     * */
-  def printClusteringAsFacts(filePointer: FileWriter) = {
+  def printClusteringAsFacts(filePointer: BufferedWriter) = {
     clusters.foreach(clust => {
       filePointer.write(clust.getClusterFacts.mkString(sys.props("line.separator")) + sys.props("line.separator"))
     })
@@ -108,7 +108,7 @@ class Clustering(protected val clusters: List[Cluster],
     *
     * @param filePointer object representing a file to write in
     * */
-  def printClusteringDefinition(filePointer: FileWriter) = {
+  def printClusteringDefinition(filePointer: BufferedWriter) = {
     clusters.foreach( clust => {
       filePointer.write(clust.getDefinition + sys.props("line.separator"))
     })
@@ -119,7 +119,7 @@ class Clustering(protected val clusters: List[Cluster],
     *
     * @param filePointer object representing a file to write in
     * */
-  def printClusteringDeclaration(filePointer: FileWriter) = {
+  def printClusteringDeclaration(filePointer: BufferedWriter) = {
     clusters.foreach(clust => {
       filePointer.write(clust.getClusterDeclaration + sys.props("line.separator"))
     })
