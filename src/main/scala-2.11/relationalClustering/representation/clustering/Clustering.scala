@@ -31,6 +31,30 @@ class Clustering(protected val clusters: List[Cluster],
     getClusters.head.getTypes
   }
 
+
+  /** A generic method to assign a neighbourhood tree to the closest cluster
+    *
+    * @param nt a list of neighbourhood trees representing an object/hyper-edge
+    * @param linkage linkage for the similarity calculation [average|maximal|minimal]
+    * @return the most similar cluster
+    * */
+  def assignToClosestCluster(nt: List[NeighbourhoodGraph], linkage: String = "average") = {
+    nt.length == 1 match {
+      case true =>
+        linkage match {
+          case "average" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)
+          case "maximal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)
+          case "minimal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)
+        }
+      case false =>
+        linkage match {
+          case "average" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)
+          case "maximal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)
+          case "minimal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)
+        }
+    }
+  }
+
   /** Assigns an object/hyper-edge to the closest cluster, according to the average distance to all elements in a cluster
     *
     * @param nt a list of neighbourhood trees representing an object/hyper-edge
