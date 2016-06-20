@@ -33,6 +33,13 @@ class Clustering(protected val clusters: List[Cluster],
     getClusters.head.getTypes
   }
 
+  /** Returns all neighbourhood trees in a clustering */
+  def getNeighbourhoodTreeRepo = {
+    getClusters.foldLeft(collection.mutable.Map[(String,String), NeighbourhoodGraph]())( (acc, clust) => {
+      acc ++ clust.getRepo
+    }).toMap
+  }
+
 
   /** A generic method to assign a neighbourhood tree to the closest cluster
     *

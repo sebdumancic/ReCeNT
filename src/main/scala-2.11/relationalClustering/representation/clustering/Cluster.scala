@@ -26,6 +26,10 @@ class Cluster(protected val types: List[String],
     instances
   }
 
+  def getRepo = {
+    ntRepo
+  }
+
   /** Returns the definition of a predicate representing the cluster */
   def getDefinition = {
     s"$getClusterName(${getTypes.mkString(",")})"
