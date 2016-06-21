@@ -110,10 +110,15 @@ class Clustering(protected val clusters: List[Cluster],
     * @param filePointer object representing a file to write in
     * */
   def printClusteringAsFacts(filePointer: BufferedWriter) = {
-    clusters.foreach(clust => {
-      filePointer.write(clust.getClusterFacts.mkString(sys.props("line.separator")) + sys.props("line.separator"))
-    })
+    filePointer.write(getClusteringAsFacts)
     filePointer.write(sys.props("line.separator"))
+  }
+
+  /** Returns clustering as logical facts */
+  def getClusteringAsFacts = {
+    clusters.foldLeft("")( (acc, clust) => {
+      acc + clust.getClusterFacts.mkString(sys.props("line.separator")) + sys.props("line.separator")
+    })
   }
 
   /** Prints definition of the predicates associated with the clustering
@@ -121,10 +126,15 @@ class Clustering(protected val clusters: List[Cluster],
     * @param filePointer object representing a file to write in
     * */
   def printClusteringDefinition(filePointer: BufferedWriter) = {
-    clusters.foreach( clust => {
-      filePointer.write(clust.getDefinition + sys.props("line.separator"))
-    })
+    filePointer.write(getClusteringDefinition)
     filePointer.write(sys.props("line.separator"))
+  }
+
+  /** Returns definition of the predicates associated with the clusters */
+  def getClusteringDefinition = {
+    clusters.foldLeft("")( (acc, clust) => {
+      acc + clust.getDefinition + sys.props("line.separator")
+    })
   }
 
   /** Prints a declaration of the predicates associated with the clustering
@@ -132,10 +142,15 @@ class Clustering(protected val clusters: List[Cluster],
     * @param filePointer object representing a file to write in
     * */
   def printClusteringDeclaration(filePointer: BufferedWriter) = {
-    clusters.foreach(clust => {
-      filePointer.write(clust.getClusterDeclaration + sys.props("line.separator"))
-    })
+    filePointer.write(getClusteringDeclaration)
     filePointer.write(sys.props("line.separator"))
+  }
+
+  /** Returns declaration of predicates associated with the clustering */
+  def getClusteringDeclaration = {
+    clusters.foldLeft("")( (acc, clust) => {
+      acc + clust.getClusterDeclaration + sys.props("line.separator")
+    })
   }
 
 }
