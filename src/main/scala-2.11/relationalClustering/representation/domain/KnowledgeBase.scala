@@ -2,7 +2,7 @@ package relationalClustering.representation.domain
 
 import java.io.{BufferedWriter, FileWriter}
 
-import relationalClustering.utils.{Helper, PredicateDeclarations}
+import relationalClustering.utils.{Helper, PredicateDeclarations, Settings}
 
 
 /**
@@ -146,6 +146,27 @@ class KnowledgeBase(private val databases: Seq[String],
     for(db <- databases) {
       processDatabase(db)
     }
+  }
+
+  /** Returns all possible hyperedges with size [size]
+    *
+    * @param size size of the hyperedges (an ordered set of vertices)
+    * */
+  def getExistingHyperedges(size: Int) = {
+    predicates.values.filter(_.getRole == Settings.ROLE_HYPEREDGE).foldLeft(Set[List[String]]())( (acc, pred) => {
+      acc ++ pred.getDomains.combinations(size).toSet
+    })
+  }
+
+  /** Returns all possible hyperedges with size [size] from domains [domains]
+    *
+    * @param size size of the hyperedges (an ordered set of vertices)
+    * @param domains allowed set of domains
+    * */
+  def getExistingHyperedges(size: Int, domains: List[String]) = {
+    predicates.values.filter(_.getRole == Settings.ROLE_HYPEREDGE).foldLeft(Set[List[String]]())( (acc, pred) => {
+      acc ++ pred.getDomains.combinations(size).toSet
+    }).filter(he => he.map( d => domains.contains(d)).reduce(_ && _))
   }
 
   def printToFile(filename: String) = {
