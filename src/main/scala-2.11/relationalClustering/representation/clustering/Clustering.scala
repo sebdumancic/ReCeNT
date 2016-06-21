@@ -18,6 +18,11 @@ class Clustering(protected val clusters: List[Cluster],
     clusters
   }
 
+  /** Returns the number of clusters in clustering */
+  def size = {
+    clusters.length
+  }
+
   /** Return the similarity measure object */
   def getSimilarityMeasure = {
     similarityMeasure
