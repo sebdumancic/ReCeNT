@@ -23,6 +23,11 @@ class Clustering(protected val clusters: List[Cluster],
     clusters.length
   }
 
+  /** Returns true if the clustering contains vertex clusters, false if objects in clusters are hyperedges */
+  def vertexClustering = {
+    getTypes.length == 1
+  }
+
   /** Return the similarity measure object */
   def getSimilarityMeasure = {
     similarityMeasure
