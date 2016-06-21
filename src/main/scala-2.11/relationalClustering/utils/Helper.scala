@@ -1,7 +1,5 @@
 package relationalClustering.utils
 
-import java.io.FileWriter
-
 import scala.io.Source
 
 /**
@@ -20,6 +18,19 @@ object Helper {
     val lines = fileSource.getLines().mkString("\n")
     fileSource.close()
     lines.split("\n")
+  }
+
+  /** Finds all possible matches of template within allDomains
+    *
+    * @param template list of domain of interest (sub-hyperedge)
+    * @param allDomains full hyperedges
+    *
+    * template = (dom1, dom2), allDomains = (dom1, dom2) => ((0,1))
+    * template = (dom1, dom2), allDomains = (dom1, dom1, dom2) => ((0,2), (1,2))
+    * */
+  def extractSubHyperedge(template: List[String], allDomains: List[String]) = {
+    val domMatch = template.map(d => allDomains.zipWithIndex.filter(_._1 == d).map(_._2).map(t => List(t)))
+    domMatch.reduceLeft( (x,y) => { for { xs <-x; ys <- y} yield xs ::: ys} ).filter(m => m == m.sorted)
   }
 
 }

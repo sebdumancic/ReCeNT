@@ -4,8 +4,8 @@ import java.io.{BufferedWriter, File, FileWriter}
 
 import breeze.linalg.{DenseMatrix, max, min}
 import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
-import relationalClustering.representation.domain.KnowledgeBase
-import relationalClustering.utils.Settings
+import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
+import relationalClustering.utils.{Helper, Settings}
 
 /** Abstract Similarity measure class
   * Created by seb on 18.01.16.
@@ -54,20 +54,34 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     domainCounts.map( cand => testHyperEdge.count(_ == cand._1) >= cand._2).reduce(_ && _)
   }
 
+  /** Extracts sub-hyperedges from a gives predicate
+    *
+    * @param domains domains of a sub-hyperedges
+    * @param predicate predicate representing a set of hyperedges
+    *
+    *
+    * if domains = (dom1, dom2) and predicate domains are (dom1, dom2,dom3), it should return all true groundings of the predicate and remove the third elements from it
+    * */
+  protected def extractHyperedgesFromPredicate(domains: List[String], predicate: Predicate): Set[List[String]] = {
+    domains.forall(predicate.getDomains.contains) match {
+      case false => Set[List[String]]()
+      case true =>
+        Helper.extractSubHyperedge(domains, predicate.getDomains).foldLeft(Set[List[String]]())( (acc, pat) => {
+          acc ++ predicate.getTrueGroundings.map( g => g.zipWithIndex.filter(it => pat.contains(it._2)).map(_._1))
+        })
+    }
+  }
+
   /** Extracts all the hyper-edges in a graph
     *
     * @param domains hyperEdge domains (should be sorted alphabetically!)
     * */
   def getHyperEdges(domains: List[String]) = {
     require(domains.length > 1, "Hyperedge requires at least two domains to be specified")
-    require(domains == domains.sorted, "Domains have to be sorted alphabetically")
+    //require(domains == domains.sorted, "Domains have to be sorted alphabetically")
 
-    getKB.getPredicateNames.map(getKB.getPredicate).filter( _.getRole == Settings.ROLE_HYPEREDGE).filter( pred => hyperEdgeContained(domains, pred.getDomains)).foldLeft(Set[List[String]]())( (acc, pred) =>{
-      val doms = pred.getDomains
-      val validTuples = pred.getTrueGroundings.foldLeft(Set[List[String]]())( (acc_i, ground) => {
-        acc_i ++ ground.zip(doms).combinations(domains.length).map( _.sortBy(_._2)).filter( curGround => curGround.map(_._2) == domains).map( c => c.map(_._1))
-      })
-      acc ++ validTuples
+    getKB.getPredicateNames.map(getKB.getPredicate).filter( _.getRole == Settings.ROLE_HYPEREDGE).foldLeft(Set[List[String]]())( (acc, pred) =>{
+      acc ++ extractHyperedgesFromPredicate(domains, pred)
     }).toList.sortBy(_.mkString)
   }
 
