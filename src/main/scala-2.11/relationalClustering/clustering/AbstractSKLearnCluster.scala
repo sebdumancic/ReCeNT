@@ -154,6 +154,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     clusters.isEmpty match {
       case true =>
         // returns a clustering with all elements in a single cluster
+        println(s"*** ERROR *** : Something happened when clustering vertices of type $domains")
         new Clustering(List(new Cluster(domains, "Cluster_all_elements", filename._2.map( x => List(x._1)).toSet, similarityMeasure.getNeighbourhoodGraphCache)),
           similarityMeasure, filename._2.map( x => List(x._1)), filename._1)
       case false =>
@@ -182,6 +183,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     clusters.isEmpty match {
       case true =>
         // returns a clustering with all elements in a single cluster
+        println(s"*** ERROR *** : Something happened when clustering hyperedges of type $domains")
         new Clustering(List(new Cluster(domains, "Cluster_all_elements", filename._2.toSet, similarityMeasure.getNeighbourhoodGraphCache)),
                        similarityMeasure, filename._2, filename._1)
       case false =>
