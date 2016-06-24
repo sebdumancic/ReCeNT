@@ -170,9 +170,17 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
 
     val clusters = readClusters
     cleanArtifacts
-    new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset}_${cluster._2}",
-                                             cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
-                    similarityMeasure, filename._2, filename._1)
+
+    clusters.isEmpty match {
+      case true =>
+        // returns a clustering with all elements in a single cluster
+        new Clustering(List(new Cluster(domains, "Cluster_all_elements", filename._2.toSet, similarityMeasure.getNeighbourhoodGraphCache)),
+                       similarityMeasure, filename._2, filename._1)
+      case false =>
+        new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset}_${cluster._2}",
+          cluster._1.map( _.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
+          similarityMeasure, filename._2, filename._1)
+    }
   }
 
   /** Parses the resulting file and return the set of clusters */
