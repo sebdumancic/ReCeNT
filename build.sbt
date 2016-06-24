@@ -2,7 +2,7 @@ name := "RelationalClusteringOverNeighbourhoodGraphs"
 
 version := "2.2.1"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
 mainClass in assembly := some("relationalClustering.CommandLineInterface")
 assemblyJarName := "RelationalClustering.jar"

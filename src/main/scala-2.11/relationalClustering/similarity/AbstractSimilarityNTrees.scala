@@ -21,7 +21,7 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
   }
 
   protected def getNeighbourhoodGraph(objectName: String, domain: String) = {
-    val keytoUse = new Tuple2(objectName, domain)
+    val keytoUse = (objectName, domain)
     if (!neighbourhoodGraphCache.contains(keytoUse)) {
       neighbourhoodGraphCache(keytoUse) = useLocal match {
         case true => new NeighbourhoodGraph(objectName, domain, getDepth, getKB)
@@ -29,6 +29,15 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
       }
     }
     neighbourhoodGraphCache(keytoUse)
+  }
+
+  /** Creates all neighbourhood graphs (needed when similarities are read from file)*/
+  def buildAllNeighbourhoodGraphs(domains: List[String]) = {
+    if (neighbourhoodGraphCache.isEmpty) {
+      getObjectsFromDomains(domains).foreach( t => {
+        getNeighbourhoodGraph(t._1, t._2)
+      })
+    }
   }
 
   /** Returns the set of constructed neighbourhood graphs */
