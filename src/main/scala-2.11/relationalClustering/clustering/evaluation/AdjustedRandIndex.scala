@@ -1,6 +1,6 @@
 package relationalClustering.clustering.evaluation
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
 
 import relationalClustering.representation.clustering.Clustering
 
@@ -50,7 +50,14 @@ class AdjustedRandIndex(override protected val rootFolder: String) extends Abstr
     saveTuplesToFile(combineWithGroundTruth(clusters, labels), s"$getRoot/ari_ground_truth.txt")
 
     val stream = s"python $getRoot/ari_script.py --input $getRoot/ari_ground_truth.txt".!!
-    stream.split(":")(1).toDouble
+    val res = stream.split(":")(1).toDouble
+    cleanArtifacts
+    res
+  }
+
+  def cleanArtifacts = {
+    new File(s"$getRoot/ari_script.py").delete()
+    new File(s"$getRoot/ari_ground_truth.txt").delete()
   }
 
 }
