@@ -58,7 +58,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |
       |w,v = np.linalg.eig(similarityMatrix)
       |
-      |if maxVal == 0.0 or minVal == maxVal or (algorithm == 'Spectral' and sorted(v, reverse=True)[0] < 0.0):
+      |if maxVal == 0.0 or minVal == maxVal or (algorithm == 'Spectral' and sorted(w, reverse=True)[0] < 0.0):
       |    writerCl = open(outputClusters, 'w')
       |    writerCl.write("0={" + ";".join(domainObjects) + "}\n")
       |    writerCl.close()
@@ -72,7 +72,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |    elif algorithm == "Spectral":
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        #print " using k={} instead of k={}".format(ktoUse, args.k[0])
-      |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed', eigen_solver='arpack').fit(similarityMatrix)
+      |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(similarityMatrix)
       |    elif algorithm == 'Agglomerative':
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        #print " using k={} instead of k={}".format(ktoUse, args.k[0])
