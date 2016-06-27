@@ -50,7 +50,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |inputFile = args.input[0]
       |outputClusters = args.output[0]
       |
-      |similarityMatrix = np.loadtxt(inputFile, delimiter=";", comments="#")
+      |similarityMatrix = np.loadtxt(inputFile, delimiter=";", comments="#", dtype=np.float64)
       |domainObjects = map(lambda x: x.strip(), open(inputFile).readline().replace("#", "").split(";"))
       |
       |maxVal = similarityMatrix.max()
