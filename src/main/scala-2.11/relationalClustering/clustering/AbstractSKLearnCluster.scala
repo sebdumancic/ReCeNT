@@ -70,7 +70,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |    elif algorithm == "Spectral":
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        #print " using k={} instead of k={}".format(ktoUse, args.k[0])
-      |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed').fit(similarityMatrix)
+      |        clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed', eigen_solver='arpack').fit(similarityMatrix)
       |    elif algorithm == 'Agglomerative':
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        #print " using k={} instead of k={}".format(ktoUse, args.k[0])
