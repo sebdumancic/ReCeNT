@@ -1,5 +1,7 @@
 package relationalClustering.similarity
 
+import java.io.File
+
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.domain.KnowledgeBase
 
@@ -48,6 +50,48 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
   /** Clears the neighbourhood graph cache*/
   def clearCache() = {
     neighbourhoodGraphCache.clear()
+  }
+
+  /** Get the similarity matrix and saves it to the file
+    *
+    * @param domains domains of interest
+    * @param folder folder to save file
+    * @return filename of the file containing similarity matrix, and the element ordering
+    *
+    * */
+  override def getObjectSimilaritySave(domains: List[String], folder: String) = {
+    if (!new File(s"$folder/${getFilename(domains)}").exists()) {
+      val (elems, sim) = getObjectSimilarity(domains)
+      saveMatrixToFile(s"$folder/${getFilename(domains)}", domains, elems, sim)
+    }
+    else {
+      buildAllNeighbourhoodGraphs(domains)
+    }
+
+    val absolutePath = new File(s"$folder/${getFilename(domains)}")
+
+    (absolutePath.getAbsolutePath, getObjectsFromDomains(domains))
+  }
+
+  /** Get the hyper-edge similarity matrix and save it to file
+    *
+    * @param domains domains of the hyperedges
+    * @param folder folder to save the file to
+    * @return fileName, an ordering of elements
+    * */
+  override def getHyperEdgeSimilaritySave(domains: List[String], folder: String) = {
+    if (!new File(s"$folder/${getFilenameHyperEdges(domains)}").exists()) {
+      val (elems, sim) = getHyperEdgeSimilarity(domains)
+      saveMatrixToFile(s"$folder/${getFilenameHyperEdges(domains)}", domains, elems.map( _.mkString(":")), sim)
+    }
+    else {
+      buildAllNeighbourhoodGraphs(domains)
+    }
+
+    val absolutePath = new File(s"$folder/${getFilenameHyperEdges(domains)}")
+
+    //(s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
+    (absolutePath.getAbsolutePath,getHyperEdges(domains) )
   }
 
 }
