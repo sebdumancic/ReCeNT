@@ -30,7 +30,7 @@ object Helper {
     * */
   def extractSubHyperedge(template: List[String], allDomains: List[String]) = {
     val domMatch = template.map(d => allDomains.zipWithIndex.filter(_._1 == d).map(_._2).map(t => List(t)))
-    domMatch.reduceLeft( (x,y) => { for { xs <-x; ys <- y} yield xs ::: ys} ).filter(m => m == m.sorted)
+    domMatch.reduceLeft( (x,y) => { for { xs <-x; ys <- y} yield xs ::: ys} ).filter(m => m == m.sorted).filter( it => it.size == it.distinct.size)
   }
 
 }

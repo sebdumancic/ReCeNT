@@ -216,7 +216,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   /** Calculates similarity between two individual hyperedges (normalizing constants have to be calculated before!!!)
     *
     * @param nt1 an ordered set of neighbourhood trees
-    * @param nt2 an ordered set of neirghbouyrhood trees
+    * @param nt2 an ordered set of neighbourhood trees
     *
     * */
   def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]) = {
