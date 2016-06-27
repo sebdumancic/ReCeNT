@@ -147,7 +147,6 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     prepareScript()
     val filename = similarityMeasure.getObjectSimilaritySave(domains, getRoot)
     command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
-    similarityMeasure.buildAllNeighbourhoodGraphs(domains)
 
     val clusters = readClusters
     cleanArtifacts
@@ -177,7 +176,6 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     prepareScript()
     val filename = similarityMeasure.getHyperEdgeSimilaritySave(domains, getRoot)
     command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
-    similarityMeasure.buildAllNeighbourhoodGraphs(domains)
 
     val clusters = readClusters
     cleanArtifacts
