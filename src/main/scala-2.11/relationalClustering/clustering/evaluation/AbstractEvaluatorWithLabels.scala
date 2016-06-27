@@ -24,7 +24,7 @@ abstract class AbstractEvaluatorWithLabels(override protected val rootFolder: St
     * @param labels label container of the corresponding elements
     * */
   protected def combineClusterWithGroundTruth(clusterId: Int, cluster: Cluster, labels: LabelsContainer) = {
-    cluster.getInstances.map(_.mkString(":")).toList.map( e => new Tuple2(clusterId, labels.getLabelId(e))).filter( _._2 != -1)
+    cluster.getInstances.map(_.mkString(":")).toList.map( e => (clusterId, labels.getLabelId(e)) ).filter( _._2 != -1)
   }
 
   /** Transforms the clusters in a list of (cluster id, labels id)
