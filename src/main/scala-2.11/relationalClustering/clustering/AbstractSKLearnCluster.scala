@@ -54,8 +54,9 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |domainObjects = map(lambda x: x.strip(), open(inputFile).readline().replace("#", "").split(";"))
       |
       |maxVal = similarityMatrix.max()
+      |minVal = similarityMatrix.min()
       |
-      |if maxVal == 0.0:
+      |if maxVal == 0.0 or minVal == maxVal:
       |    writerCl = open(outputClusters, 'w')
       |    writerCl.write("0={" + ";".join(domainObjects) + "}\n")
       |    writerCl.close()
