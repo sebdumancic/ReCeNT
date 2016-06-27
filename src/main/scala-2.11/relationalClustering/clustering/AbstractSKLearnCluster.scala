@@ -56,7 +56,10 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |maxVal = similarityMatrix.max()
       |minVal = similarityMatrix.min()
       |
-      |if maxVal == 0.0 or minVal == maxVal:
+      |w,v = np.linalg.eig(similarityMatrix)
+      |print w
+      |
+      |if maxVal == 0.0 or minVal == maxVal or (algorithm == 'Spectral' and sorted(v, reverse=True)[0] < 0.0):
       |    writerCl = open(outputClusters, 'w')
       |    writerCl.write("0={" + ";".join(domainObjects) + "}\n")
       |    writerCl.close()
@@ -75,7 +78,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |        ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |        #print " using k={} instead of k={}".format(ktoUse, args.k[0])
       |        distance = 1.0 - np.divide(similarityMatrix, similarityMatrix.max())
-      |        clusters = AgglomerativeClustering(n_clusters=args.k[0], affinity='precomputed', linkage='average').fit(distance)
+      |        clusters = AgglomerativeClustering(n_clusters=kToUse, affinity='precomputed', linkage='average').fit(distance)
       |    else:
       |        print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
       |        clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
