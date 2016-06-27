@@ -14,8 +14,8 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
                                          protected val depth: Int) {
 
   protected val nodeRepository = new NodeRepository(knowledgeBase)
-  protected val objectsNormConstants = collection.mutable.Map[Int, Double]()
-  protected val hyperEdgeNormConstants = collection.mutable.Map[Int, Double]()
+  protected var objectsNormConstants = Map[Int, Double]()
+  protected var hyperEdgeNormConstants = Map[Int, Double]()
 
   /** Returns the specified depth */
   def getDepth = {
@@ -30,6 +30,22 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   /** Returns the node repository */
   protected def getRepo = {
     nodeRepository
+  }
+
+  def getObjectNorm = {
+    objectsNormConstants
+  }
+
+  def getHyperEdgeNorm = {
+    hyperEdgeNormConstants
+  }
+
+  def setObjectNorms(ns: Map[Int, Double]) = {
+    objectsNormConstants = ns
+  }
+
+  def setHyperedgeNorms(ns: Map[Int, Double]) = {
+    hyperEdgeNormConstants = ns
   }
 
   /** Composes a list of object in specified domains
@@ -179,8 +195,8 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
 
     // store the normalization constant, needed to assign new objects to the existing clusters
     typeFlag match {
-      case "v" => objectsNormConstants(constInd) = normConstant
-      case "h" => hyperEdgeNormConstants(constInd) = normConstant
+      case "v" => objectsNormConstants = objectsNormConstants + (constInd -> normConstant)
+      case "h" => hyperEdgeNormConstants =  hyperEdgeNormConstants + (constInd -> normConstant)
     }
 
     normConstant == 0.0 match {

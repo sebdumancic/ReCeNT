@@ -159,11 +159,11 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
         // returns a clustering with all elements in a single cluster
         println(s"*** ERROR *** : Something happened when clustering vertices of type $domains")
         new Clustering(List(new Cluster(domains, "Cluster_all_elements", filename._2.map( x => List(x._1)).toSet, similarityMeasure.getNeighbourhoodGraphCache)),
-          similarityMeasure, filename._2.map( x => List(x._1)), filename._1)
+          similarityMeasure.copy, filename._2.map( x => List(x._1)), filename._1)
       case false =>
         new Clustering(clusters.zipWithIndex.map(cluster => new Cluster(domains, s"Cluster_${domains.mkString("")}_${baseOffset}_${cluster._2}",
           cluster._1.map(_.split(":").toList).toSet, similarityMeasure.getNeighbourhoodGraphCache)).toList,
-          similarityMeasure, filename._2.map(item => List(item._1)), filename._1)
+          similarityMeasure.copy, filename._2.map(item => List(item._1)), filename._1)
     }
   }
 

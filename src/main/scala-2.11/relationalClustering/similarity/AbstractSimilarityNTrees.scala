@@ -22,6 +22,9 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     useLocalRepo
   }
 
+  /** a copy constructor */
+  def copy: AbstractSimilarityNTrees
+
   protected def getNeighbourhoodGraph(objectName: String, domain: String) = {
     val keytoUse = (objectName, domain)
     if (!neighbourhoodGraphCache.contains(keytoUse)) {
@@ -45,6 +48,14 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
   /** Returns the set of constructed neighbourhood graphs */
   def getNeighbourhoodGraphCache = {
     neighbourhoodGraphCache.toMap
+  }
+
+  /** Assigns a set of neighbourhood trees to the similarity measure
+    *
+    * @param coll a collection of neighbourhood trees: (object name, domain) -> NeighbourhoodGraph
+    * */
+  def assignNTs(coll: Map[(String,String), NeighbourhoodGraph]) = {
+    coll.foreach( item => neighbourhoodGraphCache(item._1) = item._2)
   }
 
   /** Clears the neighbourhood graph cache*/
