@@ -29,8 +29,8 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   /** Returns a new object together with normalization constants and neighbourhood trees*/
   def copy = {
     val newObj = new SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine)
-    newObj.setObjectNorms(getObjectNorm)
-    newObj.setHyperedgeNorms(getHyperEdgeNorm)
+    newObj.setObjectNorms(getObjectNorm.map(x => x))
+    newObj.setHyperedgeNorms(getHyperEdgeNorm.map( x => x))
     newObj.assignNTs(getNeighbourhoodGraphCache)
     newObj
   }
@@ -46,12 +46,6 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   def getFilenameHyperEdges(domains: List[String]) = {
     s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
   }
-
-  /*def setParameters(pars: List[Double]) = {
-    require(pars.length == weights.length, s"Parameters don't match (${pars.length} != ${weights.length})")
-    require(BigDecimal(pars.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Parameter values should sum to one, not ${BigDecimal(pars.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
-    weights = pars
-  }*/
 
   /***********************
     *

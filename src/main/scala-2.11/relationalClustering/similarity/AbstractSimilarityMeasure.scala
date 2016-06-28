@@ -33,11 +33,11 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   }
 
   def getObjectNorm = {
-    objectsNormConstants
+    objectsNormConstants.map( x => x)
   }
 
   def getHyperEdgeNorm = {
-    hyperEdgeNormConstants
+    hyperEdgeNormConstants.map(x => x)
   }
 
   def setObjectNorms(ns: Map[Int, Double]) = {

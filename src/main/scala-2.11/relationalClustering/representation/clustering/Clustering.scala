@@ -11,7 +11,9 @@ import relationalClustering.similarity.AbstractSimilarityNTrees
 class Clustering(protected val clusters: List[Cluster],
                  protected val similarityMeasure: AbstractSimilarityNTrees,
                  protected val elementOrdering: List[List[String]],
-                 protected val similarityFilename: String) {
+                 protected val similarityFilename: String,
+                 protected val vertexNormConst: Map[Int, Double],
+                 protected val edgeNormConst: Map[Int, Double]) {
 
   /** Returns individual clusters*/
   def getClusters = {
@@ -21,6 +23,16 @@ class Clustering(protected val clusters: List[Cluster],
   /** Returns the number of clusters in clustering */
   def size = {
     clusters.length
+  }
+
+  /** Returns the set of normalizing constants for vertex similarity */
+  def getVertexNormConst = {
+    vertexNormConst
+  }
+
+  /** Returns the st of normalizing constants for hyperedge similarity*/
+  def getEdgeNormConst = {
+    edgeNormConst
   }
 
   /** Returns true if the clustering contains vertex clusters, false if objects in clusters are hyperedges */
