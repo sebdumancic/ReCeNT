@@ -1,6 +1,6 @@
 name := "RelationalClusteringOverNeighbourhoodGraphs"
 
-version := "2.2.2"
+version := "2.2.4"
 
 scalaVersion := "2.11.7"
 

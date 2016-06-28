@@ -194,9 +194,9 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     val normConstant = math.abs(max(matrixToUse))
 
     // store the normalization constant, needed to assign new objects to the existing clusters
-    typeFlag match {
-      case "v" => objectsNormConstants = objectsNormConstants + (constInd -> normConstant)
-      case "h" => hyperEdgeNormConstants =  hyperEdgeNormConstants + (constInd -> normConstant)
+    typeFlag == "v" match {
+      case true => objectsNormConstants = objectsNormConstants + (constInd -> normConstant)
+      case false => hyperEdgeNormConstants = hyperEdgeNormConstants + (constInd -> normConstant)
     }
 
     normConstant == 0.0 match {

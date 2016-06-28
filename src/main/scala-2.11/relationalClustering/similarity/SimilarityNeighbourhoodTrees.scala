@@ -83,7 +83,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
     )
 
-    weights.zipWithIndex.filter( _._1 > 0.0 ).foldLeft(0.0)( (acc, w) => {
+    weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
       acc + w._1 * (functionsWithNorm(w._2)._1 match {
         case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/objectsNormConstants(w._2))
         case false => functionsWithNorm(w._2)._2(nt1, nt2)/objectsNormConstants(w._2)
@@ -209,7 +209,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
       List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
 
-    val returnMat = weights.zipWithIndex.filter(_._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
+    val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
       acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1, weight._2) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1})
     })
 
