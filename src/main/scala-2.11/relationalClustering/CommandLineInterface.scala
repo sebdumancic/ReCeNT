@@ -101,20 +101,18 @@ object CommandLineInterface {
     }
     else {
 
-      val clustering = algorithm.value.getOrElse("Spectral") match {
+      val clusteringAlg = algorithm.value.getOrElse("Spectral") match {
         case "Spectral" =>
-          val cluster = new Spectral(rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
+          new Spectral(rootFolder.value.getOrElse("./tmp"))
         case "Hierarchical" =>
-          val cluster = new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
+          new Hierarchical(linkage.value.getOrElse("average"), rootFolder.value.getOrElse("./tmp"))
         case "DBscan" =>
-          val cluster = new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
-          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
+          new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
         case "Affinity" =>
-          val cluster = new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
-          cluster.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
+          new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
       }
+
+      val clustering = clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
 
       println("FOUND CLUSTERS")
       clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map( inst => inst.mkString(":")).mkString(",")}"))
