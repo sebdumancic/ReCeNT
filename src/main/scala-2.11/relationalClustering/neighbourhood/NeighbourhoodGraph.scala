@@ -267,7 +267,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
           }
 
           // add attributes to collection
-          returnData(currentLevel)(child.getDomain) = returnData(currentLevel)(child.getDomain) ++: child.getAttributeValuePairs.toList
+          returnData(currentLevel)(child.getDomain) = returnData(currentLevel)(child.getDomain) ++: (child.getAttributeValuePairs.toList ++: child.getAnnotations.toList)
 
           //add child to the frontier
           newFrontier = newFrontier + child
