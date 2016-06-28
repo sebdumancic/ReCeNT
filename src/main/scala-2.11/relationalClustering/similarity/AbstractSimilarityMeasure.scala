@@ -32,6 +32,16 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     nodeRepository
   }
 
+  /** Adds the vertex normalization constant for component with index pos*/
+  protected def addObjectNorm(value: Double, pos: Int) = {
+    objectsNormConstants = objectsNormConstants + (pos -> value)
+  }
+
+  /** Adds the hyperedge normalization constant for component with index pos*/
+  protected def addEdgeNorm(value: Double, pos: Int) = {
+    hyperEdgeNormConstants = hyperEdgeNormConstants + (pos -> value)
+  }
+
   def getObjectNorm = {
     objectsNormConstants.map( x => x)
   }
@@ -167,14 +177,13 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
 
     val absolutePath = new File(s"$folder/${getFilenameHyperEdges(domains)}")
 
-    //(s"$folder/${getFilenameHyperEdges(domains)}", getHyperEdges(domains))
     (absolutePath.getAbsolutePath,getHyperEdges(domains) )
   }
 
   /** Calculates similarity between two individual hyperedges (normalizing constants have to be calculated before!!!)
     *
     * @param nt1 an ordered set of neighbourhood trees
-    * @param nt2 an ordered set of neirghbouyrhood trees
+    * @param nt2 an ordered set of neighbourhood trees
     *
     * */
   def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]): Double
@@ -194,9 +203,9 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     val normConstant = math.abs(max(matrixToUse))
 
     // store the normalization constant, needed to assign new objects to the existing clusters
-    typeFlag == "v" match {
-      case true => objectsNormConstants = objectsNormConstants + (constInd -> normConstant)
-      case false => hyperEdgeNormConstants = hyperEdgeNormConstants + (constInd -> normConstant)
+    typeFlag match {
+      case "v" => addObjectNorm(normConstant, constInd)
+      case "h" => addEdgeNorm(normConstant, constInd)
     }
 
     normConstant == 0.0 match {
@@ -211,7 +220,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   def normalizeAndInvert(matrix: DenseMatrix[Double], constInd: Int, typeFlag: String): DenseMatrix[Double] = {
     if (max(matrix) == 0.0 ) {
-      return matrix
+      return normalizeMatrix(matrix, constInd, typeFlag)
     }
     DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix, constInd, typeFlag)
   }
