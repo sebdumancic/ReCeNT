@@ -33,7 +33,7 @@ object CommandLineInterface {
   val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
   val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
-  val labels = parser.option[String](List("labels"), "file path to the labels", "labels for the query objects")
+  val labels = parser.multiOption[String](List("labels"), "file path to the labels", "labels for the query objects")
   val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster|majorityClass]", "cluster validation method")
   val useLocalRepository = parser.flag[Boolean](List("localRepo"), "should NodeRepository be constructed locally for each NeighbourhoodGraph, or one globally shared")
   val clauseLength = parser.option[Int](List("clauseLength"), "n", "maximal length of clause for CCFonseca and RKOH kernel")
@@ -120,7 +120,7 @@ object CommandLineInterface {
 
       //if validation is to be performed
       if (validate.value.getOrElse(false)) {
-        val labContainer = new LabelsContainer(labels.value.get)
+        val labContainer = new LabelsContainer(labels.value)
         valMethod.value.getOrElse("ARI") match {
           case "ARI" =>
             val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
