@@ -5,17 +5,21 @@ import relationalClustering.utils.Helper
 /**
   * Created by seb on 05.02.16.
   */
-class LabelsContainer(private val filename: String) {
+class LabelsContainer(private val filenames: Seq[String]) {
 
   // contains labels of objects: object name -> labels
   private val labels = collection.mutable.Map[String, String]()
   private val labelsRegex = """(.*?)\((.*?)\)""".r
   private var allLabels = List[String]()
-  readLabels()
+  readAllLabels()
+
+  private def readAllLabels() = {
+    filenames.foreach( f => readLabels(f))
+  }
 
   /** Read the file containing labels */
-  private def readLabels() = {
-    Helper.readFile(filename).filterNot( x => x.length < 2 || x.startsWith("//") || x.startsWith("#")).foreach( line =>{
+  private def readLabels(file: String) = {
+    Helper.readFile(file).filterNot( x => x.length < 2 || x.startsWith("//") || x.startsWith("#")).foreach( line =>{
       val labelsRegex(label, element) = line
       labels(element) = label
 
