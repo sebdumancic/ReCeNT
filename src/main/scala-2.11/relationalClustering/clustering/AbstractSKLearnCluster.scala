@@ -57,7 +57,6 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |minVal = similarityMatrix.min()
       |
       |w, v = np.linalg.eig(similarityMatrix)
-      |print w
       |
       |if maxVal == 0.0 or minVal == maxVal or (algorithm == 'Spectral' and sorted(w, reverse=True)[0] < 0.0):
       |    writerCl = open(outputClusters, 'w')
