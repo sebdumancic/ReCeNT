@@ -6,7 +6,7 @@ import relationalClustering.similarity.AbstractSimilarityNTrees
 /**
   * Created by seb on 07.06.16.
   */
-object ClusterDistance {
+object ClusterSimilarity {
 
   /** OBJECT/VERTEX DISTANCES
     * */
@@ -19,7 +19,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def averageDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def averageSimilarityObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == 1)
     cluster.getInstances.map(obj => similarity.pairObjectSimilarity(instanceNT, cluster.getInstanceNeighbourhoodTree(obj).head)).sum/cluster.getInstances.size
   }
@@ -31,7 +31,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def maximalDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def maximalSimilarityObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == 1)
     cluster.getInstances.map(obj => similarity.pairObjectSimilarity(instanceNT, cluster.getInstanceNeighbourhoodTree(obj).head)).max
   }
@@ -44,7 +44,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def minimalDistanceObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def minimalSimilarityObject(instanceNT : NeighbourhoodGraph, cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == 1)
     cluster.getInstances.map(obj => similarity.pairObjectSimilarity(instanceNT, cluster.getInstanceNeighbourhoodTree(obj).head)).min
   }
@@ -61,7 +61,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def averageDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def averageSimilarityEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == instance.length)
     cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).sum/cluster.getInstances.size
   }
@@ -73,7 +73,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def maximalDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def maximalSimilarityEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == instance.length)
     cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).max
   }
@@ -85,7 +85,7 @@ object ClusterDistance {
     * @param similarity similarity measure for comparison (all the parameters and norm constants have to be calculated)
     * @return similarity value
     * */
-  def minimalDistanceEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
+  def minimalSimilarityEdge(instance: List[NeighbourhoodGraph], cluster: Cluster, similarity: AbstractSimilarityNTrees) = {
     require(cluster.getInstances.head.length == instance.length)
     cluster.getInstances.map(edge => similarity.getPairHyperEdgeSimilarity(instance, cluster.getInstanceNeighbourhoodTree(edge))).min
   }

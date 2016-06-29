@@ -66,15 +66,15 @@ class Clustering(protected val clusters: List[Cluster],
     nt.length == 1 match {
       case true =>
         linkage match {
-          case "average" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
-          case "maximal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
-          case "minimal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
+          case "average" => getClusters.map(clust => (clust, ClusterSimilarity.averageSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
+          case "maximal" => getClusters.map(clust => (clust, ClusterSimilarity.maximalSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
+          case "minimal" => getClusters.map(clust => (clust, ClusterSimilarity.minimalSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
         }
       case false =>
         linkage match {
-          case "average" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
-          case "maximal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
-          case "minimal" => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
+          case "average" => getClusters.map(clust => (clust, ClusterSimilarity.averageSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
+          case "maximal" => getClusters.map(clust => (clust, ClusterSimilarity.maximalSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
+          case "minimal" => getClusters.map(clust => (clust, ClusterSimilarity.minimalSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
         }
     }
   }
@@ -86,8 +86,8 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def assignToClosestClusterAverage(nt: List[NeighbourhoodGraph]) = {
     nt.length == 1 match {
-      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
-      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.averageDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.averageSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.averageSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
     }
   }
 
@@ -98,8 +98,8 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def assignToClosestClusterMaximal(nt: List[NeighbourhoodGraph]) = {
     nt.length == 1 match {
-      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
-      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.maximalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.maximalSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.maximalSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
     }
   }
 
@@ -110,8 +110,8 @@ class Clustering(protected val clusters: List[Cluster],
     * */
   def assignToClosestClusterMinimal(nt: List[NeighbourhoodGraph]) = {
     nt.length == 1 match {
-      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
-      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterDistance.minimalDistanceEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.minimalSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
+      case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.minimalSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
     }
   }
 
