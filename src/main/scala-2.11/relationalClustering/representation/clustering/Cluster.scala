@@ -1,6 +1,7 @@
 package relationalClustering.representation.clustering
 
 import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.similarity.AbstractSimilarityNTrees
 
 
 /** Implements cluster functionality (container of instances)
@@ -53,5 +54,17 @@ class Cluster(protected val types: List[String],
   /** Returns the number of elements in the cluster*/
   def getSize = {
     instances.size
+  }
+
+  def similarityToCluster(nt: List[NeighbourhoodGraph],  similarity: AbstractSimilarityNTrees, flag: String = "maximal") = {
+    val similarities = nt.length == 1 match {
+      case true => getInstances.map(inst => similarity.pairObjectSimilarity(nt.head, getInstanceNeighbourhoodTree(inst).head))
+      case false => getInstances.map(inst => similarity.getPairHyperEdgeSimilarity(nt, getInstanceNeighbourhoodTree(inst)))
+    }
+
+    flag match {
+      case "maximal" => similarities.max
+      case "average" => similarities.sum/similarities.size
+    }
   }
 }

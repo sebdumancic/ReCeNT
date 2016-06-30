@@ -63,20 +63,7 @@ class Clustering(protected val clusters: List[Cluster],
     * @return the most similar cluster
     * */
   def assignToClosestCluster(nt: List[NeighbourhoodGraph], linkage: String = "average") = {
-    nt.length == 1 match {
-      case true =>
-        linkage match {
-          case "average" => getClusters.map(clust => (clust, ClusterSimilarity.averageSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
-          case "maximal" => getClusters.map(clust => (clust, ClusterSimilarity.maximalSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
-          case "minimal" => getClusters.map(clust => (clust, ClusterSimilarity.minimalSimilarityObject(nt.head, clust, similarityMeasure))).maxBy(_._2)._1
-        }
-      case false =>
-        linkage match {
-          case "average" => getClusters.map(clust => (clust, ClusterSimilarity.averageSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
-          case "maximal" => getClusters.map(clust => (clust, ClusterSimilarity.maximalSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
-          case "minimal" => getClusters.map(clust => (clust, ClusterSimilarity.minimalSimilarityEdge(nt, clust, similarityMeasure))).maxBy(_._2)._1
-        }
-    }
+    getClusters.map(clust => (clust, clust.similarityToCluster(nt, similarityMeasure, linkage)))
   }
 
   /** Assigns an object/hyper-edge to the closest cluster, according to the average distance to all elements in a cluster
