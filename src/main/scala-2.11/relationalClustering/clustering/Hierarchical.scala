@@ -17,6 +17,7 @@ class Hierarchical(protected val linkage: String,
     pars("--input") = inputFile
     pars("--k") = s"$k"
     pars("--output") = getResultFile
+    pars("--linkage") = linkage
 
     pars.toMap
   }

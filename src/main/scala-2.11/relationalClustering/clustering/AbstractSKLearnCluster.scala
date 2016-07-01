@@ -43,6 +43,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |parser.add_argument('--damping', help='[Affinity] dumping factor', nargs=1, default=[0.65], type=float)
       |parser.add_argument('--pref', help='[Affinity] preference', nargs=1, default=[None], type=float)
       |parser.add_argument('--k', help='[Spectral] number of clusters to find', nargs=1, default=[3], type=int)
+      |parser.add_argument('--linkage', help='linkage for hierarchical clustering', nargs=1, default=['average'])
       |
       |args = parser.parse_args()
       |
@@ -69,14 +70,15 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |        elif algorithm == "Affinity" and args.pref:
       |            clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', preference=args.pref[0], convergence_iter=50).fit(similarityMatrix)
       |        elif algorithm == "Affinity":
-      |            clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed',convergence_iter=50).fit(similarityMatrix)
+      |            clusters = AffinityPropagation(damping=args.damping[0], affinity='precomputed', convergence_iter=50).fit(similarityMatrix)
       |        elif algorithm == "Spectral":
       |            ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |            clusters = SpectralClustering(n_clusters=ktoUse, affinity='precomputed', eigen_solver='arpack').fit(similarityMatrix)
       |        elif algorithm == 'Agglomerative':
+      |            linkToUse = 'complete' if args.linkage[0] == 'maximal' else args.linkage[0]
       |            ktoUse = min([args.k[0], np.linalg.matrix_rank(similarityMatrix) - 1])
       |            distance = 1.0 - np.divide(similarityMatrix, similarityMatrix.max())
-      |            clusters = AgglomerativeClustering(n_clusters=ktoUse, affinity='precomputed', linkage='average').fit(distance)
+      |            clusters = AgglomerativeClustering(n_clusters=ktoUse, affinity='precomputed', linkage=linkToUse).fit(distance)
       |        else:
       |            print "ERROR: no {} clustering procedure, performing DBSCAN".format(algorithm)
       |            clusters = DBSCAN(eps=0.2, min_samples=max(int(len(domainObjects) * 0.1), 2), metric='precomputed', algorithm='auto').fit(similarityMatrix)
@@ -99,6 +101,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
       |        writerCl = open(outputClusters, 'w')
       |        writerCl.write("0={" + ";".join(domainObjects) + "}\n")
       |        writerCl.close()
+      |
     """.stripMargin
   }
 
