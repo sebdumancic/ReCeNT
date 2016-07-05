@@ -36,6 +36,11 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     neighbourhoodGraphCache(keytoUse)
   }
 
+  /** Incorporates given neighbourhood graphs into the neighbourhood graph cache*/
+  def setNeighbourhoodGraphs(coll: Map[(String,String), NeighbourhoodGraph]) = {
+    coll.foreach(item => neighbourhoodGraphCache(item._1) = item._2)
+  }
+
   /** Creates all neighbourhood graphs (needed when similarities are read from file)*/
   def buildAllNeighbourhoodGraphs(domains: List[String]) = {
     if (neighbourhoodGraphCache.isEmpty) {
