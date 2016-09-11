@@ -7,7 +7,7 @@ class Domain(val name: String) {
 
   var elements = collection.mutable.Set[String]()
 
-  def size = { elements.size }
+  def size = { elements.size.toDouble }
 
   def hasElement(element: String) = { elements.contains(element) }
 
