@@ -2,6 +2,7 @@ package relationalClustering.neighbourhood
 
 import java.io.{BufferedWriter, FileWriter}
 
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.Settings
 
@@ -24,11 +25,13 @@ class NeighbourhoodGraph(protected val rootObject: String,
                          protected val nodeRepo: NodeRepository) {
 
   val root = nodeRepo.getNode(rootObject, domain) //new Node(rootObject, domain)
-  var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = null //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
-  var edgeDistributionCache: Map[Int, List[String]] = null
-  var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = null
-  var clauseCache: Set[List[String]] = null
-  var edgeCache: Set[Edge] = null
+  var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = _ //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
+  var edgeDistributionCache: Map[Int, List[String]] = _
+  var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = _
+  var numericAttributesAggregatedCache: collection.mutable.Map[AbstractAggregator, Map[Int, collection.mutable.Map[String, List[(String, Double)]]]] = _
+  var numericAttributesCaches: Map[Int, collection.mutable.Map[String, List[(String, Double)]]] = _
+  var clauseCache: Set[List[String]] = _
+  var edgeCache: Set[Edge] = _
   construct()
 
   /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
@@ -289,8 +292,59 @@ class NeighbourhoodGraph(protected val rootObject: String,
     returnData.toMap
   }
 
-  def aggregateNumericAttributes = {
+  /** Aggregates the values of numerical attributes in the neighbourhood, per level, per vertex type
+    *
+    * @param aggregator aggregator function to use
+    * */
+  def aggregateNumericAttributes(aggregator: AbstractAggregator): Map[Int, collection.mutable.Map[String, List[(String,Double)]]] = {
+    if (numericAttributesCaches != null && numericAttributesAggregatedCache.contains(aggregator)) {
+      return numericAttributesAggregatedCache(aggregator)
+    }
+    if (numericAttributesCaches == null) {
 
+      val returnData = collection.mutable.Map[Int, collection.mutable.Map[String, List[(String,Double)]]]()
+
+      var currentLevel = 0
+      var frontier = Set[Node](getRoot)
+      var newFrontier = Set[Node]()
+
+      while (currentLevel <= getMaxDepth) {
+
+        if (!returnData.contains(currentLevel)) {
+          returnData(currentLevel) = collection.mutable.Map[String, List[(String,Double)]]()
+        }
+
+        // expand children
+        frontier.foreach( cNode => {
+          cNode.getChildNodes.toSet.filter(_.getEntity != getRoot.getEntity).foreach( child => {
+
+            if (!returnData(currentLevel).contains(child.getDomain)) {
+              returnData(currentLevel)(child.getDomain) = List[(String, Double)]()
+            }
+
+            // add attributes to collection
+            returnData(currentLevel)(child.getDomain) = returnData(currentLevel)(child.getDomain) ++: child.getNumericAttributeValues
+
+            //add child to the frontier
+            newFrontier = newFrontier + child
+          })
+        })
+
+        frontier = newFrontier.map( x => x)
+        newFrontier = Set[Node]()
+        currentLevel += 1
+      }
+
+      numericAttributesCaches = returnData.toMap
+    }
+
+    numericAttributesAggregatedCache(aggregator) = numericAttributesCaches.map( inf => {
+      (inf._1, inf._2.map( elements => {
+        (elements._1, elements._2.groupBy(_._1).map(ce => (ce._1, aggregator.aggregate(ce._2))).toList)
+      }))
+    })
+
+    numericAttributesAggregatedCache(aggregator)
   }
 
   /** Checks whether a clause is valid -> if there are more than two distinct variables, the edge should be present
