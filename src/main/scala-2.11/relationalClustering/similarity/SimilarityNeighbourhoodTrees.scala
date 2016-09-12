@@ -1,10 +1,12 @@
 package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
-import relationalClustering.representation.domain.KnowledgeBase
+import relationalClustering.representation.domain.{KnowledgeBase, NumericDomain}
+import relationalClustering.utils.Settings
 
 /**
   * Implements the similarity measure using neighbourhood trees
@@ -21,20 +23,21 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
                                    protected val weights: List[Double],
                                    protected val bagCompare: AbstractBagComparison,
                                    protected val bagCombine: AbstractBagCombine,
+                                   protected val aggregators: List[AbstractAggregator],
                                    override protected val useLocalRepo: Boolean = false) extends AbstractSimilarityNTrees(knowledgeBase, depth, useLocalRepo) {
 
   require(weights.length == 5, s" You should provide 5 weights not ${weights.length} ($weights)")
   require(BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Weights should sum to one, not ${BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
 
   /** An auxiliary constructor that takes an existing neighbourhood graph cache */
-  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: AbstractBagCombine, cache: Map[(String,String), NeighbourhoodGraph]) {
-    this(KB, d, ws, bagComp, bagComb, false)
+  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: AbstractBagCombine, aggs: List[AbstractAggregator], cache: Map[(String,String), NeighbourhoodGraph]) {
+    this(KB, d, ws, bagComp, bagComb, aggs, false)
     setNeighbourhoodGraphs(cache)
   }
 
   /** Returns a new object together with normalization constants and neighbourhood trees*/
   def copy = {
-    val newObj = new SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine)
+    val newObj = new SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, aggregators)
     newObj.setObjectNorms(getObjectNorm.map(x => x))
     newObj.setHyperedgeNorms(getHyperEdgeNorm.map( x => x))
     newObj.assignNTs(getNeighbourhoodGraphCache)
@@ -71,7 +74,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
-      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, w._2))
+      acc + (DenseMatrix.tabulate(objects.length, objects.length){(x,y) => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, w._2))
     })
 
     (objects.map(_._1), returnMat)
@@ -111,7 +114,19 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val attrs1 = ng1.getRootAttributes
     val attrs2 = ng2.getRootAttributes
 
-    attrs1.intersect(attrs2).size.toDouble
+    val numAttrs1 = ng1.getRootNumericAttributes.toMap
+    val numAttrs2 = ng2.getRootNumericAttributes.toMap
+
+    // discrete attributes                   // numerical attributes
+    attrs1.intersect(attrs2).size.toDouble + (numAttrs1.keySet ++ numAttrs2.keySet).toList.map(key => {
+      numAttrs1.contains(key) && numAttrs2.contains(key) match {
+        case false => 0.0
+        case true =>
+          val domain = getKB.getPredicate(key).getArgumentRoles.zip(getKB.getPredicate(key).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+          require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $key has more than one number domain!")
+          1.0 - math.abs(numAttrs1(key) - numAttrs2(key))/domain.head._2.asInstanceOf[NumericDomain].getRange
+      }
+    }).sum
   }
 
   /** Computes the attribute neighbourhood similarity of two neighbourhood graphs, per level and vertex type
@@ -124,12 +139,50 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val firstAttrs = ng1.getAttributeValueDistribution
     val secondAttrs = ng2.getAttributeValueDistribution
 
+    // aggregate numeric attributes
+    val numericalValue = aggregators.foldLeft(0.0)( (acc, agg) => {
+      val numFirstAttrs = ng1.aggregateNumericAttributes(agg)
+      val numSecondAttrs = ng2.aggregateNumericAttributes(agg)
+      val aggDepth = numFirstAttrs.isEmpty && numSecondAttrs.isEmpty match {
+        case true => -1
+        case false =>
+          val firstKeys = if (numFirstAttrs.keys.isEmpty) -1 else numFirstAttrs.keys.max
+          val secondKeys = if (numSecondAttrs.keys.isEmpty) -1 else numSecondAttrs.keys.max
+          math.max(firstKeys, secondKeys)
+      }
+      acc + (0 to aggDepth).foldLeft(0.0)( (acc_i, depth) => {
+        acc_i + (numFirstAttrs(depth).keySet ++ numSecondAttrs(depth).keySet).foldLeft(0.0)( (acc_ii, vType) => {
+          val aggs1 = numFirstAttrs(depth).getOrElse(vType, List[(String, Double)]()).toMap
+          val aggs2 = numSecondAttrs(depth).getOrElse(vType, List[(String,Double)]()).toMap
+
+          acc_ii + (aggs1.keySet ++ aggs2.keySet).foldLeft(0.0)( (acc_iii, pred) => {
+            //value will be a distance
+            val value = aggs1.contains(pred) && aggs2.contains(pred) match {
+              case false => 1.0
+              case true =>
+                val domain = getKB.getPredicate(pred).getArgumentRoles.zip(getKB.getPredicate(pred).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+                require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $pred has more than one number domain!")
+                math.abs(aggs1(pred) - aggs2(pred))/domain.head._2.asInstanceOf[NumericDomain].getRange
+            }
+            bagCompare.needsToBeInverted match {
+              case true =>
+                // needs to be a distance value
+                value
+              case false =>
+                // value represents a similarity
+                1.0 - value
+            }
+          })
+        })
+      })
+    })
+
     (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
       acc + firstAttrs(depth).keySet.union(secondAttrs(depth).keySet).foldLeft(0.0)( (acc_i, vType) => {
         acc_i + math.abs(bagCompare.compareBags(firstAttrs(depth).getOrElse(vType, List[(String,String)]()),
                                                 secondAttrs(depth).getOrElse(vType, List[(String,String)]())))
       })
-    })
+    }) + numericalValue
   }
 
   /** Calculates the number of connections between two root elements
@@ -220,7 +273,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
-      acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1, weight._2) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){case x => weight._1})
+      acc + (accumulateIntoMatrixHyperEdge(hyperEdges, domains, functionsWithNorm(weight._2)._2, functionsWithNorm(weight._2)._1, weight._2) :* DenseMatrix.tabulate(hyperEdges.length, hyperEdges.length){ (x,y) => weight._1})
     })
 
     (hyperEdges, returnMat)

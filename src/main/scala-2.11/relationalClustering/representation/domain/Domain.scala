@@ -3,7 +3,7 @@ package relationalClustering.representation.domain
 /**
   * Created by seb on 16.12.15.
   */
-class Domain(val name: String) {
+class Domain(protected val name: String) {
 
   var elements = collection.mutable.Set[String]()
 

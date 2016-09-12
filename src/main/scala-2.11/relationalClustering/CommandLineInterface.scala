@@ -1,6 +1,7 @@
 package relationalClustering
 
 import org.clapper.argot.ArgotParser
+import relationalClustering.aggregators.{AbstractAggregator, AvgAggregator, MaxAggregator, MinAggregator}
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
@@ -41,6 +42,7 @@ object CommandLineInterface {
   val DBscanEps = parser.option[Double](List("eps"), "d", "eps value for DBscan")
   val AffPreference = parser.option[Double](List("preference"), "d", "preference parameter for Affinity Propagation")
   val AffDamping = parser.option[Double](List("damping"), "d", "damping parameter for Affinity Propagation")
+  val aggregatorFunctions = parser.option[String](List("aggregates"), "comma-separated list", "a list of agregator functions to use for the numerical attributes [mean/min/max] ")
 
 
   def main(args: Array[String]) {
@@ -66,6 +68,14 @@ object CommandLineInterface {
       case "intersection" => new IntersectionCombination()
     }
 
+    val agregates = aggregatorFunctions.value.getOrElse("mean").split(",").toList.foldLeft(List[AbstractAggregator]())( (acc, ag) => {
+      ag match {
+        case "mean" => acc :+ new AvgAggregator
+        case "min" => acc :+ new MinAggregator
+        case "max" => acc :+ new MaxAggregator
+      }
+    })
+
 
     val similarityMeasure = similarity.value.getOrElse("RCNT") match {
       case "RCNT" =>
@@ -74,6 +84,7 @@ object CommandLineInterface {
                                          weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                                          bagComparison,
                                          bagCombinationMethod,
+                                         agregates,
                                          useLocalRepository.value.getOrElse(false))
       case "RCNTv2" =>
         new SimilarityNTv2(KnowledgeBase,
@@ -81,6 +92,7 @@ object CommandLineInterface {
                            weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                            bagComparison,
                            bagCombinationMethod,
+                           agregates,
                            useLocalRepository.value.getOrElse(false))
       case "RCNTnoId" =>
         new SimilarityNTNoIdentities(KnowledgeBase,
@@ -88,6 +100,7 @@ object CommandLineInterface {
                                      weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble),
                                      bagComparison,
                                      bagCombinationMethod,
+                                     agregates,
                                      useLocalRepository.value.getOrElse(false))
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)

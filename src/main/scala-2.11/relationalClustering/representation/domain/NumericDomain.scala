@@ -47,7 +47,8 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
 
   /** Returns the standard deviation over the entire domain */
   def getStdDev = {
-    stddev(DenseVector(elements.toList.map(_.toDouble)))
+    val dElements = elements.toList.map(_.toDouble)
+    stddev(DenseVector.tabulate(dElements.length){ i => dElements(i)})
   }
 
   override def size = {

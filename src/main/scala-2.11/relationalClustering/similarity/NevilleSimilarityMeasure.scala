@@ -1,6 +1,7 @@
 package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.SimpleCountSimilarity
 import relationalClustering.bagComparison.bagCombination.UnionCombination
 import relationalClustering.neighbourhood.NeighbourhoodGraph
@@ -10,7 +11,7 @@ import relationalClustering.utils.Settings
 /**
   * Created by seb on 15.03.16.
   */
-class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBase) extends SimilarityNeighbourhoodTrees(knowledgeBase, 0, List(1.0,0.0,0.0,0.0,0.0), new SimpleCountSimilarity, new UnionCombination) {
+class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBase) extends SimilarityNeighbourhoodTrees(knowledgeBase, 0, List(1.0,0.0,0.0,0.0,0.0), new SimpleCountSimilarity, new UnionCombination, List[AbstractAggregator]()) {
 
   /** Extracts all connections between elements of a certain type
     *

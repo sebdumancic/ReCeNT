@@ -1,6 +1,7 @@
 package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
 import relationalClustering.neighbourhood.NeighbourhoodGraph
@@ -14,7 +15,8 @@ class SimilarityNTNoIdentities(override protected val knowledgeBase: KnowledgeBa
                                override protected val weights: List[Double],
                                override protected val bagCompare: AbstractBagComparison,
                                override protected val bagCombine: AbstractBagCombine,
-                               override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, useLocalRepo){
+                               override protected val aggregators: List[AbstractAggregator],
+                               override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, aggregators, useLocalRepo){
 
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)

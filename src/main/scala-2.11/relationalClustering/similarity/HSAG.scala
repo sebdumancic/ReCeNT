@@ -1,6 +1,7 @@
 package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.neighbourhood.{NeighbourhoodGraph, Node}
 import relationalClustering.representation.domain.KnowledgeBase
@@ -10,7 +11,7 @@ import relationalClustering.representation.domain.KnowledgeBase
   */
 class HSAG(override protected val knowledgeBase: KnowledgeBase,
            override protected val depth: Int,
-           override protected val bagCompare: AbstractBagComparison) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, List(0.5,0.5,0.0,0.0,0.0), bagCompare, null, true) {
+           override protected val bagCompare: AbstractBagComparison) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, List(0.5,0.5,0.0,0.0,0.0), bagCompare, null, List[AbstractAggregator](), true) {
 
   override def getFilename(domains: List[String]) = {
     s"${domains.mkString(",")}_hsag_localRepo$useLocal.txt"

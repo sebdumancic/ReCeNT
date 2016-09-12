@@ -1,5 +1,6 @@
 package relationalClustering.similarity
 
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.ChiSquaredDistance
 import relationalClustering.neighbourhood.NeighbourhoodGraph
 import relationalClustering.representation.domain.KnowledgeBase
@@ -8,7 +9,7 @@ import relationalClustering.representation.domain.KnowledgeBase
   * Created by seb on 05.04.16.
   */
 class ConceptualFonseca(override protected val knowledgeBase: KnowledgeBase,
-                        protected val maxClauseLength: Int) extends SimilarityNeighbourhoodTrees(knowledgeBase, 0, List(1.0,0.0,0.0,0.0,0.0), new ChiSquaredDistance, null, true) {
+                        protected val maxClauseLength: Int) extends SimilarityNeighbourhoodTrees(knowledgeBase, 0, List(1.0,0.0,0.0,0.0,0.0), new ChiSquaredDistance, null, List[AbstractAggregator](), true) {
 
   protected def getClauseLength = {
     maxClauseLength
