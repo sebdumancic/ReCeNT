@@ -151,9 +151,9 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
           math.max(firstKeys, secondKeys)
       }
       acc + (0 to aggDepth).foldLeft(0.0)( (acc_i, depth) => {
-        acc_i + (numFirstAttrs(depth).keySet ++ numSecondAttrs(depth).keySet).foldLeft(0.0)( (acc_ii, vType) => {
-          val aggs1 = numFirstAttrs(depth).getOrElse(vType, List[(String, Double)]()).toMap
-          val aggs2 = numSecondAttrs(depth).getOrElse(vType, List[(String,Double)]()).toMap
+        acc_i + (numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet ++ numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet).foldLeft(0.0)((acc_ii, vType) => {
+          val aggs1 = numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
+          val aggs2 = numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
 
           acc_ii + (aggs1.keySet ++ aggs2.keySet).foldLeft(0.0)( (acc_iii, pred) => {
             //value will be a distance
