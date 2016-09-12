@@ -28,7 +28,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = _ //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
   var edgeDistributionCache: Map[Int, List[String]] = _
   var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = _
-  var numericAttributesAggregatedCache: collection.mutable.Map[AbstractAggregator, Map[Int, collection.mutable.Map[String, List[(String, Double)]]]] = _
+  var numericAttributesAggregatedCache: collection.mutable.Map[String, Map[Int, collection.mutable.Map[String, List[(String, Double)]]]] = collection.mutable.Map[String, Map[Int, collection.mutable.Map[String, List[(String, Double)]]]]()
   var numericAttributesCaches: Map[Int, collection.mutable.Map[String, List[(String, Double)]]] = _
   var clauseCache: Set[List[String]] = _
   var edgeCache: Set[Edge] = _
@@ -297,8 +297,8 @@ class NeighbourhoodGraph(protected val rootObject: String,
     * @param aggregator aggregator function to use
     * */
   def aggregateNumericAttributes(aggregator: AbstractAggregator): Map[Int, collection.mutable.Map[String, List[(String,Double)]]] = {
-    if (numericAttributesCaches != null && numericAttributesAggregatedCache.contains(aggregator)) {
-      return numericAttributesAggregatedCache(aggregator)
+    if (numericAttributesCaches != null && numericAttributesAggregatedCache.contains(aggregator.name)) {
+      return numericAttributesAggregatedCache(aggregator.name)
     }
     if (numericAttributesCaches == null) {
 
@@ -327,8 +327,14 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
             //add child to the frontier
             newFrontier = newFrontier + child
+
+            // to avoid null pointers
+            if (returnData(currentLevel)(child.getDomain).isEmpty) { returnData(currentLevel) -= child.getDomain}
           })
         })
+
+        // needed to avoid null pointers
+        if (returnData(currentLevel).isEmpty) { returnData -= currentLevel }
 
         frontier = newFrontier.map( x => x)
         newFrontier = Set[Node]()
@@ -338,13 +344,18 @@ class NeighbourhoodGraph(protected val rootObject: String,
       numericAttributesCaches = returnData.toMap
     }
 
-    numericAttributesAggregatedCache(aggregator) = numericAttributesCaches.map( inf => {
-      (inf._1, inf._2.map( elements => {
-        (elements._1, elements._2.groupBy(_._1).map(ce => (ce._1, aggregator.aggregate(ce._2))).toList)
-      }))
-    })
+    numericAttributesAggregatedCache(aggregator.name) = numericAttributesCaches.isEmpty || numericAttributesCaches == null match {
+      case true =>
+        Map[Int, collection.mutable.Map[String, List[(String, Double)]]]()
+      case false =>
+        numericAttributesCaches.map( inf => {
+          (inf._1, inf._2.map( elements => {
+            (elements._1, elements._2.groupBy(_._1).map(ce => (ce._1, aggregator.aggregate(ce._2))).toList)
+          }))
+        })
+    }
 
-    numericAttributesAggregatedCache(aggregator)
+    numericAttributesAggregatedCache(aggregator.name)
   }
 
   /** Checks whether a clause is valid -> if there are more than two distinct variables, the edge should be present
