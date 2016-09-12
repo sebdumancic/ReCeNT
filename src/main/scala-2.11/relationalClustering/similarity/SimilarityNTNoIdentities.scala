@@ -62,7 +62,7 @@ class SimilarityNTNoIdentities(override protected val knowledgeBase: KnowledgeBa
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
-      acc + (DenseMatrix.tabulate(objects.length, objects.length){case x => w._1} :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, w._2))
+      acc + (DenseMatrix.tabulate(objects.length, objects.length) { (x, y) => w._1 } :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, w._2))
     })
 
     (objects.map(_._1), returnMat)
