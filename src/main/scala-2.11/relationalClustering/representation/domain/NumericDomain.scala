@@ -1,5 +1,8 @@
 package relationalClustering.representation.domain
 
+import breeze.linalg.DenseVector
+import breeze.stats.stddev
+
 /**
   * Created by seb on 11/09/16.
   */
@@ -23,6 +26,7 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
 
   /** Adds an element to a domain: increases the upper bound is necessary, lowers the lower bound if element outside of the range*/
   override def addElement(elem: String) = {
+    elements += elem
     if (minElement.isNaN || maxElement.isNaN) {
       minElement = elem.toDouble
       maxElement = elem.toDouble
@@ -39,6 +43,11 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
   /** Returns the range of the interval representing the domain */
   def getRange = {
     maxElement - minElement
+  }
+
+  /** Returns the standard deviation over the entire domain */
+  def getStdDev = {
+    stddev(DenseVector(elements.toList.map(_.toDouble)))
   }
 
   override def size = {
