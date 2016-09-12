@@ -16,6 +16,7 @@ class Node(protected val entity: String,
   protected var children = Set[Edge]()
   protected val attributes = collection.mutable.Map[String, String]()
   protected val annotations = collection.mutable.Map[String, String]()
+  protected val numericAttributes = collection.mutable.Map[String, Double]()
 
   /** Returns the domain of the root element */
   def getDomain = {
@@ -37,6 +38,26 @@ class Node(protected val entity: String,
     attributes(attr) = value
   }
 
+  /** Adds a value of the numeric attribute
+    *
+    * @param attr name of the attribute
+    * @param value value
+    *
+    * */
+  def addNumericAttributeValue(attr: String, value: String) = {
+    numericAttributes(attr) = value.toDouble
+  }
+
+  /** Adds a value of the numeric attribute
+    *
+    * @param attr name of the attribute
+    * @param value value
+    *
+    * */
+  def addNumericAttributeValue(attr: String, value: Double) = {
+    numericAttributes(attr) = value
+  }
+
   /** Retrieves the attribute value
     *
     * @param attr name of the attribute: String
@@ -46,13 +67,22 @@ class Node(protected val entity: String,
     attributes.getOrElse(attr, null)
   }
 
+  /** Retrieves the value of an attribute
+    *
+    * @param attr attribute name
+    *
+    * */
+  def getNumericAttributeValue(attr: String) = {
+    numericAttributes(attr)
+  }
+
   /** Checks whether a value of the attribute is set
     *
     * @param attr name of the attribute: String
     * @return Boolean
     * */
   def hasAttribute(attr: String) = {
-    attributes.contains(attr)
+    attributes.contains(attr) || numericAttributes.contains(attr)
   }
 
   /** Returns the set of all attribute-value pairs associated with the Node
@@ -60,7 +90,12 @@ class Node(protected val entity: String,
     * @return Set[(Attribute, Value)]
     * */
   def getAttributeValuePairs = {
-    attributes.map( t => new Tuple2(t._1, t._2) ).toSet
+    attributes.map( t => (t._1, t._2) ).toSet
+  }
+
+  /** Returns all attribute-value pairs of numeric attributes*/
+  def getNumericAttributeValues = {
+    numericAttributes.map( t => (t._1, t._2)).toList
   }
 
   /** Adds annotation to the node
@@ -93,7 +128,7 @@ class Node(protected val entity: String,
     * @return Set of all annotations of the Node: Set[String]
     * */
   def getAnnotations = {
-    annotations.map(t => new Tuple2(t._1, t._2)).toSet
+    annotations.map(t => (t._1, t._2)).toSet
   }
 
   /** Adds the Edge to the parent Node

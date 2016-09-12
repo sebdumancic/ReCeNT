@@ -63,7 +63,8 @@ class PredicateDeclarations(val filename: String) {
     val predicateArgsDeclaration = declarations(predicate)
 
     if (predicateArgsDeclaration.length == 1) { Settings.ROLE_ANNOTATION }
-    else if (predicateArgsDeclaration.contains(Settings.ARG_TYPE_ATTRIBUTE) || predicateArgsDeclaration.contains(Settings.ARG_TYPE_NUMBER)) { Settings.ROLE_ATTRIBUTE }
+    else if (predicateArgsDeclaration.contains(Settings.ARG_TYPE_ATTRIBUTE)) { Settings.ROLE_ATTRIBUTE }
+    else if (predicateArgsDeclaration.contains(Settings.ARG_TYPE_NUMBER)) { Settings.ROLE_NUMERIC_ATTRIBUTE }
     else { Settings.ROLE_HYPEREDGE }
   }
 }

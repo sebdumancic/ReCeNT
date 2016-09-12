@@ -28,13 +28,19 @@ class KnowledgeBase(private val databases: Seq[String],
   constructPredicates()
   processDatabases()
 
-  /** Returns the domain with speficified name
+  /** Returns the domain with specified name
     *
     * @param name name of the domain: [[String]]
-    * @return Domain: [[Domain]]
+    * @param domainType numeric or finite
+    * @return Domain: a domain instance
     * */
-  def getDomainObject(name: String) = {
-    if (!domainObjects.contains(name)) { domainObjects(name) = new Domain(name)}
+  def getDomainObject(name: String, domainType: String = Settings.ARG_TYPE_NAME) = {
+    if (!domainObjects.contains(name)) {
+      domainObjects(name) = domainType == Settings.ARG_TYPE_NUMBER match {
+        case true => new NumericDomain(name)
+        case false => new Domain(name)
+      }
+    }
     domainObjects(name)
   }
 
@@ -44,7 +50,7 @@ class KnowledgeBase(private val databases: Seq[String],
     * @param domains list of domain a predicate operates on: [[List]]
     * */
   def createPredicate(name: String, domains: List[String]) = {
-    predicates(name) = new Predicate(name.trim, domains.map( x => getDomainObject(x.trim) ), predicateDeclarations.getPredicateRole(name.trim))
+    predicates(name) = new Predicate(name.trim, domains.zip(predicateDeclarations.getArgumentTypes(name)).map( x => getDomainObject(x._1.trim, x._2) ), predicateDeclarations.getPredicateRole(name.trim))
     predicates(name).setDeclarations(predicateDeclarations.getArgumentTypes(name))
   }
 

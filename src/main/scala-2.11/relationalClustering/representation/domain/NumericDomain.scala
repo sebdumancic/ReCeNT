@@ -8,6 +8,10 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
   protected var minElement: Double = Double.NaN
   protected var maxElement: Double = Double.NaN
 
+  /** Checks whether an element is in the interval of the domains
+    *
+    * @param element element to check
+    */
   override def hasElement(element: String) = {
     if (minElement.isNaN || maxElement.isNaN) {
       false
@@ -17,6 +21,7 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
     }
   }
 
+  /** Adds an element to a domain: increases the upper bound is necessary, lowers the lower bound if element outside of the range*/
   override def addElement(elem: String) = {
     if (minElement.isNaN || maxElement.isNaN) {
       minElement = elem.toDouble
@@ -31,6 +36,7 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
     elements // just for compatibility with the Domain
   }
 
+  /** Returns the range of the interval representing the domain */
   def getRange = {
     maxElement - minElement
   }

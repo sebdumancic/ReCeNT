@@ -69,6 +69,23 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
     })
   }
 
+  /** Adds numerical attribute values to the node
+    *
+    * @param node node to be extended by attributes: [[Node]]
+    *
+    * Facts in the form of Predicate(Object,Value), where [Value] is declared as 'number' and [Object] as 'name', are considered numerical attributes
+    * */
+  protected def addNumericAttributes(node: Node) = {
+    getKB.getPredicateNames.map(getKB.getPredicate).filter( _.getRole == Settings.ROLE_NUMERIC_ATTRIBUTE).filter( _.getDomains.contains(node.getDomain)).foreach( predicate => {
+      val attributePosition = predicate.getArgumentRoles.zipWithIndex.filter(_._1 == Settings.ARG_TYPE_NUMBER)
+      predicate.getTrueGroundings.filter(_.contains(node.getEntity)).foreach( groundings => {
+        attributePosition.foreach( pos => {
+          node.addNumericAttributeValue(predicate.getName, groundings(pos._2))
+        })
+      })
+    })
+  }
+
   /** Adds annotations to the node
     *
     * @param node node to be extended by annotations: [[Node]]
@@ -93,6 +110,7 @@ class NodeRepository(protected val knowledgeBase: KnowledgeBase,
   protected def addDescriptions(node: Node) = {
     addAnnotations(node)
     addAttributes(node)
+    addNumericAttributes(node)
   }
 
   /** Clears the cache of the node repository

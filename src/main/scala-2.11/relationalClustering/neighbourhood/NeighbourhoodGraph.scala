@@ -71,9 +71,14 @@ class NeighbourhoodGraph(protected val rootObject: String,
     depth
   }
 
-  /** Returns the root elements attributes (including annotations)*/
+  /** Returns the root element's attributes (including annotations)*/
   def getRootAttributes = {
     getRoot.getAttributeValuePairs ++ getRoot.getAnnotations
+  }
+
+  /** Returns the root's numerical attributes */
+  def getRootNumericAttributes = {
+    getRoot.getNumericAttributeValues
   }
 
   /** Constructs all the edges for the node, by traversing all the hyperedge predicates
@@ -282,6 +287,10 @@ class NeighbourhoodGraph(protected val rootObject: String,
     attributeDistributionCache = returnData.toMap
 
     returnData.toMap
+  }
+
+  def aggregateNumericAttributes = {
+
   }
 
   /** Checks whether a clause is valid -> if there are more than two distinct variables, the edge should be present

@@ -9,6 +9,7 @@ object Settings {
   val ROLE_ANNOTATION = "annotation"
   val ROLE_ATTRIBUTE = "attribute"
   val ROLE_HYPEREDGE = "hyperedge"
+  val ROLE_NUMERIC_ATTRIBUTE = "number"
 
   /** ARGUMENT TYPES */
   val ARG_TYPE_ATTRIBUTE = "attribute"
