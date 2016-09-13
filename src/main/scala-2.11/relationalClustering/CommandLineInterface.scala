@@ -1,7 +1,7 @@
 package relationalClustering
 
 import org.clapper.argot.ArgotParser
-import relationalClustering.aggregators.{AbstractAggregator, AvgAggregator, MaxAggregator, MinAggregator}
+import relationalClustering.aggregators._
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
@@ -73,6 +73,7 @@ object CommandLineInterface {
         case "mean" => acc :+ new AvgAggregator
         case "min" => acc :+ new MinAggregator
         case "max" => acc :+ new MaxAggregator
+        case "sum" => acc :+ new SumAggregator
       }
     })
 
