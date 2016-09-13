@@ -1,7 +1,6 @@
 package relationalClustering.parameterLearning
 
-import breeze.linalg.DenseVector
-import breeze.optimize.{DiffFunction, LBFGS}
+import breeze.optimize.linear._
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
@@ -27,38 +26,33 @@ class LearnWeights(protected val constraints: ConstraintsContainer,
 
   val correction = constraints.getMustLink.size.toDouble / constraints.getCannotLink.size.toDouble
 
-  def getDiffFunction = {
-
-    new DiffFunction[DenseVector[Double]] {
-      def calculate(x: DenseVector[Double]) = {
-        val tmpSimM = new SimilarityNeighbourhoodTrees(knowledgeBase, treeDepth, x.toScalaVector.toList.take(5), bagComparison, bagCombination, aggregates)
-
-        val myVal = {
-          val eval = -constraints.getMustLink.map(t => tmpSimM.pairObjectSimilarity(t._1, t._2)).sum + correction * constraints.getCannotLink.map(t => tmpSimM.pairObjectSimilarity(t._1, t._2)).sum
-          println(s" $x -> cl : ${correction * constraints.getCannotLink.map(t => tmpSimM.pairObjectSimilarity(t._1, t._2)).sum} ; ml : ${constraints.getMustLink.map(t => tmpSimM.pairObjectSimilarity(t._1, t._2))}")
-          eval
-        }
-
-        val myGrad = {
-          val gradElems = orderedForGrad.map(sm => {
-            -constraints.getMustLink.map(t => sm.pairObjectSimilarity(t._1, t._2)).sum + correction * constraints.getCannotLink.map(t => sm.pairObjectSimilarity(t._1, t._2)).sum
-          })
-          DenseVector.tabulate(5) { i => gradElems(i) }
-        }
-
-        (myVal, myGrad)
-      }
-    }
-  }
 
   def learn() = {
-    val f = getDiffFunction
-    val lbfgs = new LBFGS[DenseVector[Double]](maxIter = 1000)
+    val mustLinkSimilarities = constraints.getMustLink.toList.map( ct => orderedForGrad.map( f => f.pairObjectSimilarity(ct._1, ct._2)))
+    val cannotLinkSimilarities = constraints.getCannotLink.toList.map( ct => orderedForGrad.map( f => f.pairObjectSimilarity(ct._1, ct._2)))
 
-    val res = lbfgs.minimizeAndReturnState(DiffFunction.withL2Regularization(f, 0.5), DenseVector[Double](0.0, 0.0, 0.0, 0.0, 0.0))
-    println(res.x, res.convergenceInfo)
+    val w1_const = mustLinkSimilarities.map(_.head).sum - cannotLinkSimilarities.map(_.head).sum
+    val w2_const = mustLinkSimilarities.map(_(1)).sum - cannotLinkSimilarities.map(_(1)).sum
+    val w3_const = mustLinkSimilarities.map(_(2)).sum - cannotLinkSimilarities.map(_(2)).sum
+    val w4_const = mustLinkSimilarities.map(_(3)).sum - cannotLinkSimilarities.map(_(3)).sum
+    val w5_const = mustLinkSimilarities.map(_(4)).sum - cannotLinkSimilarities.map(_(4)).sum
 
-    res.x.toScalaVector().toList
+    val lp = new LinearProgram()
+    import lp._
+
+    val w1 = Real()
+    val w2 = Real()
+    val w3 = Real()
+    val w4 = Real()
+    val w5 = Real()
+
+    val lpp = ( (w1 * w1_const + w2 * w2_const + w3 * w3_const + w4 * w4_const + w5 * w5_const)
+                subjectTo( w1 + w2 + w3 + w4 + w5 =:= 1.0)
+      )
+
+    val result = maximize(lpp)
+
+    result.result.toScalaVector().toList
   }
 
 
