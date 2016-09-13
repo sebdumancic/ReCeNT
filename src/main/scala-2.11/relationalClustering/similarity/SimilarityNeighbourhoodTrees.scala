@@ -94,7 +94,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
       val norm = objectsNormConstants.contains(w._2) match {
-        case false => 1.0
+        case false => 1.0 //TODO: add warning when this happens
         case true =>
           objectsNormConstants(w._2) == 0.0 match {
             case true => 1.0
