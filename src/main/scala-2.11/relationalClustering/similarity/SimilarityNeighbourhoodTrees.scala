@@ -93,9 +93,13 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
-      val norm = objectsNormConstants(w._2) == 0.0 match {
-        case true => 1.0
-        case false => objectsNormConstants(w._2)
+      val norm = objectsNormConstants.contains(w._2) match {
+        case false => 1.0
+        case true =>
+          objectsNormConstants(w._2) == 0.0 match {
+            case true => 1.0
+            case false => objectsNormConstants(w._2)
+          }
       }
       acc + w._1 * (functionsWithNorm(w._2)._1 match {
         case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/norm)
