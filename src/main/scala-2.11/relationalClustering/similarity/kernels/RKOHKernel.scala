@@ -1,5 +1,6 @@
 package relationalClustering.similarity.kernels
 
+import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.ChiSquaredDistance
 import relationalClustering.neighbourhood.{Edge, NeighbourhoodGraph}
 import relationalClustering.representation.domain.KnowledgeBase
@@ -11,7 +12,7 @@ import relationalClustering.similarity.SimilarityNeighbourhoodTrees
   */
 class RKOHKernel(override protected val knowledgeBase: KnowledgeBase,
                  override protected val depth: Int,
-                 protected val walkLength: Int) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, List(1.0,0.0,0.0,0.0,0.0), new ChiSquaredDistance(), null, true) {
+                 protected val walkLength: Int) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, List(1.0, 0.0, 0.0, 0.0, 0.0), new ChiSquaredDistance(), null, List[AbstractAggregator](), true) {
 
   protected def getWalkLength = {
     walkLength
