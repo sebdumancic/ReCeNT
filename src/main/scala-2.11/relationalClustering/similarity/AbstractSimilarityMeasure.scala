@@ -65,7 +65,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   protected def getObjectsFromDomains(domains: List[String]) = {
     domains.foldLeft(List[(String,String)]())( (acc, dom) => {
-      acc ++ getKB.getDomain(dom).getElements.map( x => new Tuple2(x, dom))
+      acc ++ getKB.getDomain(dom).getElements.map(x => (x, dom))
     }).sortBy(_._1)
   }
 
@@ -75,7 +75,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param testHyperEdge domains of a predicate
     * */
   protected def hyperEdgeContained(domains: List[String], testHyperEdge: List[String]) = {
-    val domainCounts = domains.map( dom => new Tuple2(dom, domains.count(_ == dom))).toSet
+    val domainCounts = domains.map(dom => (dom, domains.count(_ == dom))).toSet
 
     domainCounts.map( cand => testHyperEdge.count(_ == cand._1) >= cand._2).reduce(_ && _)
   }
@@ -197,7 +197,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
   def normalizeMatrix(matrix: DenseMatrix[Double], constInd: Int, typeFlag: String): DenseMatrix[Double] = {
     val minValue = min(matrix)
     val matrixToUse = minValue < 0.0 match {
-      case true => matrix - DenseMatrix.tabulate(matrix.rows, matrix.cols){ case x => minValue }
+      case true => matrix - DenseMatrix.tabulate(matrix.rows, matrix.cols) { (x, y) => minValue }
       case false => matrix
     }
     val normConstant = math.abs(max(matrixToUse))
@@ -210,7 +210,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
 
     normConstant == 0.0 match {
       case true => matrixToUse
-      case false => matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => normConstant }
+      case false => matrixToUse :/ DenseMatrix.tabulate(matrix.rows, matrix.cols) { (x, y) => normConstant }
     }
   }
 
@@ -222,7 +222,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     if (max(matrix) == 0.0 ) {
       return normalizeMatrix(matrix, constInd, typeFlag)
     }
-    DenseMatrix.tabulate(matrix.rows, matrix.cols) { case x => 1.0 } :- normalizeMatrix(matrix, constInd, typeFlag)
+    DenseMatrix.tabulate(matrix.rows, matrix.cols) { (x, y) => 1.0 } :- normalizeMatrix(matrix, constInd, typeFlag)
   }
 
 
