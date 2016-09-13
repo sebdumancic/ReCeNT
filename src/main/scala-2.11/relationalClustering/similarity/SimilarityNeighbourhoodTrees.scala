@@ -102,10 +102,12 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
             case false => objectsNormConstants(w._2)
           }
       }
-      acc + w._1 * (functionsWithNorm(w._2)._1 match {
+      val calc = w._1 * (functionsWithNorm(w._2)._1 match {
         case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/norm)
         case false => functionsWithNorm(w._2)._2(nt1, nt2)/norm
       })
+      if (calc < 0) { println(s"Similarity <0 for ${nt1.getRoot.getEntity} and ${nt2.getRoot.getEntity} with ${w._2}")}
+      acc + calc
     })
   }
 
@@ -123,15 +125,15 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val numAttrs2 = ng2.getRootNumericAttributes.toMap
 
     // discrete attributes                   // numerical attributes
-    attrs1.intersect(attrs2).size.toDouble + (numAttrs1.keySet ++ numAttrs2.keySet).toList.map(key => {
-      numAttrs1.contains(key) && numAttrs2.contains(key) match {
+    attrs1.intersect(attrs2).size.toDouble + (numAttrs1.keySet ++ numAttrs2.keySet).toList.foldLeft(0.0)((acc, key) => {
+      acc + (numAttrs1.contains(key) && numAttrs2.contains(key) match {
         case false => 0.0
         case true =>
           val domain = getKB.getPredicate(key).getArgumentRoles.zip(getKB.getPredicate(key).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
           require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $key has more than one number domain!")
           1.0 - math.abs(numAttrs1(key) - numAttrs2(key))/domain.head._2.asInstanceOf[NumericDomain].getRange
-      }
-    }).sum
+      })
+    })
   }
 
   /** Computes the attribute neighbourhood similarity of two neighbourhood graphs, per level and vertex type
