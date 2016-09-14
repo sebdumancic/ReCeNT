@@ -43,8 +43,6 @@ class LearnWeightsLP(protected val constraints: ConstraintsContainer,
     val w4_const = constraints.getMustLink.foldLeft(0.0)((acc, c) => acc + fourthCompSim.pairObjectSimilarity(c._1, c._2)) - constraints.getCannotLink.foldLeft(0.0)((acc, c) => acc + fourthCompSim.pairObjectSimilarity(c._1, c._2))
     val w5_const = constraints.getMustLink.foldLeft(0.0)((acc, c) => acc + fifthCompSim.pairObjectSimilarity(c._1, c._2)) - constraints.getCannotLink.foldLeft(0.0)((acc, c) => acc + fifthCompSim.pairObjectSimilarity(c._1, c._2))
 
-    println(w1_const, w2_const, w3_const, w4_const, w5_const)
-
     val lp = new LinearProgram()
     import lp._
 
