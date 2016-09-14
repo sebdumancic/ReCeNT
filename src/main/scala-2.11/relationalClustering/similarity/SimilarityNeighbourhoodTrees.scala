@@ -67,8 +67,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains list of domains to cluster objects from: [[List]]
     * @return (ordering of objects, similarity matrix for corresponding element)
     * */
-  def getObjectSimilarity(domains: List[String]) = {
-    val objects = getObjectsFromDomains(domains)
+  def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
+    val objects = objectsToUse == null match {
+      case true => getObjectsFromDomains(domains)
+      case false => objectsToUse
+    }
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
@@ -94,19 +97,18 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
-      val norm = objectsNormConstants.contains(w._2) match {
-        case false => 1.0 //TODO: add warning when this happens
-        case true =>
-          objectsNormConstants(w._2) == 0.0 match {
+      val norm = objectsNormConstants(w._2) == 0.0 match {
             case true => 1.0
             case false => objectsNormConstants(w._2)
           }
-      }
+
       val calc = w._1 * (functionsWithNorm(w._2)._1 match {
         case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/norm)
         case false => functionsWithNorm(w._2)._2(nt1, nt2)/norm
       })
-      if (calc < 0) { println(s"Similarity <0 for ${nt1.getRoot.getEntity} and ${nt2.getRoot.getEntity} with ${w._2}")}
+      if (calc < 0) {
+        println(s"Similarity <0 for ${nt1.getRoot.getEntity} and ${nt2.getRoot.getEntity} with ${w._2} (${w._1}): $calc")
+      }
       acc + calc
     })
   }
@@ -131,7 +133,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
         case true =>
           val domain = getKB.getPredicate(key).getArgumentRoles.zip(getKB.getPredicate(key).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
           require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $key has more than one number domain!")
-          1.0 - math.abs(numAttrs1(key) - numAttrs2(key))/domain.head._2.asInstanceOf[NumericDomain].getRange
+          1.0 - (math.abs(numAttrs1(key) - numAttrs2(key)) / domain.head._2.asInstanceOf[NumericDomain].getRange)
       })
     })
   }

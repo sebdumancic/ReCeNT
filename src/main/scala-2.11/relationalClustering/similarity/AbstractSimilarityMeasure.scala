@@ -116,7 +116,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param domains list of domains to cluster objects from: [[List]]
     * @return (ordering of objects, similarity matrix for corresponding element)
     * */
-  def getObjectSimilarity(domains: List[String]): (List[String], DenseMatrix[Double])
+  def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null): (List[String], DenseMatrix[Double])
 
   /** Get the similarity matrix and saves it to the file
     *

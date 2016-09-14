@@ -33,7 +33,7 @@ class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBa
     resultingTuples.toSet
   }
 
-  override def getObjectSimilarity(domains: List[String]) = {
+  override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
     require(domains.length == 1, s"Neville assumes all vertices are of the same type -> only one type can be given (currently $domains are given)")
     val objects = getObjectsFromDomains(domains)
     val noDomainObjects = objects.map(_._1)

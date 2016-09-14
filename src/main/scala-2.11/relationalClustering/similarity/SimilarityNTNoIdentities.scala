@@ -54,7 +54,7 @@ class SimilarityNTNoIdentities(override protected val knowledgeBase: KnowledgeBa
     * @param domains list of domains to cluster objects from: [[List]]
     * @return (ordering of objects, similarity matrix for corresponding element)
     * */
-  override def getObjectSimilarity(domains: List[String]) = {
+  override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
     val objects = getObjectsFromDomains(domains)
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(

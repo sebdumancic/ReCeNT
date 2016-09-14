@@ -55,8 +55,11 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     contextSimilarity(ng1, ng2)
   }
 
-  override def getObjectSimilarity(domains: List[String]) = {
-    val objects = getObjectsFromDomains(domains)
+  override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
+    val objects = objectsToUse == null match {
+      case false => getObjectsFromDomains(domains)
+      case true => objectsToUse
+    }
 
     val functionsWithNorm = List(bagCompare.needsToBeInverted, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
