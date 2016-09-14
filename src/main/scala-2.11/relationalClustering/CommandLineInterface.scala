@@ -95,7 +95,9 @@ object CommandLineInterface {
             constraintsSampler.sample(numConstraints.value.getOrElse(20))
         }
         val optimizer = new LearnWeightsLP(constraintsCon, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
-        optimizer.learn()
+        val optimalPars = optimizer.learn()
+        println(s"Found optimal parameters: $optimalPars")
+        optimalPars
     }
 
 

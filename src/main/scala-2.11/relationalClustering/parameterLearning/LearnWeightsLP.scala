@@ -71,7 +71,6 @@ class LearnWeightsLP(protected val constraints: ConstraintsContainer,
     val result = maximize(lpp)
 
     val parameterValues = result.result.toScalaVector().toList
-    println(s"Found optimal weights: $parameterValues")
     parameterValues.map(e => e / parameterValues.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
   }
 
