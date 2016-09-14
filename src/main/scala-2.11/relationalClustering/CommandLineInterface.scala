@@ -6,7 +6,7 @@ import relationalClustering.bagComparison.bagCombination.{IntersectionCombinatio
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
 import relationalClustering.clustering.{AffinityPropagation, DBScan, Hierarchical, Spectral}
-import relationalClustering.parameterLearning.{ConstraintsContainer, LearnWeights}
+import relationalClustering.parameterLearning.{ConstraintsContainer, LearnWeightsLP, SampleConstraints}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
@@ -46,6 +46,7 @@ object CommandLineInterface {
   val aggregatorFunctions = parser.option[String](List("aggregates"), "comma-separated list", "a list of aggregator functions to use for the numerical attributes [mean/min/max] ")
   val learnWeights = parser.flag[Boolean](List("learnWeights"), "learn weights from constraints")
   val constraintsFile = parser.option[String](List("constraints"), "filename", "a file containing the constraints for weight learning")
+  val numConstraints = parser.option[Int](List("constraintsNumToSample"), "n", "number of constraints to sample - per constraint class")
 
 
   def main(args: Array[String]) {
@@ -86,13 +87,15 @@ object CommandLineInterface {
       case true =>
         require(query.value.get.split(",").length == 1, s"When learning the weights, only one domain is supported!")
         require(constraintsFile.hasValue, s"No constraints provided for weight learning!")
-        val constraintsCon = new ConstraintsContainer(constraintsFile.value.get, query.value.get, KnowledgeBase, depth.value.getOrElse(0))
-        val optimizer = new LearnWeights(constraintsCon, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
-        val result = optimizer.learn().take(5)
-        val shiftedToZero = result.map(x => x)
-        val scaled = shiftedToZero.map(x => x / shiftedToZero.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
-        println(s"optimal weights: $scaled")
-        scaled
+        val constraintsCon = constraintsFile.value.getOrElse("") == "" match {
+          case false => new ConstraintsContainer(constraintsFile.value.get, query.value.get, KnowledgeBase, depth.value.getOrElse(0))
+          case true =>
+            val labContainer = new LabelsContainer(labels.value)
+            val constraintsSampler = new SampleConstraints(labContainer, KnowledgeBase.getDomain(query.value.get), KnowledgeBase, depth.value.getOrElse(0))
+            constraintsSampler.sample(numConstraints.value.getOrElse(20))
+        }
+        val optimizer = new LearnWeightsLP(constraintsCon, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
+        optimizer.learn()
     }
 
 
