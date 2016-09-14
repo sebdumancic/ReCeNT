@@ -28,7 +28,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   require(weights.length == 5, s" You should provide 5 weights not ${weights.length} ($weights)")
 
-  //require(BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Weights should sum to one, not ${BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
+  require(BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Weights should sum to one, not ${BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
 
   /** An auxiliary constructor that takes an existing neighbourhood graph cache */
   def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: AbstractBagCombine, aggs: List[AbstractAggregator], cache: Map[(String,String), NeighbourhoodGraph]) {
