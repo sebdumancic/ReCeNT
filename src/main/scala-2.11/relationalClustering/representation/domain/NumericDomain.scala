@@ -42,7 +42,7 @@ class NumericDomain(override protected val name: String) extends Domain(name) {
 
   /** Returns the range of the interval representing the domain */
   def getRange = {
-    maxElement - minElement
+    math.abs(maxElement - minElement)
   }
 
   /** Returns the standard deviation over the entire domain */
