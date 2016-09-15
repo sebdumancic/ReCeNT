@@ -47,6 +47,7 @@ object CommandLineInterface {
   val learnWeights = parser.flag[Boolean](List("learnWeights"), "learn weights from constraints")
   val constraintsFile = parser.option[String](List("constraints"), "filename", "a file containing the constraints for weight learning")
   val numConstraints = parser.option[Int](List("constraintsNumToSample"), "n", "number of constraints to sample - per constraint class")
+  val wlRuns = parser.option[Int](List("wlRuns"), "n", "number of weight learning runs")
 
 
   def main(args: Array[String]) {
@@ -83,21 +84,35 @@ object CommandLineInterface {
 
     val weightsToUse = learnWeights.value.getOrElse(false) match {
       case false =>
+        //use provided weights
         weights.value.getOrElse("0.2,0.2,0.2,0.2,0.2").split(",").toList.map(_.toDouble)
       case true =>
+        //learn the weights
         require(query.value.get.split(",").length == 1, s"When learning the weights, only one domain is supported!")
         require(constraintsFile.hasValue, s"No constraints provided for weight learning!")
+
+        // sample the constraints
         val constraintsCon = constraintsFile.value.getOrElse("") == "" match {
-          case false => new ConstraintsContainer(constraintsFile.value.get, query.value.get, KnowledgeBase, depth.value.getOrElse(0))
+          case false => List(new ConstraintsContainer(constraintsFile.value.get, query.value.get, KnowledgeBase, depth.value.getOrElse(0)))
           case true =>
             val labContainer = new LabelsContainer(labels.value)
             val constraintsSampler = new SampleConstraints(labContainer, KnowledgeBase.getDomain(query.value.get), KnowledgeBase, depth.value.getOrElse(0))
-            constraintsSampler.sample(numConstraints.value.getOrElse(20))
+
+            (1 to wlRuns.value.getOrElse(1)).foldLeft(List[ConstraintsContainer]())((acc, r) => {
+              acc :+ constraintsSampler.sample(numConstraints.value.getOrElse(20) / wlRuns.value.getOrElse(1))
+            })
         }
-        val optimizer = new LearnWeightsLP(constraintsCon, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
-        val optimalPars = optimizer.learn()
-        println(s"Found optimal parameters: $optimalPars")
-        optimalPars
+
+        // learn the weights from the sampled constraints
+        val extractedWeights = constraintsCon.foldLeft(List[Double](0.0, 0.0, 0.0, 0.0, 0.0))((acc, cts) => {
+          val optimizer = new LearnWeightsLP(cts, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
+          val optimalPars = optimizer.learn()
+          println(s"-- intermediate weights found: $optimalPars")
+          acc.zip(optimalPars).map(e => e._1 + e._2)
+        }).map(e => e / wlRuns.value.getOrElse(1))
+
+        println(s"Found optimal parameters: $extractedWeights")
+        extractedWeights.map(e => e / extractedWeights.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
     }
 
 
