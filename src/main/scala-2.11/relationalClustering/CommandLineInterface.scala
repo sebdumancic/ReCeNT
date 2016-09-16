@@ -26,7 +26,7 @@ object CommandLineInterface {
   val declarationFile = parser.option[String](List("declarations"), "file path", "file containing declarations of predicates")
   val depth = parser.option[Int](List("depth"), "n", "depth of the neighbourhood graph")
   val rootFolder = parser.option[String](List("root"), "filePath", "folder to place files in")
-  val k = parser.option[Int](List("k"), "n", "number of clusters to create")
+  val k = parser.option[String](List("k"), "n", "number of clusters to create")
   val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
   val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
   val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical|DBscan|Affinity]", "algorithm to perform clustering")
@@ -164,28 +164,42 @@ object CommandLineInterface {
           new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
       }
 
-      val clustering = clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, k.value.getOrElse(2), 0)
+      val kToUse = k.value.getOrElse("2").contains(":") match {
+        case false => List(k.value.getOrElse("2").toInt)
+        case true =>
+          val tmp = k.value.get.split(":")
+          (tmp.head.toInt to tmp.last.toInt).toList
+      }
 
-      println("FOUND CLUSTERS")
-      clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map( inst => inst.mkString(":")).mkString(",")}"))
+      kToUse.foreach(numClust => {
+        val clustering = clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, numClust, 0)
 
 
-      //if validation is to be performed
-      if (validate.value.getOrElse(false)) {
-        val labContainer = new LabelsContainer(labels.value)
-        valMethod.value.getOrElse("ARI") match {
-          case "ARI" =>
-            val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
-          case "intraCluster" =>
-            val validator = new AverageIntraClusterSimilarity()
-            println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
-          case "majorityClass" =>
-            val validator = new MajorityClass()
-            println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
+        println(s"FOUND CLUSTERS with k=$numClust")
+        clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map(inst => inst.mkString(":")).mkString(",")}"))
+
+
+        //if validation is to be performed
+        if (validate.value.getOrElse(false)) {
+          val labContainer = new LabelsContainer(labels.value)
+          valMethod.value.getOrElse("ARI") match {
+            case "ARI" =>
+              val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
+              println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
+            case "intraCluster" =>
+              val validator = new AverageIntraClusterSimilarity()
+              println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
+            case "majorityClass" =>
+              val validator = new MajorityClass()
+              println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
+          }
         }
 
-      }
+        println("*" * 30)
+
+      })
+
+
     }
   }
 }
