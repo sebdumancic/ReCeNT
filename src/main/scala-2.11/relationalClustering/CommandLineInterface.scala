@@ -4,9 +4,11 @@ import org.clapper.argot.ArgotParser
 import relationalClustering.aggregators._
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
-import relationalClustering.clustering.evaluation.{AdjustedRandIndex, AverageIntraClusterSimilarity, LabelsContainer, MajorityClass}
-import relationalClustering.clustering.{AffinityPropagation, DBScan, Hierarchical, Spectral}
+import relationalClustering.clustering.algo.{AffinityPropagation, DBScan, Hierarchical, Spectral}
+import relationalClustering.clustering.evaluation._
+import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
 import relationalClustering.parameterLearning.{ConstraintsContainer, LearnWeightsLP, SampleConstraints}
+import relationalClustering.representation.clustering.Clustering
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
@@ -48,6 +50,9 @@ object CommandLineInterface {
   val constraintsFile = parser.option[String](List("constraints"), "filename", "a file containing the constraints for weight learning")
   val numConstraints = parser.option[Int](List("constraintsNumToSample"), "n", "number of constraints to sample - per constraint class")
   val wlRuns = parser.option[Int](List("wlRuns"), "n", "number of weight learning runs")
+  val select = parser.flag[Boolean](List("selectSingle"), "flag single clustering")
+  val selection = parser.option[String](List("selection"), "method to choose a single clustering", "[model|saturation]")
+  val selectionValidation = parser.option[String](List("selectionValidation"), "evaluation criteria for clustering selection", "[intraCluster|silhouette]")
 
 
   def main(args: Array[String]) {
@@ -81,6 +86,9 @@ object CommandLineInterface {
         case "sum" => acc :+ new SumAggregator
       }
     })
+
+
+
 
     val weightsToUse = learnWeights.value.getOrElse(false) match {
       case false =>
@@ -116,6 +124,8 @@ object CommandLineInterface {
     }
 
 
+
+
     val similarityMeasure = similarity.value.getOrElse("RCNT") match {
       case "RCNT" =>
         new SimilarityNeighbourhoodTrees(KnowledgeBase,
@@ -147,6 +157,8 @@ object CommandLineInterface {
       case "RKOH" => new RKOHKernel(KnowledgeBase, depth.value.getOrElse(0), clauseLength.value.getOrElse(2))
     }
 
+
+
     if (exportNTs.value.getOrElse(false)) {
       println(s"Printing trees to ${rootFolder.value.getOrElse("./tmp")}/gspan...")
       PrintNTrees.saveAll(query.value.get.split(",").toList.head, KnowledgeBase, depth.value.getOrElse(0), rootFolder.value.getOrElse("./tmp"))
@@ -171,13 +183,28 @@ object CommandLineInterface {
           (tmp.head.toInt to tmp.last.toInt).toList
       }
 
-      kToUse.foreach(numClust => {
-        val clustering = clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, numClust, 0)
+      if (select.value.getOrElse(false)) {
+        // IF A SINGLE CLUSTERING SHOULD BE SELECTED
+        val clusterings = kToUse.foldLeft(List[Clustering]())((acc, numClust) => acc :+ clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, numClust, 0))
 
+        val validationMethod = selectionValidation.value.getOrElse("intraCluster") match {
+          case "intraCluster" =>
+            new AverageIntraClusterSimilarity()
+          case "silhouette" =>
+            new SilhouetteScore(rootFolder.value.getOrElse("./tmp"))
+        }
 
-        println(s"FOUND CLUSTERS with k=$numClust")
-        clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map(inst => inst.mkString(":")).mkString(",")}"))
+        val selectionMethod = selection.value.getOrElse("saturation") match {
+          case "saturation" =>
+            new IncreaseSaturationCut(validationMethod, 0.0)
+          case "model" =>
+            new ModelBasedSelection(validationMethod)
+        }
 
+        val selectedCluster = selectionMethod.selectFromClusters(clusterings)
+
+        println(s"FOUND CLUSTERS with k=${selectedCluster.size}")
+        selectedCluster.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map(inst => inst.mkString(":")).mkString(",")}"))
 
         //if validation is to be performed
         if (validate.value.getOrElse(false)) {
@@ -185,19 +212,49 @@ object CommandLineInterface {
           valMethod.value.getOrElse("ARI") match {
             case "ARI" =>
               val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
-              println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
+              println(s"${valMethod.value.get} score: ${validator.validate(selectedCluster, labContainer)}")
             case "intraCluster" =>
               val validator = new AverageIntraClusterSimilarity()
-              println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
+              println(s"${valMethod.value.get} score: ${validator.validate(selectedCluster)}")
             case "majorityClass" =>
               val validator = new MajorityClass()
-              println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
+              println(s"${valMethod.value.get} score: ${validator.validate(selectedCluster, labContainer)}")
           }
         }
 
-        println("*" * 30)
+      }
+      else {
+        //IF ONLY CLUSTERING IS TO BE PERFORMED
+        kToUse.foreach(numClust => {
+          val clustering = clusteringAlg.clusterVertices(query.value.get.split(",").toList, similarityMeasure, numClust, 0)
 
-      })
+
+          println(s"FOUND CLUSTERS with k=$numClust")
+          clustering.getClusters.zipWithIndex.foreach(cluster => println(s"CLUSTER ${cluster._2}: ${cluster._1.getInstances.map(inst => inst.mkString(":")).mkString(",")}"))
+
+
+          //if validation is to be performed
+          if (validate.value.getOrElse(false)) {
+            val labContainer = new LabelsContainer(labels.value)
+            valMethod.value.getOrElse("ARI") match {
+              case "ARI" =>
+                val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
+                println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
+              case "intraCluster" =>
+                val validator = new AverageIntraClusterSimilarity()
+                println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
+              case "majorityClass" =>
+                val validator = new MajorityClass()
+                println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
+            }
+          }
+
+          println("*" * 30)
+        })
+
+      }
+
+
 
 
     }
