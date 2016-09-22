@@ -14,7 +14,7 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
   def validate(clusters: Clustering) = {
     val similarityMatrix = readMatrixFromFile(clusters.getSimilarityFilename, clusters.getElementOrdering.length)
     val agg = clusters.getClusters.map( clust => intraClusterSimilarity(clust, clusters.getElementOrdering.map(_.mkString(":")), similarityMatrix)) //.sum/clusters.size.toDouble
-    agg.sum///clusters.size.toDouble
+    agg.sum //clusters.size.toDouble
   }
 
   /** Calculates the intra cluster similarity
@@ -26,13 +26,13 @@ class AverageIntraClusterSimilarity extends AbstractEvaluatorModel("./tmp") {
     * */
   protected def intraClusterSimilarity(cluster: Cluster, elementOrder: List[String], similarityMatrix: DenseMatrix[Double]): Double = {
     cluster.getSize < 2 match {
-      case true => 1.0
+      case true => 0.0
       case false =>
-        (2.0/(cluster.getSize*(cluster.getSize - 1)).toDouble) * cluster.getInstances.map(_.mkString(":")).toList.zipWithIndex.foldLeft(0.0)( (acc, elem) => {
+        cluster.getInstances.map(_.mkString(":")).toList.zipWithIndex.foldLeft(0.0)((acc, elem) => {
           acc + cluster.getInstances.map(_.mkString(":")).toList.zipWithIndex.filter( _._2 > elem._2).foldLeft(0.0)( (acc_i, elem_i) => {
             acc_i + similarityMatrix(elementOrder.indexOf(elem._1), elementOrder.indexOf(elem_i._1))
           })
-        })
+        }) / ((cluster.getSize * (cluster.getSize - 1)).toDouble / 2)
     }
   }
 
