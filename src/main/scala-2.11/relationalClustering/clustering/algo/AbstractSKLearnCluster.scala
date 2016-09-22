@@ -1,4 +1,4 @@
-package relationalClustering.clustering
+package relationalClustering.clustering.algo
 
 import java.io.{File, FileWriter}
 
