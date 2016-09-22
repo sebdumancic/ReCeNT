@@ -24,7 +24,7 @@ class IncreaseSaturationCut(protected val evaluateSingle: AbstractEvaluatorModel
     val sinCl = new Cluster(clusterSet.head.getTypes, "allElemsTogether", clusterSet.head.getElementOrdering.toSet, clusterSet.head.getNeighbourhoodTreeRepo)
 
     val evaluated = clusterSet.map(cl => (cl, evaluateSingle.validate(cl))).sortBy(_._2)
-    //println(s"---- evaluated clusters: ${evaluated.map( cl => (cl._1.getClusters.length, cl._2))}")
+    println(s"---- evaluated clusters: ${evaluated.map(cl => (cl._1.getClusters.length, cl._2))}")
     val newFactors = evaluated.map(_._2).zipWithIndex.map(cl => {
       val previousCl = (cl._2 - 1) < 0 match {
         case true => evaluateSingle.validate(new Clustering(List(sinCl), clusterSet.head.getSimilarityMeasure, clusterSet.head.getElementOrdering, clusterSet.head.getSimilarityFilename))
@@ -38,10 +38,10 @@ class IncreaseSaturationCut(protected val evaluateSingle: AbstractEvaluatorModel
 
       math.abs((previousCl - evaluated(cl._2)._2) / (evaluated(cl._2)._2 - consecutiveCl))
     }).map(t => if (t.isNaN || t.isInfinity || t.isInfinite || t.isNegInfinity || t.isPosInfinity) 0.0 else t)
-    //println(s"---- new factors: $newFactors")
+    println(s"---- new factors: $newFactors")
 
     val finalFactors = newFactors.zipWithIndex.map(f => f._1 - (factor * evaluated(f._2)._1.getClusters.length))
-    //println(s"---- with penalization: $finalFactors")
+    println(s"---- with penalization: $finalFactors")
 
     //select the one with the highest score
     val cand = finalFactors.zipWithIndex.maxBy(_._1)._2
