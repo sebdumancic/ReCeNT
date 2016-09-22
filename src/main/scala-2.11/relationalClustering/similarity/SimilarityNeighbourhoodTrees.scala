@@ -191,7 +191,6 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
         })
     }
 
-
     (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
       acc + firstAttrs(depth).keySet.union(secondAttrs(depth).keySet).foldLeft(0.0)( (acc_i, vType) => {
         acc_i + math.abs(bagCompare.compareBags(firstAttrs(depth).getOrElse(vType, List[(String,String)]()),
