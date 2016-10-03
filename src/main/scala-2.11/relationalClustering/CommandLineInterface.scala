@@ -219,6 +219,9 @@ object CommandLineInterface {
             case "majorityClass" =>
               val validator = new MajorityClass()
               println(s"${valMethod.value.get} score: ${validator.validate(selectedCluster, labContainer)}")
+            case "ANMI" =>
+              val validator = new AdjustedNMI(rootFolder.value.getOrElse("./tmp"))
+              println(s"${valMethod.value.get} score: ${validator.validate(selectedCluster, labContainer)}")
           }
         }
 
