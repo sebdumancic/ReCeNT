@@ -177,14 +177,14 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
                     require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $pred has more than one number domain!")
                     math.abs(aggs1(pred) - aggs2(pred)) / domain.head._2.asInstanceOf[NumericDomain].getRange
                 }
-                bagCompare.needsToBeInverted match {
+                acc_iii + (bagCompare.needsToBeInverted match {
                   case true =>
                     // needs to be a distance value
                     value
                   case false =>
                     // value represents a similarity
                     1.0 - value
-                }
+                })
               })
             })
           })
