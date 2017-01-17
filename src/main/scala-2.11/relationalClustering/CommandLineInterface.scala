@@ -102,6 +102,7 @@ object CommandLineInterface {
         val labContainer = new LabelsContainer(labels.value)
         val optimizer = new LearnWeightsLPSupervised(labContainer, KnowledgeBase, query.value.get, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
         val optimalPars = optimizer.learn()
+        println(s"Learned weights: $optimalPars")
         optimalPars
     }
 
