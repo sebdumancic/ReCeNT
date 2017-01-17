@@ -88,9 +88,9 @@ class LearnWeightsLPSupervised(protected val labels: LabelsContainer,
     val w4 = Real()
     val w5 = Real()
 
-    //println(s"Correction: $correction")
-    //println(s"Coefficients individually: ($w1_comp_sameclass $w1_comp_diffclass), ($w2_comp_sameclass $w2_comp_diffclass), ($w3_comp_sameclass $w3_comp_diffclass), ($w4_comp_sameclass $w4_comp_diffclass), ($w5_comp_sameclass $w5_comp_diffclass) ")
-    //println(s"Coefficients: ${w1_comp_sameclass - correction * w1_comp_diffclass}, ${w2_comp_sameclass - correction * w2_comp_diffclass}, ${w3_comp_sameclass - correction * w3_comp_diffclass}, ${w4_comp_sameclass - correction * w4_comp_diffclass}, ${w5_comp_sameclass - correction * w5_comp_diffclass}")
+    println(s"Correction: $correction")
+    println(s"Coefficients individually: ($w1_comp_sameclass $w1_comp_diffclass), ($w2_comp_sameclass $w2_comp_diffclass), ($w3_comp_sameclass $w3_comp_diffclass), ($w4_comp_sameclass $w4_comp_diffclass), ($w5_comp_sameclass $w5_comp_diffclass) ")
+    println(s"Coefficients: ${w1_comp_sameclass - correction * w1_comp_diffclass}, ${w2_comp_sameclass - correction * w2_comp_diffclass}, ${w3_comp_sameclass - correction * w3_comp_diffclass}, ${w4_comp_sameclass - correction * w4_comp_diffclass}, ${w5_comp_sameclass - correction * w5_comp_diffclass}")
 
 
     val lpp = ((w1 * (w1_comp_sameclass - correction * w1_comp_diffclass) + w2 * (w2_comp_sameclass - correction * w2_comp_diffclass) + w3 * (w3_comp_sameclass - correction * w3_comp_diffclass) + w4 * (w4_comp_sameclass - correction * w4_comp_diffclass) + w5 * (w5_comp_sameclass - correction * w5_comp_diffclass))
