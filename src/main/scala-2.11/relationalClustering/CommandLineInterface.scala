@@ -46,7 +46,7 @@ object CommandLineInterface {
   val AffPreference = parser.option[Double](List("preference"), "d", "preference parameter for Affinity Propagation")
   val AffDamping = parser.option[Double](List("damping"), "d", "damping parameter for Affinity Propagation")
   val aggregatorFunctions = parser.option[String](List("aggregates"), "comma-separated list", "a list of aggregator functions to use for the numerical attributes [mean/min/max] ")
-  val learnWeights = parser.flag[Boolean](List("learnWeights"), "learn weights from constraints")
+  val learnWeights = parser.flag[Boolean](List("learnWeights"), "learn weights from labels")
   val constraintsFile = parser.option[String](List("constraints"), "filename", "a file containing the constraints for weight learning")
   val numConstraints = parser.option[Int](List("constraintsNumToSample"), "n", "number of constraints to sample - per constraint class")
   val wlRuns = parser.option[Int](List("wlRuns"), "n", "number of weight learning runs")
