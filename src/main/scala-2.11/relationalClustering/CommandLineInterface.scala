@@ -7,7 +7,7 @@ import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity
 import relationalClustering.clustering.algo.{AffinityPropagation, DBScan, Hierarchical, Spectral}
 import relationalClustering.clustering.evaluation._
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
-import relationalClustering.parameterLearning.{ConstraintsContainer, LearnWeightsLP, SampleConstraints}
+import relationalClustering.parameterLearning.LearnWeightsLPSupervised
 import relationalClustering.representation.clustering.Clustering
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
@@ -97,30 +97,12 @@ object CommandLineInterface {
       case true =>
         //learn the weights
         require(query.value.get.split(",").length == 1, s"When learning the weights, only one domain is supported!")
-        require(constraintsFile.hasValue, s"No constraints provided for weight learning!")
+        require(labels.hasValue, s"No labels provided for weight learning!")
 
-        // sample the constraints
-        val constraintsCon = constraintsFile.value.getOrElse("") == "" match {
-          case false => List(new ConstraintsContainer(constraintsFile.value.get, query.value.get, KnowledgeBase, depth.value.getOrElse(0)))
-          case true =>
-            val labContainer = new LabelsContainer(labels.value)
-            val constraintsSampler = new SampleConstraints(labContainer, KnowledgeBase.getDomain(query.value.get), KnowledgeBase, depth.value.getOrElse(0))
-
-            (1 to wlRuns.value.getOrElse(1)).foldLeft(List[ConstraintsContainer]())((acc, r) => {
-              acc :+ constraintsSampler.sample(numConstraints.value.getOrElse(20) / wlRuns.value.getOrElse(1))
-            })
-        }
-
-        // learn the weights from the sampled constraints
-        val extractedWeights = constraintsCon.foldLeft(List[Double](0.0, 0.0, 0.0, 0.0, 0.0))((acc, cts) => {
-          val optimizer = new LearnWeightsLP(cts, KnowledgeBase, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
-          val optimalPars = optimizer.learn()
-          println(s"-- intermediate weights found: $optimalPars")
-          acc.zip(optimalPars).map(e => e._1 + e._2)
-        }).map(e => e / wlRuns.value.getOrElse(1))
-
-        println(s"Found optimal parameters: $extractedWeights")
-        extractedWeights.map(e => e / extractedWeights.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
+        val labContainer = new LabelsContainer(labels.value)
+        val optimizer = new LearnWeightsLPSupervised(labContainer, KnowledgeBase, query.value.get, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
+        val optimalPars = optimizer.learn()
+        optimalPars
     }
 
 
