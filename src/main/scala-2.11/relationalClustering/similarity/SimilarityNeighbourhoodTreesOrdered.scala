@@ -17,6 +17,11 @@ class SimilarityNeighbourhoodTreesOrdered(override protected val knowledgeBase: 
                                           override protected val aggregators: List[AbstractAggregator],
                                           override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, new UnionCombination, aggregators, useLocalRepo) {
 
+  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: String, aggs: List[AbstractAggregator], cache: Map[(String, String), NeighbourhoodGraph]) {
+    this(KB, d, ws, bagComp, bagComb, aggs, false)
+    setNeighbourhoodGraphs(cache)
+  }
+
   def combinedIndividuals(individuals: List[Double]): Double = {
     vertexCombination match {
       case "avg" => individuals.sum / individuals.length
