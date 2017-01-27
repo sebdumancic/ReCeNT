@@ -53,6 +53,14 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
+  override def getVertexNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
+  }
+
+  override def getEdgeNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
+  }
+
   def getFilenameHyperEdges(domains: List[String]) = {
     s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
   }
@@ -92,6 +100,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * */
   def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
     require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
+
+    if (objectsNormConstants.isEmpty) {
+      objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
+    }
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
@@ -303,6 +315,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
+
+    if (hyperEdgeNormConstants.isEmpty) {
+      hyperEdgeNormConstants = readNormsFromFile(getEdgeNormsFilename(nt1.map(_.getRoot.getDomain)))
+    }
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
       val norm = hyperEdgeNormConstants(w._2) == 0.0 match {

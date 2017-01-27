@@ -79,6 +79,7 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     if (!new File(s"$folder/${getFilename(domains)}").exists()) {
       val (elems, sim) = getObjectSimilarity(domains)
       saveMatrixToFile(s"$folder/${getFilename(domains)}", domains, elems, sim)
+      saveNormsToFile(s"$folder/${getVertexNormsFilename(domains)}", getObjectNorm)
     }
     else {
       buildAllNeighbourhoodGraphs(domains)
@@ -99,6 +100,7 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     if (!new File(s"$folder/${getFilenameHyperEdges(domains)}").exists()) {
       val (elems, sim) = getHyperEdgeSimilarity(domains)
       saveMatrixToFile(s"$folder/${getFilenameHyperEdges(domains)}", domains, elems.map( _.mkString(":")), sim)
+      saveNormsToFile(s"$folder/${getEdgeNormsFilename(domains)}", getHyperEdgeNorm)
     }
     else {
       buildAllNeighbourhoodGraphs(domains)
