@@ -1,6 +1,6 @@
 package relationalClustering
 
-import org.clapper.argot.ArgotParser
+import org.clapper.argot.{ArgotParser, MultiValueOption, SingleValueOption}
 import relationalClustering.aggregators._
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
@@ -23,19 +23,19 @@ object CommandLineInterface {
   import org.clapper.argot.ArgotConverters._
 
   val parser = new ArgotParser("RelationalClustering.jar", preUsage = Some("Version 2.1"))
-  val dbs = parser.multiOption[String](List("db"), "knowledgeBase", "database(s) with data to cluster")
-  val head = parser.option[String](List("domain"), "domain definition", "header for the knowledge base(s); specification of logical predicates")
-  val declarationFile = parser.option[String](List("declarations"), "file path", "file containing declarations of predicates")
-  val depth = parser.option[Int](List("depth"), "n", "depth of the neighbourhood graph")
-  val rootFolder = parser.option[String](List("root"), "filePath", "folder to place files in")
-  val k = parser.option[String](List("k"), "n", "number of clusters to create")
-  val query = parser.option[String](List("query"), "comma-separated list", "list of query domains")
-  val weights = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
-  val algorithm = parser.option[String](List("algorithm"), "[Spectral|Hierarchical|DBscan|Affinity]", "algorithm to perform clustering")
-  val similarity = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG|CCFonseca]", "similarity measure")
-  val bag = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
-  val bagCombination = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
-  val linkage = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
+  val dbs: MultiValueOption[String] = parser.multiOption[String](List("db"), "knowledgeBase", "database(s) with data to cluster")
+  val head: SingleValueOption[String] = parser.option[String](List("domain"), "domain definition", "header for the knowledge base(s); specification of logical predicates")
+  val declarationFile: SingleValueOption[String] = parser.option[String](List("declarations"), "file path", "file containing declarations of predicates")
+  val depth: SingleValueOption[Int] = parser.option[Int](List("depth"), "n", "depth of the neighbourhood graph")
+  val rootFolder: SingleValueOption[String] = parser.option[String](List("root"), "filePath", "folder to place files in")
+  val k: SingleValueOption[String] = parser.option[String](List("k"), "n", "number of clusters to create")
+  val query: SingleValueOption[String] = parser.option[String](List("query"), "comma-separated list", "list of query domains")
+  val weights: SingleValueOption[String] = parser.option[String](List("weights"), "Array[Double]", "comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood, edge distribution]")
+  val algorithm: SingleValueOption[String] = parser.option[String](List("algorithm"), "[Spectral|Hierarchical|DBscan|Affinity]", "algorithm to perform clustering")
+  val similarity: SingleValueOption[String] = parser.option[String](List("similarity"), "[RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG|CCFonseca]", "similarity measure")
+  val bag: SingleValueOption[String] = parser.option[String](List("bagSimilarity"), "[chiSquared|maximum|minimum|union]", "bag similarity measure")
+  val bagCombination: SingleValueOption[String] = parser.option[String](List("bagCombination"), "[union|intersection]", "bag combination method")
+  val linkage: SingleValueOption[String] = parser.option[String](List("linkage"), "[average|complete|ward]", "linkage for hierarchical clustering")
   val validate = parser.flag[Boolean](List("validate"), "should validation be performed")
   val labels = parser.multiOption[String](List("labels"), "file path to the labels", "labels for the query objects")
   val valMethod = parser.option[String](List("validationMethod"), "[ARI|RI|intraCluster|majorityClass]", "cluster validation method")
@@ -118,22 +118,6 @@ object CommandLineInterface {
                                          bagCombinationMethod,
                                          agregates,
                                          useLocalRepository.value.getOrElse(false))
-      case "RCNTv2" =>
-        new SimilarityNTv2(KnowledgeBase,
-                           depth.value.getOrElse(0),
-          weightsToUse,
-                           bagComparison,
-                           bagCombinationMethod,
-                           agregates,
-                           useLocalRepository.value.getOrElse(false))
-      case "RCNTnoId" =>
-        new SimilarityNTNoIdentities(KnowledgeBase,
-                                     depth.value.getOrElse(0),
-          weightsToUse,
-                                     bagComparison,
-                                     bagCombinationMethod,
-                                     agregates,
-                                     useLocalRepository.value.getOrElse(false))
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
       case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, clauseLength.value.getOrElse(2))
