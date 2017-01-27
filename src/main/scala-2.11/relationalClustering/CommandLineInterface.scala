@@ -53,6 +53,7 @@ object CommandLineInterface {
   val select = parser.flag[Boolean](List("selectSingle"), "flag single clustering")
   val selection = parser.option[String](List("selection"), "method to choose a single clustering", "[model|saturation]")
   val selectionValidation = parser.option[String](List("selectionValidation"), "evaluation criteria for clustering selection", "[intraCluster|silhouette]")
+  val edgeCombination = parser.option[String](List("vertexCombination"), "[avg|min|max]", "how to combine values of vertex similarities in hyperedge?")
 
 
   def main(args: Array[String]) {
@@ -118,6 +119,14 @@ object CommandLineInterface {
                                          bagCombinationMethod,
                                          agregates,
                                          useLocalRepository.value.getOrElse(false))
+      case "RCNTorder" =>
+        new SimilarityNeighbourhoodTreesOrdered(KnowledgeBase,
+          depth.value.getOrElse(0),
+          weightsToUse,
+          bagComparison,
+          edgeCombination.value.getOrElse("avg"),
+          agregates,
+          useLocalRepository.value.getOrElse(false))
       case "HS" => new NevilleSimilarityMeasure(KnowledgeBase)
       case "HSAG" => new HSAG(KnowledgeBase, depth.value.getOrElse(0), bagComparison)
       case "CCFonseca" => new ConceptualFonseca(KnowledgeBase, clauseLength.value.getOrElse(2))
