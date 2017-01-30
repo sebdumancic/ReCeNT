@@ -22,6 +22,23 @@ class SimilarityNeighbourhoodTreesOrdered(override protected val knowledgeBase: 
     setNeighbourhoodGraphs(cache)
   }
 
+  override def getFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_orderPreserved.txt"
+  }
+
+  override def getVertexNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_orderPreserved.vnorms"
+  }
+
+  override def getEdgeNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo${useLocal}_orderPreserved.hnorms"
+  }
+
+  override def getFilenameHyperEdges(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo${useLocal}_orderPreserved.txt"
+  }
+
+
   def combinedIndividuals(individuals: List[Double]): Double = {
     vertexCombination match {
       case "avg" => individuals.sum / individuals.length

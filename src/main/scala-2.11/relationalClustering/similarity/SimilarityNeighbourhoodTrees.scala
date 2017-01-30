@@ -49,19 +49,19 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     *
     * @param domains list of domains of interest
     * */
-  def getFilename(domains: List[String]) = {
-    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
+  override def getFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
   override def getVertexNormsFilename(domains: List[String]): String = {
-    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
   }
 
   override def getEdgeNormsFilename(domains: List[String]): String = {
-    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
   }
 
-  def getFilenameHyperEdges(domains: List[String]) = {
+  override def getFilenameHyperEdges(domains: List[String]): String = {
     s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
   }
 
