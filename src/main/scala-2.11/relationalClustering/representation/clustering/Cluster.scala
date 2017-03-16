@@ -13,50 +13,50 @@ class Cluster(protected val types: List[String],
               protected val ntRepo: Map[(String,String), NeighbourhoodGraph]) {
 
   /** Returns the cluster type */
-  def getTypes = {
+  def getTypes: List[String] = {
     types
   }
 
   /** Returns cluster name */
-  def getClusterName = {
+  def getClusterName: String = {
     clusterName
   }
 
   /** Returns instance names */
-  def getInstances = {
+  def getInstances: Set[List[String]] = {
     instances
   }
 
-  def getRepo = {
+  def getRepo: Map[(String, String), NeighbourhoodGraph] = {
     ntRepo
   }
 
   /** Returns the definition of a predicate representing the cluster */
-  def getDefinition = {
+  def getDefinition: String = {
     s"$getClusterName(${getTypes.mkString(",")})"
   }
 
   /** Returns elements in cluster written as logical facts */
-  def getClusterFacts = {
+  def getClusterFacts: Set[String] = {
     getInstances.map(inst => s"$getClusterName(${inst.mkString(",")})")
   }
 
   /** Returns declaration of the predicate associated with the cluster */
-  def getClusterDeclaration = {
+  def getClusterDeclaration: String = {
     s"$getClusterName(${getTypes.map( t => "name").mkString(",")})"
   }
 
   /** Returns a set of neighbourhood trees for the given instance*/
-  def getInstanceNeighbourhoodTree(instance: List[String]) = {
+  def getInstanceNeighbourhoodTree(instance: List[String]): List[NeighbourhoodGraph] = {
     instance.zip(types).map( it => ntRepo(it._1, it._2))
   }
 
   /** Returns the number of elements in the cluster*/
-  def getSize = {
+  def getSize: Int = {
     instances.size
   }
 
-  def similarityToCluster(nt: List[NeighbourhoodGraph],  similarity: AbstractSimilarityNTrees, flag: String = "maximal") = {
+  def similarityToCluster(nt: List[NeighbourhoodGraph],  similarity: AbstractSimilarityNTrees, flag: String = "maximal"): Double = {
     val similarities = nt.length == 1 match {
       case true => getInstances.map(inst => similarity.pairObjectSimilarity(nt.head, getInstanceNeighbourhoodTree(inst).head))
       case false => getInstances.map(inst => similarity.getPairHyperEdgeSimilarity(nt, getInstanceNeighbourhoodTree(inst)))
