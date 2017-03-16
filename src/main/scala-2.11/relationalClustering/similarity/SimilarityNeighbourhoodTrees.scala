@@ -99,11 +99,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @return similarity
     * */
   def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
-    require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
-
     if (objectsNormConstants.isEmpty) {
       objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
     }
+    require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
