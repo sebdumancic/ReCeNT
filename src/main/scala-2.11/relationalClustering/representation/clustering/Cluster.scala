@@ -10,7 +10,8 @@ import relationalClustering.similarity.AbstractSimilarityNTrees
 class Cluster(protected val types: List[String],
               protected val clusterName: String,
               protected val instances: Set[List[String]],
-              protected val ntRepo: Map[(String,String), NeighbourhoodGraph]) {
+              protected val ntRepo: Map[(String,String), NeighbourhoodGraph],
+              protected val parameters: List[Double]) {
 
   /** Returns the cluster type */
   def getTypes: List[String] = {
@@ -66,5 +67,29 @@ class Cluster(protected val types: List[String],
       case "maximal" => similarities.max
       case "average" => similarities.sum/similarities.size
     }
+  }
+
+  protected def getDefinition: String = {
+
+  }
+
+  protected def mineRootAttributes: String = {
+
+  }
+
+  protected def mineNeighbourhoodAttributes: String = {
+
+  }
+
+  protected def mineNeighbourIdentity: String = {
+
+  }
+
+  protected def mineConnectivity: String = {
+
+  }
+
+  protected def mineEdgeDistribution: String = {
+
   }
 }
