@@ -57,8 +57,8 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
 
   override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
     val objects = objectsToUse == null match {
-      case false => getObjectsFromDomains(domains)
-      case true => objectsToUse
+      case false => objectsToUse
+      case true => getObjectsFromDomains(domains)
     }
 
     val functionsWithNorm = List(bagCompare.needsToBeInverted, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(

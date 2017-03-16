@@ -49,11 +49,19 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     *
     * @param domains list of domains of interest
     * */
-  def getFilename(domains: List[String]) = {
-    s"${domains.mkString(",")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
+  override def getFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
   }
 
-  def getFilenameHyperEdges(domains: List[String]) = {
+  override def getVertexNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
+  }
+
+  override def getEdgeNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
+  }
+
+  override def getFilenameHyperEdges(domains: List[String]): String = {
     s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
   }
 
@@ -92,6 +100,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * */
   def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
     require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
+
+    if (objectsNormConstants.isEmpty) {
+      objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
+    }
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
@@ -150,42 +162,46 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val secondAttrs = ng2.getAttributeValueDistribution
 
     // aggregate numeric attributes
-    val numericalValue = aggregators.foldLeft(0.0)( (acc, agg) => {
-      val numFirstAttrs = ng1.aggregateNumericAttributes(agg)
-      val numSecondAttrs = ng2.aggregateNumericAttributes(agg)
-      val aggDepth = numFirstAttrs.isEmpty && numSecondAttrs.isEmpty match {
-        case true => -1
-        case false =>
-          val firstKeys = if (numFirstAttrs.keys.isEmpty) -1 else numFirstAttrs.keys.max
-          val secondKeys = if (numSecondAttrs.keys.isEmpty) -1 else numSecondAttrs.keys.max
-          math.max(firstKeys, secondKeys)
-      }
-      acc + (0 to aggDepth).foldLeft(0.0)( (acc_i, depth) => {
-        acc_i + (numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet ++ numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet).foldLeft(0.0)((acc_ii, vType) => {
-          val aggs1 = numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
-          val aggs2 = numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
+    val numericalValue = getKB.hasNumericAttributes match {
+      case false => 0.0
+      case true =>
+        aggregators.foldLeft(0.0)((acc, agg) => {
+          val numFirstAttrs = ng1.aggregateNumericAttributes(agg)
+          val numSecondAttrs = ng2.aggregateNumericAttributes(agg)
+          val aggDepth = numFirstAttrs.isEmpty && numSecondAttrs.isEmpty match {
+            case true => -1
+            case false =>
+              val firstKeys = if (numFirstAttrs.keys.isEmpty) -1 else numFirstAttrs.keys.max
+              val secondKeys = if (numSecondAttrs.keys.isEmpty) -1 else numSecondAttrs.keys.max
+              math.max(firstKeys, secondKeys)
+          }
+          acc + (0 to aggDepth).foldLeft(0.0)((acc_i, depth) => {
+            acc_i + (numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet ++ numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet).foldLeft(0.0)((acc_ii, vType) => {
+              val aggs1 = numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
+              val aggs2 = numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
 
-          acc_ii + (aggs1.keySet ++ aggs2.keySet).foldLeft(0.0)( (acc_iii, pred) => {
-            //value will be a distance
-            val value = aggs1.contains(pred) && aggs2.contains(pred) match {
-              case false => 1.0
-              case true =>
-                val domain = getKB.getPredicate(pred).getArgumentRoles.zip(getKB.getPredicate(pred).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
-                require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $pred has more than one number domain!")
-                math.abs(aggs1(pred) - aggs2(pred))/domain.head._2.asInstanceOf[NumericDomain].getRange
-            }
-            bagCompare.needsToBeInverted match {
-              case true =>
-                // needs to be a distance value
-                value
-              case false =>
-                // value represents a similarity
-                1.0 - value
-            }
+              acc_ii + (aggs1.keySet ++ aggs2.keySet).foldLeft(0.0)((acc_iii, pred) => {
+                //value will be a distance
+                val value = aggs1.contains(pred) && aggs2.contains(pred) match {
+                  case false => 1.0
+                  case true =>
+                    val domain = getKB.getPredicate(pred).getArgumentRoles.zip(getKB.getPredicate(pred).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+                    require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $pred has more than one number domain!")
+                    math.abs(aggs1(pred) - aggs2(pred)) / domain.head._2.asInstanceOf[NumericDomain].getRange
+                }
+                acc_iii + (bagCompare.needsToBeInverted match {
+                  case true =>
+                    // needs to be a distance value
+                    value
+                  case false =>
+                    // value represents a similarity
+                    1.0 - value
+                })
+              })
+            })
           })
         })
-      })
-    })
+    }
 
     (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
       acc + firstAttrs(depth).keySet.union(secondAttrs(depth).keySet).foldLeft(0.0)( (acc_i, vType) => {
@@ -299,6 +315,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
+
+    if (hyperEdgeNormConstants.isEmpty) {
+      hyperEdgeNormConstants = readNormsFromFile(getEdgeNormsFilename(nt1.map(_.getRoot.getDomain)))
+    }
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
       val norm = hyperEdgeNormConstants(w._2) == 0.0 match {

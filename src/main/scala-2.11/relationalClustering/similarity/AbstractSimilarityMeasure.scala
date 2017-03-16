@@ -7,6 +7,8 @@ import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.{Helper, Settings}
 
+import scala.io.Source
+
 /** Abstract Similarity measure class
   * Created by seb on 18.01.16.
   */
@@ -150,6 +152,13 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * */
   def getFilename(domains: List[String]): String
 
+  /** Uniquely identifies the filename to save the normalization constants for vertices */
+  def getVertexNormsFilename(domains: List[String]): String
+
+
+  /** Uniquely defines the filename to save the normalization constants for hyperedges */
+  def getEdgeNormsFilename(domains: List[String]): String
+
   /** Uniquely identifies the filename to save hyperedge similarity matrix (once calculated it can be reused)
     *
     * @param domains list of domains of interest
@@ -251,6 +260,27 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     finally {
       writer.close()
     }
+  }
+
+
+  def saveNormsToFile(filename: String, norms: Map[Int, Double]): Unit = {
+    val writer = new BufferedWriter(new FileWriter(s"$filename"))
+    try {
+      writer.write(norms.map(item => s"${item._1}:${item._2}").mkString("\n"))
+    }
+    finally {
+      writer.close()
+    }
+  }
+
+  def readNormsFromFile(filename: String): Map[Int, Double] = {
+    var norms = collection.mutable.Map[Int, Double]()
+    Source.fromFile(filename).getLines().filter(_.length < 2).foreach(l => {
+      val tmp = l.split(":").toList
+      norms = norms + (tmp.head.toInt -> tmp(1).toDouble)
+    })
+
+    norms.toMap
   }
 
   /** Clears any cache a measure might use*/

@@ -1,0 +1,23 @@
+package relationalClustering.clustering.selection
+
+import relationalClustering.clustering.evaluation.AbstractEvaluatorModel
+import relationalClustering.representation.clustering.Clustering
+
+/**
+  * Implement model based selection - applies the evaluation method to each clustering, and returns the one with the highest score
+  * Created by seb on 10.02.16.
+  */
+class ModelBasedSelection(protected val evaluateSingle: AbstractEvaluatorModel) extends AbstractClusterSelection {
+
+  def selectFromClusters(clusterSet: List[Clustering]) = {
+    val evals = clusterSet.filter(x => x.getClusters.length > 1).map(cluster => (cluster, evaluateSingle.validate(cluster)))
+    println(s"---- ---- ----- ModelBasedSelection::select from clusters evaluations: ${evals.map(_._2)}")
+
+    if (evals.isEmpty) {
+      clusterSet.head
+    }
+    else {
+      evals.maxBy(_._2)._1
+    }
+  }
+}

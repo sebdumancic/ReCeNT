@@ -220,6 +220,11 @@ class KnowledgeBase(private val databases: Seq[String],
     writer.close()
   }
 
+  /** Checks whether a numerical attributes exist in a knowledge base */
+  def hasNumericAttributes = {
+    getPredicateNames.map(getPredicate).exists(_.getArgumentRoles.contains(Settings.ARG_TYPE_NUMBER))
+  }
+
 }
 
 

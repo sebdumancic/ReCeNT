@@ -57,4 +57,12 @@ class LabelsContainer(private val filenames: Seq[String]) {
       allLabels.indexOf(getLabel(element))
     }
   }
+
+  def getDistinctLabels: List[String] = {
+    allLabels
+  }
+
+  def getAllPairs: Map[String, String] = {
+    labels.toMap
+  }
 }

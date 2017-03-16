@@ -69,7 +69,12 @@ class LearnWeightsLP(protected val constraints: ConstraintsContainer,
     val result = maximize(lpp)
 
     val parameterValues = result.result.toScalaVector().toList
-    parameterValues.map(e => e / parameterValues.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
+    println(s"FOUND parameters: $parameterValues")
+
+    parameterValues.map(e => e / parameterValues.sum).max == 0.0 match {
+      case true => List(0.2, 0.2, 0.2, 0.2, 0.2)
+      case false => parameterValues.map(e => e / parameterValues.sum).map(e => BigDecimal(e).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble)
+    }
   }
 
 
