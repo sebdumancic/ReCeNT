@@ -102,6 +102,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     if (objectsNormConstants.isEmpty) {
       objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
     }
+    require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
 
     require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
 

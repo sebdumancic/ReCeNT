@@ -9,6 +9,7 @@ import relationalClustering.clustering.evaluation._
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
 import relationalClustering.parameterLearning.LearnWeightsLPSupervised
 import relationalClustering.representation.clustering.Clustering
+import relationalClustering.representation.definition.DefinitionMiner
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
@@ -54,7 +55,7 @@ object CommandLineInterface {
   val selection = parser.option[String](List("selection"), "method to choose a single clustering", "[model|saturation]")
   val selectionValidation = parser.option[String](List("selectionValidation"), "evaluation criteria for clustering selection", "[intraCluster|silhouette]")
   val edgeCombination = parser.option[String](List("vertexCombination"), "[avg|min|max]", "how to combine values of vertex similarities in hyperedge?")
-
+  val definitions = parser.flag[Boolean](List("findDefinitions"), "extract definitions of clusters")
 
   def main(args: Array[String]) {
     parser.parse(args)
@@ -201,6 +202,15 @@ object CommandLineInterface {
           }
         }
 
+        println("*" * 30)
+        if (definitions.value.getOrElse(false)) {
+          val miner = new DefinitionMiner(selectedCluster)
+          val defs = miner.getDefinitions(weightsToUse)
+          defs.foreach(cdef => {
+            println(s"${cdef._1}\n\n" + cdef._2.map(_.toString).mkString("\n"))
+          })
+        }
+
       }
       else {
         //IF ONLY CLUSTERING IS TO BE PERFORMED
@@ -221,7 +231,7 @@ object CommandLineInterface {
                 println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering, labContainer)}")
               case "intraCluster" =>
                 val validator = new AverageIntraClusterSimilarity()
-                println(s"${valMethod.value.getOrElse("ARI")} score: ${validator.validate(clustering)}")
+                println(s"${valMethod.value.getOrElse("Intra cluster similarity")} score: ${validator.validate(clustering)}")
               case "majorityClass" =>
                 val validator = new MajorityClass()
                 println(s"${valMethod.value.get} score: ${validator.validate(clustering, labContainer)}")
@@ -229,6 +239,14 @@ object CommandLineInterface {
           }
 
           println("*" * 30)
+
+          if (definitions.value.getOrElse(false)) {
+            val miner = new DefinitionMiner(clustering)
+            val defs = miner.getDefinitions(weightsToUse)
+            defs.foreach(cdef => {
+              println(s"${cdef._1}\n\n" + cdef._2.map(_.toString).mkString("\n"))
+            })
+          }
         })
 
       }
