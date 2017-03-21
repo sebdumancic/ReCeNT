@@ -7,16 +7,27 @@ import breeze.stats._
   * Created by seb on 21.03.17.
   */
 class TupleSummary(protected val numObj: Int,
-                   protected val tuples: List[List[(String, Double)]],
+                   protected val summaries: Map[String, (Double, Double)],
                    override protected val depth: Int,
                    override protected val vertexType: String,
                    override protected val similaritySource: String,
                    override protected val dimension: Int) extends TupleContext(depth, vertexType, similaritySource, dimension) {
 
-  protected val summaries: Map[String, (Double, Double)] = summarizeNumericTuples
+  def this(numObj: Int, tuples: List[List[(String, Double)]], depth: Int, vertexType: String, similaritySource: String, dimension: Int) = {
+    this(numObj, summarizeNumericTuples(tuples), depth, vertexType, similaritySource, dimension)
+  }
 
   def getSummaries: Map[String, (Double, Double)] = {
     summaries
+  }
+
+  def isEmpty: Boolean = {
+    summaries.isEmpty
+  }
+
+  def withFilter(maxDeviation: Double = 0.2): TupleSummary = {
+    val finalSummaries = getSummaries.filter(elem => elem._2._2 <= (elem._2._1 * maxDeviation))
+    new TupleSummary(numObj, finalSummaries, depth, vertexType, similaritySource, dimension)
   }
 
 
@@ -26,7 +37,7 @@ class TupleSummary(protected val numObj: Int,
     *
     * @return a map where the key is an attribute name, and the value is a tuple (mean, std)
     **/
-  protected def summarizeNumericTuples: Map[String, (Double, Double)] = {
+  protected def summarizeNumericTuples(tuples: List[List[(String, Double)]]): Map[String, (Double, Double)] = {
     val tupleSummary = collection.mutable.Map[String, List[Double]]()
 
     tuples.foreach(instance => {

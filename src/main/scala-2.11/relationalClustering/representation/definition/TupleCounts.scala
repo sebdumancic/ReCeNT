@@ -4,13 +4,15 @@ package relationalClustering.representation.definition
   * Created by seb on 21.03.17.
   */
 class TupleCounts(protected val numObjects: Int,
-                  protected val tuples: List[List[(String, String)]],
+                  protected val counts: Map[(String, String), Int],
                   override protected val depth: Int,
                   override protected val vertexType: String,
                   override protected val similaritySource: String,
                   override protected val dimension: Int) extends TupleContext(depth, vertexType, similaritySource, dimension) {
 
-  protected val counts: Map[(String, String), Int] = processTuples
+  def this(numObjects: Int, tuples: List[List[(String, String)]], depth: Int, vertexType: String, similaritySource: String, dimension: Int) = {
+    this(numObjects, processTuples(tuples), depth, vertexType, similaritySource, dimension)
+  }
 
   def getCounts: Map[(String, String), Int] = {
     counts
@@ -26,6 +28,20 @@ class TupleCounts(protected val numObjects: Int,
     tmpMap.toMap
   }
 
+  def isEmpty: Boolean = {
+    counts.isEmpty
+  }
+
+  def withFilter(support: Double = 0.9): TupleCounts = {
+    val finalCounts = collection.mutable.Map[(String, String), Int]()
+    getCountsGrouped.filter(_._2.map(_._2).sum >= (numObjects * support).toInt).foreach(attr => {
+      attr._2.foreach(item => {
+        finalCounts((attr._1, item._1)) = item._2
+      })
+    })
+    new TupleCounts(numObjects, finalCounts.toMap, depth, vertexType, similaritySource, dimension)
+  }
+
   /** Counts occurrence of individual tuples over difference instances
     *
     * tuples ->  list of instances, where each instance is a list of tuples
@@ -33,7 +49,7 @@ class TupleCounts(protected val numObjects: Int,
     * @return a map where a tuples is a key, and its count is value
     *
     **/
-  protected def processTuples: Map[(String, String), Int] = {
+  protected def processTuples(tuples: List[List[(String, String)]]): Map[(String, String), Int] = {
     val tupleCount = collection.mutable.Map[(String, String), Int]()
 
     tuples.foreach(instance => {

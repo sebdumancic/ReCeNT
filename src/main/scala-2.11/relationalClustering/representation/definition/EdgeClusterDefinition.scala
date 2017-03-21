@@ -15,4 +15,14 @@ class EdgeClusterDefinition(override protected val tupleContexts: List[TupleCont
     stringRep(tupleContexts)
   }
 
+  override def withFilter(minSupport: Double, maxDeviance: Double): VertexClusterDefinition = {
+    val finalContexts = tupleContexts.map(
+      _ match {
+        case x: TupleCounts => x.withFilter(minSupport)
+        case x: TupleSummary => x.withFilter(maxDeviance)
+      }).filterNot(_.isEmpty)
+
+    new EdgeClusterDefinition(finalContexts)
+  }
+
 }

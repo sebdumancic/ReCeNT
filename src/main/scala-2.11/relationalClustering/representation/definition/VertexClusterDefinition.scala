@@ -5,6 +5,14 @@ package relationalClustering.representation.definition
   */
 class VertexClusterDefinition(protected val tupleContexts: List[TupleContext]) {
 
+  def getTupleContexts: List[TupleContext] = {
+    tupleContexts
+  }
+
+  def isEmpty: Boolean = {
+    tupleContexts.isEmpty
+  }
+
   protected def stringRep(tuples: List[TupleContext], initialOffset: Int = 0): String = {
     tuples.groupBy(_.getSimilaritySource).map(simGroup => {
 
@@ -18,6 +26,16 @@ class VertexClusterDefinition(protected val tupleContexts: List[TupleContext]) {
 
   override def toString: String = {
     stringRep(tupleContexts)
+  }
+
+  def withFilter(minSupport: Double, maxDeviance: Double): VertexClusterDefinition = {
+    val finalContexts = tupleContexts.map(
+      _ match {
+        case x: TupleCounts => x.withFilter(minSupport)
+        case x: TupleSummary => x.withFilter(maxDeviance)
+      }).filterNot(_.isEmpty)
+
+    new VertexClusterDefinition(finalContexts)
   }
 
 }

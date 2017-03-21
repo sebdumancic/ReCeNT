@@ -7,7 +7,7 @@ import relationalClustering.representation.clustering.{Cluster, Clustering}
 /**
   * Created by seb on 20.03.17.
   */
-class DefinitionMiner(clustering: Clustering) {
+class DefinitionMiner(protected val clustering: Clustering) {
 
   def getDefinitions(weights: List[Double]): Map[String, List[VertexClusterDefinition]] = {
     clustering.getClusters.foldLeft(Map[String, List[VertexClusterDefinition]]())((acc, clust) => {
