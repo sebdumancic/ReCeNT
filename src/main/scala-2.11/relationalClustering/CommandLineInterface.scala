@@ -23,7 +23,7 @@ object CommandLineInterface {
   //parser specification
   import org.clapper.argot.ArgotConverters._
 
-  val parser = new ArgotParser("RelationalClustering.jar", preUsage = Some("Version 2.1"))
+  val parser = new ArgotParser("RelationalClustering.jar", preUsage = Some("Version 3.0"))
   val dbs: MultiValueOption[String] = parser.multiOption[String](List("db"), "knowledgeBase", "database(s) with data to cluster")
   val head: SingleValueOption[String] = parser.option[String](List("domain"), "domain definition", "header for the knowledge base(s); specification of logical predicates")
   val declarationFile: SingleValueOption[String] = parser.option[String](List("declarations"), "file path", "file containing declarations of predicates")
