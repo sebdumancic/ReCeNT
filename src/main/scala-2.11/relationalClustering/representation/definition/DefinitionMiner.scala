@@ -70,7 +70,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
       val numericAttributes = instances.map(_.aggregateNumericAttributes(new AvgAggregator).getOrElse(level, Map[String, List[(String, Double)]]()))
 
       val disc = discreteAttributes.foldLeft(Set[String]())((acc_i, inst) => acc_i ++ inst.keySet).foldLeft(List[TupleContext]())((acc_i, dom) => {
-        val discAttrs = discreteAttributes.map(_.getOrElse(dom, List())).filter(_.nonEmpty)
+        val discAttrs = discreteAttributes.map(_.getOrElse(dom, List())).filter(_.nonEmpty).map(it => it.distinct)
         if (discAttrs.isEmpty) {
           acc_i
         }
@@ -138,7 +138,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
     (0 to depth).foldLeft(List[TupleContext]())((acc, level) => {
       val vertices = instances.map(inst => inst.collectVertexIdentity(level))
       val res = vertices.foldLeft(Set[String]())((acc, ver) => acc ++ ver.keySet).foldLeft(List[TupleContext]())((acc_i, dom) => {
-        val allNeighbours = vertices.map(inst => inst.getOrElse(dom, List())).filter(it => it.nonEmpty).map(inst => inst.map(it => (it, "true")))
+        val allNeighbours = vertices.map(inst => inst.getOrElse(dom, List())).filter(it => it.nonEmpty).map(inst => inst.map(it => (it, "true"))).map(_.distinct)
 
         acc_i :+ new TupleCounts(instances.length, allNeighbours, level, dom, "neighbourhoodIdentities", dimension)
       })
