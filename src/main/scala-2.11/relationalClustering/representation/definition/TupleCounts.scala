@@ -18,6 +18,10 @@ class TupleCounts(protected val numObjects: Int,
     counts
   }
 
+  override def getNumObjects: Int = {
+    numObjects
+  }
+
   def getCountsGrouped: Map[String, List[(String, Int)]] = {
     val tmpMap = collection.mutable.Map[String, List[(String, Int)]]()
 

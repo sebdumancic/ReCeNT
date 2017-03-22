@@ -19,6 +19,10 @@ class TupleSummary(protected val numObj: Int,
     summaries
   }
 
+  override def getNumObjects: Int = {
+    numObj
+  }
+
   def isEmpty: Boolean = {
     summaries.isEmpty
   }

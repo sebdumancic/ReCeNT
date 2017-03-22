@@ -24,6 +24,8 @@ abstract class TupleContext(protected val depth: Int,
     dimension
   }
 
+  def getNumObjects: Int
+
   def isEmpty: Boolean
 
   def stringRep(initialOffset: Int = 0): String
