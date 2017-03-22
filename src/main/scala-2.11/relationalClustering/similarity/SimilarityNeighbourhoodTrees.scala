@@ -36,6 +36,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     setNeighbourhoodGraphs(cache)
   }
 
+  override def getParameters: List[Double] = {
+    weights
+  }
+
   /** Returns a new object together with normalization constants and neighbourhood trees*/
   def copy = {
     val newObj = new SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, aggregators)

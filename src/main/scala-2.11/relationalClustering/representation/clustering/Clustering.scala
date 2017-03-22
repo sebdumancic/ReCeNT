@@ -38,6 +38,10 @@ class Clustering(protected val clusters: List[Cluster],
     similarityFilename
   }
 
+  def getParameters: List[Double] = {
+    similarityMeasure.getParameters
+  }
+
   /** Returns the ordering of elements in a matrix*/
   def getElementOrdering = {
     elementOrdering

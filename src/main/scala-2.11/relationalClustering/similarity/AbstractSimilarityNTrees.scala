@@ -22,6 +22,8 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     useLocalRepo
   }
 
+  def getParameters: List[Double]
+
   /** a copy constructor */
   def copy: AbstractSimilarityNTrees
 
