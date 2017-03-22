@@ -10,8 +10,8 @@ class TupleCounts(protected val numObjects: Int,
                   override protected val similaritySource: String,
                   override protected val dimension: Int) extends TupleContext(depth, vertexType, similaritySource, dimension) {
 
-  def this(numObjects: Int, tuples: List[List[(String, String)]], depth: Int, vertexType: String, similaritySource: String, dimension: Int) = {
-    this(numObjects, processTuples(tuples), depth, vertexType, similaritySource, dimension)
+  def this(numObjects: Int, intuples: List[List[(String, String)]], depth: Int, vertexType: String, similaritySource: String, dimension: Int) = {
+    this(numObjects, TupleHelper.processTuples(intuples), depth, vertexType, similaritySource, dimension)
   }
 
   def getCounts: Map[(String, String), Int] = {
@@ -40,28 +40,6 @@ class TupleCounts(protected val numObjects: Int,
       })
     })
     new TupleCounts(numObjects, finalCounts.toMap, depth, vertexType, similaritySource, dimension)
-  }
-
-  /** Counts occurrence of individual tuples over difference instances
-    *
-    * tuples ->  list of instances, where each instance is a list of tuples
-    *
-    * @return a map where a tuples is a key, and its count is value
-    *
-    **/
-  protected def processTuples(tuples: List[List[(String, String)]]): Map[(String, String), Int] = {
-    val tupleCount = collection.mutable.Map[(String, String), Int]()
-
-    tuples.foreach(instance => {
-      instance.foreach(attr => {
-        if (!tupleCount.contains(attr)) {
-          tupleCount(attr) = 0
-        }
-        tupleCount(attr) = tupleCount(attr) + 1
-      })
-    })
-
-    tupleCount.toMap
   }
 
   def stringRep(initialOffset: Int = 0): String = {
