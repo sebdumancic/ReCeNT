@@ -9,7 +9,7 @@ import relationalClustering.clustering.evaluation._
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
 import relationalClustering.parameterLearning.LearnWeightsLPSupervised
 import relationalClustering.representation.clustering.Clustering
-import relationalClustering.representation.definition.{DefinitionMiner, DefinitionMinerThreshold}
+import relationalClustering.representation.definition.{DefinitionMiner, DefinitionMinerThreshold, DefinitionMinerTopK}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity._
 import relationalClustering.similarity.kernels.RKOHKernel
@@ -58,6 +58,7 @@ object CommandLineInterface {
   val definitions = parser.flag[Boolean](List("findDefinitions"), "extract definitions of clusters")
   val definitionsSupport = parser.option[Double](List("definitionsSupport"), "Double", "minimum support for a tuple count to be preserved (in % of the total number of instances in the cluster)")
   val definitionsDeviance = parser.option[Double](List("definitionsDeviance"), "Double", "maximum deviance for a numeric attribute to be preserved (in % of the mean value)")
+  val definitionsK = parser.option[Int](List("definitionsK"), "Int", "top K most occurring tuples to select")
 
   def main(args: Array[String]) {
     parser.parse(args)
@@ -206,8 +207,11 @@ object CommandLineInterface {
 
         println("*" * 30)
         if (definitions.value.getOrElse(false)) {
-          val miner = if (definitionsSupport.value.getOrElse(0.0) == 0.0 || definitionsDeviance.value.getOrElse(0.0) == 0.0) {
+          val miner = if ((definitionsSupport.value.getOrElse(0.0) == 0.0 || definitionsDeviance.value.getOrElse(0.0) == 0.0) && (definitionsK.value.getOrElse(0) == 0)) {
             new DefinitionMiner(selectedCluster)
+          }
+          else if (definitionsK.value.getOrElse(0) > 0) {
+            new DefinitionMinerTopK(selectedCluster, definitionsK.value.get)
           }
           else {
             new DefinitionMinerThreshold(selectedCluster, definitionsSupport.value.getOrElse(0.0), definitionsDeviance.value.getOrElse(0.0))
@@ -248,8 +252,11 @@ object CommandLineInterface {
           println("*" * 30)
 
           if (definitions.value.getOrElse(false)) {
-            val miner = if (definitionsSupport.value.getOrElse(0.0) == 0.0 || definitionsDeviance.value.getOrElse(0.0) == 0.0) {
+            val miner = if ((definitionsSupport.value.getOrElse(0.0) == 0.0 || definitionsDeviance.value.getOrElse(0.0) == 0.0) && (definitionsK.value.getOrElse(0) == 0)) {
               new DefinitionMiner(clustering)
+            }
+            else if (definitionsK.value.getOrElse(0) > 0) {
+              new DefinitionMinerTopK(clustering, definitionsK.value.get)
             }
             else {
               new DefinitionMinerThreshold(clustering, definitionsSupport.value.getOrElse(0.0), definitionsDeviance.value.getOrElse(0.0))

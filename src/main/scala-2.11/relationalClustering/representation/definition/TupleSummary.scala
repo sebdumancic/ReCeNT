@@ -32,6 +32,10 @@ class TupleSummary(protected val numObj: Int,
     new TupleSummary(numObj, finalSummaries, depth, vertexType, similaritySource, dimension)
   }
 
+  def topK(k: Int): TupleSummary = {
+    new TupleSummary(numObj, getSummaries.toList.sortBy(_._2._2).take(k).toMap, depth, vertexType, similaritySource, dimension)
+  }
+
   def stringRep(initialOffset: Int = 0): String = {
     getSummaries.toList.sortBy(_._2._2).map(el => {
       s"${"\t" * initialOffset}${el._1} -> mean ${el._2._1}, stddev ${el._2._2}"

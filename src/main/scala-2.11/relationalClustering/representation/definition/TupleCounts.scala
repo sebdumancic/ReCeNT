@@ -46,6 +46,10 @@ class TupleCounts(protected val numObjects: Int,
     new TupleCounts(numObjects, finalCounts.toMap, depth, vertexType, similaritySource, dimension)
   }
 
+  def topK(k: Int): TupleCounts = {
+    new TupleCounts(numObjects, getCounts.toList.sortBy(_._2).reverse.take(k).toMap, depth, vertexType, similaritySource, dimension)
+  }
+
   def stringRep(initialOffset: Int = 0): String = {
     getCountsGrouped.toList.sortBy(el => el._2.map(_._2).sum).reverse.map(el => {
       s"${"\t" * initialOffset}${el._1} = \n" + el._2.map(it => s"${"\t" * (initialOffset + 1)}${it._1} -- > ${it._2}").mkString("\n")

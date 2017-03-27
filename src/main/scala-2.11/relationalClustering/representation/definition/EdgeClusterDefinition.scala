@@ -25,4 +25,8 @@ class EdgeClusterDefinition(override protected val tupleContexts: List[TupleCont
     new EdgeClusterDefinition(finalContexts)
   }
 
+  override def topK(k: Int): EdgeClusterDefinition = {
+    new EdgeClusterDefinition(tupleContexts.map(_.topK(k)))
+  }
+
 }

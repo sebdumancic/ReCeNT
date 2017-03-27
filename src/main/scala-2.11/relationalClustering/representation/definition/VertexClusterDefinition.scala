@@ -38,4 +38,8 @@ class VertexClusterDefinition(protected val tupleContexts: List[TupleContext]) {
     new VertexClusterDefinition(finalContexts)
   }
 
+  def topK(k: Int): VertexClusterDefinition = {
+    new VertexClusterDefinition(tupleContexts.map(_.topK(k)))
+  }
+
 }

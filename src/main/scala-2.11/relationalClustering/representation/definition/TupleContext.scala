@@ -24,6 +24,8 @@ abstract class TupleContext(protected val depth: Int,
     dimension
   }
 
+  def topK(k: Int): TupleContext
+
   def getNumObjects: Int
 
   def isEmpty: Boolean
