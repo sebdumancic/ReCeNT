@@ -2,7 +2,7 @@ package relationalClustering.similarity
 
 import java.io.{BufferedWriter, File, FileWriter}
 
-import breeze.linalg.{DenseMatrix, max, min}
+import breeze.linalg._
 import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.{Helper, Settings}
@@ -204,7 +204,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param typeFlag v for vertex constant, h for hyperedge constant
     * */
   def normalizeMatrix(matrix: DenseMatrix[Double], constInd: Int, typeFlag: String): DenseMatrix[Double] = {
-    val minValue = min(matrix)
+    val minValue = breeze.linalg.min(matrix)
     val matrixToUse = minValue < 0.0 match {
       case true => matrix - DenseMatrix.tabulate(matrix.rows, matrix.cols) { (x, y) => minValue }
       case false => matrix
