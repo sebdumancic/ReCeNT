@@ -4,7 +4,7 @@ import org.clapper.argot.{ArgotParser, MultiValueOption, SingleValueOption}
 import relationalClustering.aggregators._
 import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
-import relationalClustering.clustering.algo.{AffinityPropagation, DBScan, Hierarchical, Spectral}
+import relationalClustering.clustering.algo._
 import relationalClustering.clustering.evaluation._
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
 import relationalClustering.parameterLearning.LearnWeightsLPSupervised
@@ -154,6 +154,8 @@ object CommandLineInterface {
           new DBScan(DBscanEps.value.getOrElse(0.3), rootFolder.value.getOrElse("./tmp"))
         case "Affinity" =>
           new AffinityPropagation(rootFolder.value.getOrElse("./tmp"), AffDamping.value.getOrElse(0.5), AffPreference.value.getOrElse(0.1))
+        case "Random" =>
+          new RandomClustering(rootFolder.value.getOrElse("./tmp"))
       }
 
       val kToUse = k.value.getOrElse("2").contains(":") match {

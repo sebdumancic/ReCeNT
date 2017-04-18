@@ -28,7 +28,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
   protected def getResultFile: String
 
   /** Returns String containing the sci-kit command */
-  protected def getScript = {
+  protected def getScript: String = {
     """import numpy as np
       |from sklearn.cluster import DBSCAN, AffinityPropagation, SpectralClustering, AgglomerativeClustering
       |import argparse
@@ -106,7 +106,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
   }
 
   /** Prepares python clustering script */
-  protected def prepareScript() = {
+  protected def prepareScript(): Unit = {
     val writer = new FileWriter(s"$getRoot/${algName}_script.py")
     try {
       writer.write(getScript)
@@ -120,7 +120,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     *
     * @param parameters parameters for the script; printed in format ' key value'
     * */
-  protected def command(parameters: Map[String, String]) = {
+  protected def command(parameters: Map[String, String]): String = {
     s"python $getRoot/${algName}_script.py" + parameters.map( par => s" ${par._1} ${par._2}").mkString
   }
 
@@ -152,7 +152,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset]_[index]" where index is in range of [0,...,k]
     * @return obtained clustering [[Clustering]]
     * */
-  def clusterVertices(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
+  def clusterVertices(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int): Clustering = {
     prepareScript()
     val filename = similarityMeasure.getObjectSimilaritySave(domains, getRoot)
     command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
@@ -181,7 +181,7 @@ abstract class AbstractSKLearnCluster(protected val algName: String,
     * @param baseOffset clusters will be named as "cluster_[domains]_[baseOffset]_[index]" where index is in range of [0,...,k]
     * @return obtained clustering [[Clustering]]
     * */
-  def clusterEdges(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int) = {
+  def clusterEdges(domains: List[String], similarityMeasure: AbstractSimilarityNTrees, k: Int, baseOffset: Int): Clustering = {
     prepareScript()
     val filename = similarityMeasure.getHyperEdgeSimilaritySave(domains, getRoot)
     command(prepareParameters(filename._1, k)).!(ProcessLogger(line => println(line), line => println(s"CLUSTER ERROR: $line")))
