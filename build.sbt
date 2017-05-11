@@ -20,6 +20,8 @@ libraryDependencies  ++= Seq(
   // the visualization library is distributed separately as well.
   // It depends on LGPL code.
   "org.scalanlp" %% "breeze-viz" % "0.12"
+  // git-wagon for publishing
+  //"net.trajano.wagon" % "wagon-git" % "2.0.5-SNAPSHOT"
 )
 
 assemblyMergeStrategy in assembly := {
