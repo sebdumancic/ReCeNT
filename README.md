@@ -1,14 +1,14 @@
 # Relational clustering over neighbourhood trees
 
-A versatile relational clustering toolbox. 
+A versatile relational clustering toolbox. It contains several clustering algorithms, check the original paper for details (see below). Still under development.
 
 ## Installation
 
-1. get [SBT (Simple Build Tool)](http://www.scala-sbt.org/)
-2. clone this repository
-3. position in the root folder and:
-  1. build a jar with dependencies `sbt assembly`
-  2. build a jar without dependencies `sbt package`
++ get [SBT](http://www.scala-sbt.org/)
++ clone this repository
++ position in the root folder and
+  + build a jar with dependencies `sbt assembly`
+  + build a jar without dependencies `sbt package`
 
 ## Usage
 
@@ -24,7 +24,7 @@ OPTIONS
 
 --query comma-separated list                                        domains to query
 
---similarity [RCNT|RCNTv2|RCNTnoId|HS|RIBL|HSAG|CCFonseca]          similarity measure
+--similarity [RCNT|HS|RIBL|HSAG|CCFonseca]                          similarity measure
 
 --domain filepath                                                   predicate definitions
 
@@ -92,11 +92,13 @@ OPTIONS
 
 Please cite the following paper if you are using the code
 
->@article{,
+```
+@article{,
     author =       {Dumancic, Sebastijan and Blockeel, Hendrik},
     title =        {An expressive dissimilarity measure for relational clustering over neighbourhood trees},
     journal =      {Machine Learning journal}
 }
+```
 
 ## License
 
