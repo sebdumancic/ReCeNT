@@ -4,7 +4,7 @@ import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.SimpleCountSimilarity
 import relationalClustering.bagComparison.bagCombination.UnionCombination
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
 
@@ -38,7 +38,7 @@ class NevilleSimilarityMeasure(override protected val knowledgeBase: KnowledgeBa
     val objects = getObjectsFromDomains(domains)
     val noDomainObjects = objects.map(_._1)
 
-    val functionsWithNorm = List(false).zip(List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity))
+    val functionsWithNorm = List(false).zip(List[(NeighbourhoodTree, NeighbourhoodTree) => Double](attributeSimilarity))
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
       acc + (DenseMatrix.tabulate(objects.length, objects.length) { (x, y) => w._1 } :* accumulateIntoMatrix(objects, functionsWithNorm(w._2)._2, functionsWithNorm(w._2)._1, 0))

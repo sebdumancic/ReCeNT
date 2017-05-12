@@ -3,7 +3,7 @@ package relationalClustering.similarity
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.UnionCombination
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -17,7 +17,7 @@ class SimilarityNeighbourhoodTreesOrdered(override protected val knowledgeBase: 
                                           override protected val aggregators: List[AbstractAggregator],
                                           override protected val useLocalRepo: Boolean = false) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, new UnionCombination, aggregators, useLocalRepo) {
 
-  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: String, aggs: List[AbstractAggregator], cache: Map[(String, String), NeighbourhoodGraph]) {
+  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: String, aggs: List[AbstractAggregator], cache: Map[(String, String), NeighbourhoodTree]) {
     this(KB, d, ws, bagComp, bagComb, aggs, false)
     setNeighbourhoodGraphs(cache)
   }
@@ -47,27 +47,27 @@ class SimilarityNeighbourhoodTreesOrdered(override protected val knowledgeBase: 
     }
   }
 
-  override protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]): Double = {
+  override protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
     val individualMeasures = ngs1.zip(ngs2).map(ntrees => attributeSimilarity(ntrees._1, ntrees._2))
     combinedIndividuals(individualMeasures)
   }
 
-  override protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]): Double = {
+  override protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
     val individualMeasures = ngs1.zip(ngs2).map(ntrees => attributeNeighbourhoodSimilarity(ntrees._1, ntrees._2))
     combinedIndividuals(individualMeasures)
   }
 
-  override protected def hyperEdgeConnections(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]): Double = {
+  override protected def hyperEdgeConnections(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
     val individualMeasures = ngs1.zip(ngs2).map(ntrees => elementConnections(ntrees._1, ntrees._2))
     combinedIndividuals(individualMeasures)
   }
 
-  override protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]): Double = {
+  override protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
     val individualMeasures = ngs1.zip(ngs2).map(ntrees => vertexIdentityDistribution(ntrees._1, ntrees._2))
     combinedIndividuals(individualMeasures)
   }
 
-  override protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]): Double = {
+  override protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
     val individualMeasures = ngs1.zip(ngs2).map(ntrees => edgeDistributionsSimilarity(ntrees._1, ntrees._2))
     combinedIndividuals(individualMeasures)
   }

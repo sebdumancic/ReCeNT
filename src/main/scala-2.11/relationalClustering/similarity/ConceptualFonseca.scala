@@ -2,7 +2,7 @@ package relationalClustering.similarity
 
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.ChiSquaredDistance
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -19,7 +19,7 @@ class ConceptualFonseca(override protected val knowledgeBase: KnowledgeBase,
     s"${domains.mkString(",")}_clause${getClauseLength}_conceptualclusteringfonseca.txt"
   }
 
-  override protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val attrs1 = ng1.getClauses(getClauseLength)
     val attrs2 = ng2.getClauses(getClauseLength)
 

@@ -3,7 +3,7 @@ package relationalClustering.similarity
 import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, Node}
+import relationalClustering.neighbourhood.{NeighbourhoodTree, Node}
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -32,7 +32,7 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     value
   }
 
-  protected def neighbourSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def neighbourSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val value = ng2.getRoot.getChildNodes.foldLeft(0.0)( (acc, node) => {
       acc + contentSimilarity(ng1.getRoot, node)
     })/ng2.getRoot.getChildNodes.length
@@ -43,15 +43,15 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     }
   }
 
-  protected def contextSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def contextSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     (neighbourSimilarity(ng1, ng2) + neighbourSimilarity(ng2, ng1))/2.0
   }
 
-  override protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     contentSimilarity(ng1.getRoot, ng2.getRoot)
   }
 
-  override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     contextSimilarity(ng1, ng2)
   }
 
@@ -62,7 +62,7 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     }
 
     val functionsWithNorm = List(bagCompare.needsToBeInverted, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
+      List[(NeighbourhoodTree, NeighbourhoodTree) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {

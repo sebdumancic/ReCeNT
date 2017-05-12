@@ -2,7 +2,7 @@ package relationalClustering.similarity.kernels
 
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.ChiSquaredDistance
-import relationalClustering.neighbourhood.{Edge, NeighbourhoodGraph}
+import relationalClustering.neighbourhood.{Edge, NeighbourhoodTree}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees
 
@@ -69,7 +69,7 @@ class RKOHKernel(override protected val knowledgeBase: KnowledgeBase,
     }
   }
 
-  override protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val attrs1 = ng1.getAllEdges(true)
     val attrs2 = ng2.getAllEdges(true)
 

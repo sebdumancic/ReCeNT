@@ -1,7 +1,7 @@
 package relationalClustering.representation.definition
 
 import relationalClustering.aggregators.AvgAggregator
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.clustering.{Cluster, Clustering}
 
 /**
@@ -41,7 +41,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
     }
   }
 
-  def mineRootAttributes(instances: List[NeighbourhoodGraph], dimension: Int): List[TupleContext] = {
+  def mineRootAttributes(instances: List[NeighbourhoodTree], dimension: Int): List[TupleContext] = {
     val discreteAttrs = instances.map(_.getRootAttributes.toList).filter(_.nonEmpty)
     val numericAttrs = instances.map(_.getRootNumericAttributes.toList).filter(_.nonEmpty)
 
@@ -62,7 +62,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
     }
   }
 
-  def mineNeighbourhoodAttributes(instances: List[NeighbourhoodGraph], dimension: Int): List[TupleContext] = {
+  def mineNeighbourhoodAttributes(instances: List[NeighbourhoodTree], dimension: Int): List[TupleContext] = {
     val depth = instances.head.getMaxDepth
 
     (0 to depth).foldLeft(List[TupleContext]())((acc, level) => {
@@ -106,7 +106,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
     }
   }
 
-  def mineEdgeDistributions(instances: List[NeighbourhoodGraph], dimension: Int): List[TupleContext] = {
+  def mineEdgeDistributions(instances: List[NeighbourhoodTree], dimension: Int): List[TupleContext] = {
     val depth = instances.head.getMaxDepth
 
     (0 to depth).foldLeft(List[TupleContext]())((acc, level) => {
@@ -132,7 +132,7 @@ class DefinitionMiner(protected val clustering: Clustering) {
     }
   }
 
-  def mineIdentities(instances: List[NeighbourhoodGraph], dimension: Int): List[TupleContext] = {
+  def mineIdentities(instances: List[NeighbourhoodTree], dimension: Int): List[TupleContext] = {
     val depth = instances.head.getMaxDepth
 
     (0 to depth).foldLeft(List[TupleContext]())((acc, level) => {

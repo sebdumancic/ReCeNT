@@ -2,7 +2,7 @@ package relationalClustering.neighbourhood
 
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 
-/** Implements the node functionality in the [[relationalClustering.neighbourhood.NeighbourhoodGraph]]
+/** Implements the node functionality in the [[relationalClustering.neighbourhood.NeighbourhoodTree]]
   *
   * @constructor Create a new node for an entity of a domain.
   * @param entity the name of the root elements [String]

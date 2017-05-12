@@ -1,6 +1,6 @@
 package relationalClustering.representation.clustering
 
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.similarity.AbstractSimilarityNTrees
 
 
@@ -10,7 +10,7 @@ import relationalClustering.similarity.AbstractSimilarityNTrees
 class Cluster(protected val types: List[String],
               protected val clusterName: String,
               protected val instances: Set[List[String]],
-              protected val ntRepo: Map[(String, String), NeighbourhoodGraph]) {
+              protected val ntRepo: Map[(String, String), NeighbourhoodTree]) {
 
   /** Returns the cluster type */
   def getTypes: List[String] = {
@@ -27,7 +27,7 @@ class Cluster(protected val types: List[String],
     instances
   }
 
-  def getRepo: Map[(String, String), NeighbourhoodGraph] = {
+  def getRepo: Map[(String, String), NeighbourhoodTree] = {
     ntRepo
   }
 
@@ -47,7 +47,7 @@ class Cluster(protected val types: List[String],
   }
 
   /** Returns a set of neighbourhood trees for the given instance*/
-  def getInstanceNeighbourhoodTree(instance: List[String]): List[NeighbourhoodGraph] = {
+  def getInstanceNeighbourhoodTree(instance: List[String]): List[NeighbourhoodTree] = {
     instance.zip(types).map( it => ntRepo(it._1, it._2))
   }
 
@@ -56,7 +56,7 @@ class Cluster(protected val types: List[String],
     instances.size
   }
 
-  def similarityToCluster(nt: List[NeighbourhoodGraph],  similarity: AbstractSimilarityNTrees, flag: String = "maximal"): Double = {
+  def similarityToCluster(nt: List[NeighbourhoodTree], similarity: AbstractSimilarityNTrees, flag: String = "maximal"): Double = {
     val similarities = nt.length == 1 match {
       case true => getInstances.map(inst => similarity.pairObjectSimilarity(nt.head, getInstanceNeighbourhoodTree(inst).head))
       case false => getInstances.map(inst => similarity.getPairHyperEdgeSimilarity(nt, getInstanceNeighbourhoodTree(inst)))

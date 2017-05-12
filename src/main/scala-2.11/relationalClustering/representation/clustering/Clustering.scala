@@ -2,7 +2,7 @@ package relationalClustering.representation.clustering
 
 import java.io.BufferedWriter
 
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.similarity.AbstractSimilarityNTrees
 
 /**
@@ -54,7 +54,7 @@ class Clustering(protected val clusters: List[Cluster],
 
   /** Returns all neighbourhood trees in a clustering */
   def getNeighbourhoodTreeRepo = {
-    getClusters.foldLeft(collection.mutable.Map[(String,String), NeighbourhoodGraph]())( (acc, clust) => {
+    getClusters.foldLeft(collection.mutable.Map[(String, String), NeighbourhoodTree]())((acc, clust) => {
       acc ++ clust.getRepo
     }).toMap
   }
@@ -66,7 +66,7 @@ class Clustering(protected val clusters: List[Cluster],
     * @param linkage linkage for the similarity calculation [average|maximal|minimal]
     * @return the most similar cluster
     * */
-  def assignToClosestCluster(nt: List[NeighbourhoodGraph], linkage: String = "average") = {
+  def assignToClosestCluster(nt: List[NeighbourhoodTree], linkage: String = "average") = {
     getClusters.map(clust => (clust, clust.similarityToCluster(nt, similarityMeasure, linkage)))
   }
 
@@ -75,7 +75,7 @@ class Clustering(protected val clusters: List[Cluster],
     * @param nt a list of neighbourhood trees representing an object/hyper-edge
     * @return the closest (most similar) cluster
     * */
-  def assignToClosestClusterAverage(nt: List[NeighbourhoodGraph]) = {
+  def assignToClosestClusterAverage(nt: List[NeighbourhoodTree]) = {
     nt.length == 1 match {
       case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.averageSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
       case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.averageSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
@@ -87,7 +87,7 @@ class Clustering(protected val clusters: List[Cluster],
     * @param nt a list of neighbourhood trees representing an object/hyper-edge
     * @return the closest (most similar) cluster
     * */
-  def assignToClosestClusterMaximal(nt: List[NeighbourhoodGraph]) = {
+  def assignToClosestClusterMaximal(nt: List[NeighbourhoodTree]) = {
     nt.length == 1 match {
       case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.maximalSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
       case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.maximalSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1
@@ -99,7 +99,7 @@ class Clustering(protected val clusters: List[Cluster],
     * @param nt a list of neighbourhood trees representing an object/hyper-edge
     * @return the closest (most similar) cluster
     * */
-  def assignToClosestClusterMinimal(nt: List[NeighbourhoodGraph]) = {
+  def assignToClosestClusterMinimal(nt: List[NeighbourhoodTree]) = {
     nt.length == 1 match {
       case true => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.minimalSimilarityObject(nt.head, clust._1, similarityMeasure))).maxBy(_._2)._1
       case false => getClusters.zipWithIndex.map(clust => (clust._1, ClusterSimilarity.minimalSimilarityEdge(nt, clust._1, similarityMeasure))).maxBy(_._2)._1

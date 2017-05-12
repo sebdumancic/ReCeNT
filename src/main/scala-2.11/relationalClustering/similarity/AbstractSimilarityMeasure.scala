@@ -3,7 +3,7 @@ package relationalClustering.similarity
 import java.io.{BufferedWriter, File, FileWriter}
 
 import breeze.linalg._
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.neighbourhood.{NeighbourhoodTree, NodeRepository}
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.{Helper, Settings}
 
@@ -144,7 +144,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param nt2 the second neighbourhood tree
     * @return similarity
     * */
-  def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph): Double
+  def pairObjectSimilarity(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree): Double
 
   /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
     *
@@ -195,7 +195,7 @@ abstract class AbstractSimilarityMeasure(protected val knowledgeBase: KnowledgeB
     * @param nt2 an ordered set of neighbourhood trees
     *
     * */
-  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]): Double
+  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodTree], nt2: List[NeighbourhoodTree]): Double
 
   /** Normalizes the given matrix by its largest value
     *

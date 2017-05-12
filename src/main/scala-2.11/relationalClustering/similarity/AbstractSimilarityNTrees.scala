@@ -2,7 +2,7 @@ package relationalClustering.similarity
 
 import java.io.File
 
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -15,9 +15,9 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
   /** caches neighbourhood graphs to be built only once
     * key (objectName, domain)
     * */
-  protected val neighbourhoodGraphCache = collection.mutable.Map[(String,String), NeighbourhoodGraph]()
+  protected val neighbourhoodGraphCache = collection.mutable.Map[(String, String), NeighbourhoodTree]()
 
-  /** Returns true if local Node Repository should be used for each [[NeighbourhoodGraph]] */
+  /** Returns true if local Node Repository should be used for each [[NeighbourhoodTree]] */
   protected def useLocal = {
     useLocalRepo
   }
@@ -31,15 +31,15 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     val keytoUse = (objectName, domain)
     if (!neighbourhoodGraphCache.contains(keytoUse)) {
       neighbourhoodGraphCache(keytoUse) = useLocal match {
-        case true => new NeighbourhoodGraph(objectName, domain, getDepth, getKB)
-        case false => new NeighbourhoodGraph(objectName, domain, getDepth, getKB, getRepo)
+        case true => new NeighbourhoodTree(objectName, domain, getDepth, getKB)
+        case false => new NeighbourhoodTree(objectName, domain, getDepth, getKB, getRepo)
       }
     }
     neighbourhoodGraphCache(keytoUse)
   }
 
   /** Incorporates given neighbourhood graphs into the neighbourhood graph cache*/
-  def setNeighbourhoodGraphs(coll: Map[(String,String), NeighbourhoodGraph]) = {
+  def setNeighbourhoodGraphs(coll: Map[(String, String), NeighbourhoodTree]) = {
     coll.foreach(item => neighbourhoodGraphCache(item._1) = item._2)
   }
 
@@ -61,7 +61,7 @@ abstract class AbstractSimilarityNTrees(override protected val knowledgeBase: Kn
     *
     * @param coll a collection of neighbourhood trees: (object name, domain) -> NeighbourhoodGraph
     * */
-  def assignNTs(coll: Map[(String,String), NeighbourhoodGraph]) = {
+  def assignNTs(coll: Map[(String, String), NeighbourhoodTree]) = {
     coll.foreach( item => neighbourhoodGraphCache(item._1) = item._2)
   }
 

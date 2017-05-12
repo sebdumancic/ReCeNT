@@ -4,7 +4,7 @@ import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
 import relationalClustering.bagComparison.AbstractBagComparison
 import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
-import relationalClustering.neighbourhood.NeighbourhoodGraph
+import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.{KnowledgeBase, NumericDomain}
 import relationalClustering.utils.Settings
 
@@ -31,7 +31,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   require(BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble == 1.0, s"Weights should sum to one, not ${BigDecimal(weights.sum).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble}")
 
   /** An auxiliary constructor that takes an existing neighbourhood graph cache */
-  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: AbstractBagCombine, aggs: List[AbstractAggregator], cache: Map[(String,String), NeighbourhoodGraph]) {
+  def this(KB: KnowledgeBase, d: Int, ws: List[Double], bagComp: AbstractBagComparison, bagComb: AbstractBagCombine, aggs: List[AbstractAggregator], cache: Map[(String, String), NeighbourhoodTree]) {
     this(KB, d, ws, bagComp, bagComb, aggs, false)
     setNeighbourhoodGraphs(cache)
   }
@@ -86,7 +86,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     }
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
+      List[(NeighbourhoodTree, NeighbourhoodTree) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](objects.length, objects.length))( (acc, w) => {
@@ -102,7 +102,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param nt2 the second neighbourhood tree
     * @return similarity
     * */
-  def pairObjectSimilarity(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph) = {
+  def pairObjectSimilarity(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree) = {
     if (objectsNormConstants.isEmpty) {
       objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
     }
@@ -111,7 +111,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     require(objectsNormConstants.nonEmpty, s"SimilarityNeighbourhoodTrees::pairObjectSimilarity : no normalization constants provided!")
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(NeighbourhoodGraph, NeighbourhoodGraph) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
+      List[(NeighbourhoodTree, NeighbourhoodTree) => Double](attributeSimilarity, attributeNeighbourhoodSimilarity, elementConnections, vertexIdentityDistribution, edgeDistributionsSimilarity)
     )
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
@@ -133,11 +133,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   /** Compute the attribute-value pair similarity between two root elements
     *
-    * @param ng1 neighbourhood graph of the first element: [[NeighbourhoodGraph]]
-    * @param ng2 neighbourhood graph of the second element: [[NeighbourhoodGraph]]
+    * @param ng1 neighbourhood graph of the first element: [[NeighbourhoodTree]]
+    * @param ng2 neighbourhood graph of the second element: [[NeighbourhoodTree]]
     * @return Double
     * */
-  protected def attributeSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val attrs1 = ng1.getRootAttributes
     val attrs2 = ng2.getRootAttributes
 
@@ -158,11 +158,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   /** Computes the attribute neighbourhood similarity of two neighbourhood graphs, per level and vertex type
     *
-    * @param ng1 the first elements's neighbourhood graph: [[NeighbourhoodGraph]]
-    * @param ng2 the second elements's neighbourhood graph: [[NeighbourhoodGraph]]
+    * @param ng1 the first elements's neighbourhood graph: [[NeighbourhoodTree]]
+    * @param ng2 the second elements's neighbourhood graph: [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val firstAttrs = ng1.getAttributeValueDistribution
     val secondAttrs = ng2.getAttributeValueDistribution
 
@@ -218,11 +218,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   /** Calculates the number of connections between two root elements
     *
-    * @param ng1 the first element's [[NeighbourhoodGraph]]
-    * @param ng2 the second element's [[NeighbourhoodGraph]]
+    * @param ng1 the first element's [[NeighbourhoodTree]]
+    * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def elementConnections(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def elementConnections(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val depthOneVertices = ng2.collectVertexIdentity()(0).getOrElse(ng1.getRootDomain, List[String]())
 
     depthOneVertices.count( _ == ng1.getRoot.getEntity ).toDouble
@@ -230,11 +230,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   /** Computes the vertex identity distributions similarity for two neighbourhood graphs, per level and vertex type
     *
-    * @param ng1 the first element's [[NeighbourhoodGraph]]
-    * @param ng2 the second element's [[NeighbourhoodGraph]]
+    * @param ng1 the first element's [[NeighbourhoodTree]]
+    * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def vertexIdentityDistribution(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def vertexIdentityDistribution(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val neighbourhood1 = ng1.collectVertexIdentity()
     val neighbourhood2 = ng2.collectVertexIdentity()
 
@@ -247,11 +247,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
 
   /** Calculates the edge distribution similarity between two neighbourhood graphs, per level
     *
-    * @param ng1 the first element's [[NeighbourhoodGraph]]
-    * @param ng2 the second element's [[NeighbourhoodGraph]]
+    * @param ng1 the first element's [[NeighbourhoodTree]]
+    * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def edgeDistributionsSimilarity(ng1: NeighbourhoodGraph, ng2: NeighbourhoodGraph) = {
+  protected def edgeDistributionsSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
     val distr1 = ng1.getEdgeDistribution
     val distr2 = ng2.getEdgeDistribution
 
@@ -266,7 +266,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param simFunc similarity functions that takes two neighbourhood trees as input and return a Double
     * @param shouldBeInverted flag indicating should the computed matrix be inverted in order to be a similarity measure: [[Boolean]]
     * */
-  protected def accumulateIntoMatrix(elements: List[(String,String)], simFunc: (NeighbourhoodGraph, NeighbourhoodGraph) => Double, shouldBeInverted: Boolean, constInd: Int) = {
+  protected def accumulateIntoMatrix(elements: List[(String, String)], simFunc: (NeighbourhoodTree, NeighbourhoodTree) => Double, shouldBeInverted: Boolean, constInd: Int) = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
@@ -300,7 +300,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     val hyperEdges = getHyperEdges(domains)
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
+      List[(List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
 
     val returnMat = weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(DenseMatrix.zeros[Double](hyperEdges.length, hyperEdges.length))( (acc, weight) => {
@@ -316,9 +316,9 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param nt2 an ordered set of neighbourhood trees
     *
     * */
-  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodGraph], nt2: List[NeighbourhoodGraph]) = {
+  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodTree], nt2: List[NeighbourhoodTree]) = {
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
-      List[(List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
+      List[(List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
 
     if (hyperEdgeNormConstants.isEmpty) {
@@ -344,7 +344,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+  protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
     val ngOneCombined = ngs1.map(_.getRootAttributes).foldLeft(Set[(String,String)]())((acc, attrSet) => {
       bagCombine.combineBags(acc.toList, attrSet.toList).toSet
     })
@@ -361,7 +361,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+  protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
     val firstNeighbourhoods = ngs1.map(_.getAttributeValueDistribution)
     val secondNeighbourhoods = ngs2.map(_.getAttributeValueDistribution)
 
@@ -389,7 +389,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeConnections(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+  protected def hyperEdgeConnections(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
     val depthOneVertices = ngs2.map( _.collectVertexIdentity()(0)).map( x => x.foldLeft(List[String]())( (acc, dom) => {
       acc ++ dom._2
     })).reduce(_ ++ _)
@@ -405,7 +405,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+  protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
     val firstVertices = ngs1.map( _.collectVertexIdentity())
     val secondVertices = ngs2.map(_.collectVertexIdentity())
 
@@ -429,7 +429,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodGraph], ngs2: List[NeighbourhoodGraph]) = {
+  protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
     val firstDistribution = ngs1.map(_.getEdgeDistribution)
     val secondDistribution = ngs2.map(_.getEdgeDistribution)
 
@@ -448,7 +448,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains domains of elements in a hyperedge
     * @param simFunction similarity measure
     * */
-  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodGraph], List[NeighbourhoodGraph]) => Double, shouldBeInverted: Boolean, constId: Int) = {
+  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double, shouldBeInverted: Boolean, constId: Int) = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {

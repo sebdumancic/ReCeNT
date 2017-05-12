@@ -18,13 +18,13 @@ import relationalClustering.utils.Settings
   *
   * Created by seb on 16.10.15.
  */
-class NeighbourhoodGraph(protected val rootObject: String,
-                         protected val domain: String,
-                         protected val depth: Int,
-                         protected val kBase: KnowledgeBase,
-                         protected val nodeRepo: NodeRepository) {
+class NeighbourhoodTree(protected val rootObject: String,
+                        protected val domain: String,
+                        protected val depth: Int,
+                        protected val kBase: KnowledgeBase,
+                        protected val nodeRepo: NodeRepository) {
 
-  val root = nodeRepo.getNode(rootObject, domain) //new Node(rootObject, domain)
+  val root: Node = nodeRepo.getNode(rootObject, domain) //new Node(rootObject, domain)
   var vertexIdentityCache: collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = _ //collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]]()
   var edgeDistributionCache: Map[Int, List[String]] = _
   var attributeDistributionCache: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = _
@@ -32,6 +32,16 @@ class NeighbourhoodGraph(protected val rootObject: String,
   var numericAttributesCaches: Map[Int, collection.mutable.Map[String, List[(String, Double)]]] = _
   var clauseCache: Set[List[String]] = _
   var edgeCache: Set[Edge] = _
+
+  /** MULTISET CACHES */
+  //level                       vertex type                    attribute                      value   count
+  protected var discreteAttributeBags: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]]()
+  //level                      vertexType                     attribute   values
+  protected var continuousAttributes: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, List[Double]]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, List[Double]]]]()
+  //level                       vertex type                   identity count
+  protected var vertexIdentities: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, Int]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]()
+  //level                        edge type       count
+  protected var edgeTypes: collection.mutable.Map[Int, collection.mutable.Map[(String, String), Int]] = collection.mutable.Map[Int, collection.mutable.Map[(String, String), Int]]()
   construct()
 
   /** Secondary constructor if one wants to use the local [[NodeRepository]] - takes care of recursive edges explicitly
@@ -46,42 +56,83 @@ class NeighbourhoodGraph(protected val rootObject: String,
     this(rootObject, domain, depth, kBase, new LocalNodeRepository(kBase))
   }
 
-  /** Clears all the cached values */
-  def clearCache() = {
-    vertexIdentityCache = null
-    edgeDistributionCache = null
-    attributeDistributionCache = null
-    nodeRepo.clearCache()
+  /** FUNCTIONS FOR CONSTRUCTING THE NEIGHBOURHOOD TREE AND MULTISETS */
+
+  /** Adds a value of a discrete attribute in a multiset
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType type of a vertex
+    * @param attribute  attribute name
+    * @param value      attribute value
+    */
+  protected def addDiscreteAttributeValue(level: Int, vertexType: String, attribute: String, value: String): Unit = {
+    if (!discreteAttributeBags.contains(level)) {
+      discreteAttributeBags(level) = collection.mutable.Map[String, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]()
+    }
+    if (!discreteAttributeBags(level).contains(vertexType)) {
+      discreteAttributeBags(level)(vertexType) = collection.mutable.Map[String, collection.mutable.Map[String, Int]]()
+    }
+    if (!discreteAttributeBags(level)(vertexType).contains(attribute)) {
+      discreteAttributeBags(level)(vertexType)(attribute) = collection.mutable.Map[String, Int]()
+    }
+    if (!discreteAttributeBags(level)(vertexType)(attribute).contains(value)) {
+      discreteAttributeBags(level)(vertexType)(attribute)(value) = 0
+    }
+    discreteAttributeBags(level)(vertexType)(attribute)(value) = discreteAttributeBags(level)(vertexType)(attribute)(value) + 1
   }
 
-  /** Return the knowledge base of an NG*/
-  def getKnowledgeBase = {
-    kBase
+  /** Adds a value of a continuous attribute in a multiset
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType a type of a vertex
+    * @param attribute  attribute name
+    * @param value      attribute value
+    */
+  protected def addContinuousAttributeValue(level: Int, vertexType: String, attribute: String, value: Double): Unit = {
+    if (!continuousAttributes.contains(level)) {
+      continuousAttributes(level) = collection.mutable.Map[String, collection.mutable.Map[String, List[Double]]]()
+    }
+    if (!continuousAttributes(level).contains(vertexType)) {
+      continuousAttributes(level)(vertexType) = collection.mutable.Map[String, List[Double]]()
+    }
+    if (!continuousAttributes(level)(vertexType).contains(attribute)) {
+      continuousAttributes(level)(vertexType)(attribute) = List[Double]()
+    }
+    continuousAttributes(level)(vertexType)(attribute) = continuousAttributes(level)(vertexType)(attribute) :+ value
   }
 
-  /** Returns the domain of the root element */
-  def getRootDomain = {
-    domain
+  /** Adds a vertex identity in a multiset
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType a type/domain of a vertex
+    * @param vertex     vertex identity
+    */
+  protected def addVertexIdentity(level: Int, vertexType: String, vertex: String): Unit = {
+    if (!vertexIdentities.contains(level)) {
+      vertexIdentities(level) = collection.mutable.Map[String, collection.mutable.Map[String, Int]]()
+    }
+    if (!vertexIdentities(level).contains(vertexType)) {
+      vertexIdentities(level)(vertexType) = collection.mutable.Map[String, Int]()
+    }
+    if (!vertexIdentities(level)(vertexType).contains(vertex)) {
+      vertexIdentities(level)(vertexType)(vertex) = 0
+    }
+    vertexIdentities(level)(vertexType)(vertex) = vertexIdentities(level)(vertexType)(vertex) + 1
   }
 
-  /** Return the root element */
-  def getRoot = {
-    root
-  }
-
-  /** Return the depth of the NG */
-  def getMaxDepth = {
-    depth
-  }
-
-  /** Returns the root element's attributes (including annotations)*/
-  def getRootAttributes = {
-    getRoot.getAttributeValuePairs ++ getRoot.getAnnotations
-  }
-
-  /** Returns the root's numerical attributes */
-  def getRootNumericAttributes = {
-    getRoot.getNumericAttributeValues
+  /** Adds an edge type to a multiset
+    *
+    * @param level    a level in the neighbourhood tree
+    * @param edgeType an edge type (predicate name, position)
+    */
+  protected def addEdgeType(level: Int, edgeType: (String, String)): Unit = {
+    if (!edgeTypes.contains(level)) {
+      edgeTypes(level) = collection.mutable.Map[(String, String), Int]()
+    }
+    if (!edgeTypes(level).contains(edgeType)) {
+      edgeTypes(level)(edgeType) = 0
+    }
+    edgeTypes(level)(edgeType) = edgeTypes(level)(edgeType) + 1
   }
 
   /** Constructs all the edges for the node, by traversing all the hyperedge predicates
@@ -120,7 +171,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
   }
 
   /** Constructs the Neighbourhood graph */
-  def construct() = {
+  def construct(): Unit = {
     var frontier = List[Node](getRoot)
     var currentDepth = 0
     var newFrontier = List[Node]()
@@ -129,8 +180,15 @@ class NeighbourhoodGraph(protected val rootObject: String,
 
       //extend current frontier
       frontier.foreach(cNode => {
+
         constructNodeEdges(cNode)
         newFrontier = newFrontier ++ cNode.getChildNodes
+
+        //filling multisets
+        (cNode.getAnnotations ++ cNode.getAttributeValuePairs).foreach(attr => addDiscreteAttributeValue(currentDepth, cNode.getDomain, attr._1, attr._2))
+        cNode.getNumericAttributeValues.foreach(attr => addContinuousAttributeValue(currentDepth, cNode.getDomain, attr._1, attr._2))
+        cNode.getChildNodes.foreach(node => addVertexIdentity(currentDepth + 1, node.getDomain, node.getEntity))
+        cNode.getChildEdges.foreach(edge => addEdgeType(currentDepth, (edge.getEdgeType, edge.getParentPosition.toString)))
       })
 
       //update frontiers (newFrontier becomes current frontier, empty newFrontier)
@@ -142,12 +200,118 @@ class NeighbourhoodGraph(protected val rootObject: String,
     }
   }
 
+  /** Clears all the cached values */
+  def clearCache(): Unit = {
+    vertexIdentityCache = null
+    edgeDistributionCache = null
+    attributeDistributionCache = null
+    nodeRepo.clearCache()
+  }
+
+  /** GETTERS */
+
+  /** Return the knowledge base of an NG */
+  def getKnowledgeBase: KnowledgeBase = {
+    kBase
+  }
+
+  /** Returns the domain of the root element */
+  def getRootDomain: String = {
+    domain
+  }
+
+  /** Return the root element */
+  def getRoot: Node = {
+    root
+  }
+
+  /** Return the depth of the NG */
+  def getMaxDepth: Int = {
+    depth
+  }
+
+  /** Returns the root element's attributes (including annotations) */
+  def getRootAttributes: Set[(String, String)] = {
+    getRoot.getAttributeValuePairs ++ getRoot.getAnnotations
+  }
+
+  /** Returns the root's numerical attributes */
+  def getRootNumericAttributes: List[(String, Double)] = {
+    getRoot.getNumericAttributeValues
+  }
+
+  /** Return the root predicates (relations) */
+  def getRootPredicates: Set[Predicate] = {
+    getRoot.getChildEdges.map(_.getPredicate)
+  }
+
+  /** Returns the edge type of the root element (including multiplicity) */
+  def getRootEdgeTypes: List[String] = {
+    getRoot.getChildEdges.toList.map(_.getEdgeType)
+  }
+
+  /** Returns a multiset of edge types originating at a certain level, with their counts
+    *
+    * @param level a level in the neighbourhood tree
+    * @return a multiset of edge types and their counts
+    **/
+  def getE(level: Int): Map[(String, String), Int] = {
+    edgeTypes.getOrElse(level, Map[(String, String), Int]()).toMap
+  }
+
+  /** Returns a multiset of vertex identities at a certain level, with their counts
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType a type/domain of vertices */
+  def getV(level: Int, vertexType: String): Map[String, Int] = {
+    if (!vertexIdentities.contains(level)) {
+      Map[String, Int]()
+    }
+    else {
+      vertexIdentities(level).getOrElse(vertexType, Map[String, Int]()).toMap
+    }
+  }
+
+  /** Returns a multiset of values of the given discrete attribute, at certain level and vertex type
+    *
+    * @param level         a level in the neighbourhood tree
+    * @param vertexType    a type/domain of vertices
+    * @param attributeName attribute name
+    */
+  def getBDiscrete(level: Int, vertexType: String, attributeName: String): Map[String, Int] = {
+    if (!discreteAttributeBags.contains(level) || !discreteAttributeBags(level).contains(vertexType)) {
+      Map[String, Int]()
+    }
+    else {
+      discreteAttributeBags(level)(vertexType).getOrElse(attributeName, Map[String, Int]()).toMap
+    }
+  }
+
+  /** Returns an aggregate of values of the attribute, at a certain level and vertex type
+    *
+    * @param level         a level of the neighbourhood tree
+    * @param vertexType    a type/domain of a vertex
+    * @param attributeName attribute name
+    * @param aggregator    an aggregate function
+    **/
+  def getBContinuous(level: Int, vertexType: String, attributeName: String, aggregator: AbstractAggregator): Option[Double] = {
+    if (!continuousAttributes.contains(level) || !continuousAttributes(level).contains(vertexType)) {
+      None
+    }
+    else if (!continuousAttributes(level)(vertexType).contains(attributeName)) {
+      None
+    }
+    else {
+      Some(aggregator.aggregate(continuousAttributes(level)(vertexType)(attributeName).map(elem => (attributeName, elem))))
+    }
+  }
+
   /** Collects the vertex identity information in the Neighbourhood graph
     *
     * @return Map[Int, Map[String, List[String] ] ] (level -> domain -> list of objects)
     *
     * */
-  def collectVertexIdentity(): collection.mutable.Map[Int,collection.mutable.Map[String,List[String]]] = {
+  @deprecated def collectVertexIdentity(): collection.mutable.Map[Int, collection.mutable.Map[String, List[String]]] = {
     if (vertexIdentityCache != null) {
       return vertexIdentityCache
     }
@@ -189,21 +353,11 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @param level level of interest: Int
     * */
-  def collectVertexIdentity(level: Int): Map[String, List[String]] = {
+  @deprecated def collectVertexIdentity(level: Int): Map[String, List[String]] = {
     val allInformation = collectVertexIdentity(); allInformation(level).toMap
   }
 
-  /** Return the root predicates (relations) */
-  def getRootPredicates = {
-    getRoot.getChildEdges.map(_.getPredicate)
-  }
-
-  /** Returns the edge type of the root element (including multiplicity) */
-  def getRootEdgeTypes = {
-    getRoot.getChildEdges.toList.map( _.getEdgeType )
-  }
-
-  override def toString = {
+  override def toString: String = {
     getRoot.asString("")
   }
 
@@ -211,7 +365,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @return Map[Int, List[String] ]; depth -> list of edge types
     * */
-  def getEdgeDistribution: Map[Int, List[String]] = {
+  @deprecated def getEdgeDistribution: Map[Int, List[String]] = {
     if (edgeDistributionCache != null) {
       return edgeDistributionCache
     }
@@ -249,7 +403,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @return Map[Int, Map[String, List[(String,String)] ] ] level -> type -> list of attribute-values
     * */
-  def getAttributeValueDistribution: Map[Int, collection.mutable.Map[String, List[(String,String)]]] = {
+  @deprecated def getAttributeValueDistribution: Map[Int, collection.mutable.Map[String, List[(String, String)]]] = {
     if (attributeDistributionCache != null) {
       return attributeDistributionCache
     }
@@ -296,7 +450,7 @@ class NeighbourhoodGraph(protected val rootObject: String,
     *
     * @param aggregator aggregator function to use
     * */
-  def aggregateNumericAttributes(aggregator: AbstractAggregator): Map[Int, collection.mutable.Map[String, List[(String,Double)]]] = {
+  @deprecated def aggregateNumericAttributes(aggregator: AbstractAggregator): Map[Int, collection.mutable.Map[String, List[(String, Double)]]] = {
     if (numericAttributesCaches != null && numericAttributesAggregatedCache.contains(aggregator.name)) {
       return numericAttributesAggregatedCache(aggregator.name)
     }
