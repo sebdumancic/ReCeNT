@@ -5,15 +5,24 @@ package relationalClustering.bagComparison
   */
 class UnionBagSimilarity extends AbstractBagComparison("union"){
 
-  def needsToBeInverted = {
+  def needsToBeInverted: Boolean = {
     false
   }
 
-  def compareBags[T](bag1: List[T], bag2: List[T]) = {
-    val value = bag1.intersect(bag2).size.toDouble/bag1.union(bag2).size.toDouble
-    value.isNaN match {
-      case true => 0.0
-      case false => value
+  def compareBags[T](bag1: Map[T, Int], bag2: Map[T, Int]): Double = {
+    val lBag1 = bag1.foldLeft(List[T]())((acc, elem) => {
+      acc ++ (0 to elem._2).toList.map(i => elem._1)
+    })
+    val lBag2 = bag2.foldLeft(List[T]())((acc, elem) => {
+      acc ++ (0 to elem._2).toList.map(i => elem._1)
+    })
+    val value = lBag1.intersect(lBag2).size.toDouble / lBag1.union(lBag2).size.toDouble
+
+    if (value.isNaN) {
+      0.0
+    }
+    else {
+      value
     }
   }
 }

@@ -6,7 +6,7 @@ package relationalClustering.bagComparison
 abstract class AbstractBagComparison(protected val identity: String) {
 
   /** Returns the identity of the bag compare function */
-  def name = {
+  def name: String = {
     identity
   }
 
@@ -15,7 +15,7 @@ abstract class AbstractBagComparison(protected val identity: String) {
     * @param bag1 list of elements of the first bag
     * @param bag2 list of elements of the second bag
     * */
-  def compareBags[T](bag1: List[T], bag2: List[T]): Double
+  def compareBags[T](bag1: Map[T, Int], bag2: Map[T, Int]): Double
 
   /** Should measure be normalized and inverted to be turned into a similarity measure */
   def needsToBeInverted : Boolean

@@ -10,7 +10,7 @@ abstract class AbstractBagCompareHistogram(override protected val identity: Stri
     * @param bag1 list of elements of the first bag
     * @param bag2 list of elements of the second bag
     * */
-  def compareBags[T](bag1: List[T], bag2: List[T]): Double = {
+  def compareBags[T](bag1: Map[T, Int], bag2: Map[T, Int]): Double = {
     val histElements = commonElements(bag1, bag2)
 
     similarity(bagToHistogram(bag1, histElements), bagToHistogram(bag2, histElements))
@@ -29,12 +29,14 @@ abstract class AbstractBagCompareHistogram(override protected val identity: Stri
     * @param bag2 list of all elements in bag two
     * @return list of all common elements
     * */
-  protected def commonElements[T](bag1: List[T], bag2: List[T]) = {
-    val distinctElements = bag1.toSet.union(bag2.toSet)
+  protected def commonElements[T](bag1: Map[T, Int], bag2: Map[T, Int]): List[T] = {
+    val distinctElements = bag1.keySet.union(bag2.keySet)
 
-    distinctElements.isEmpty match {
-      case true => List[String]("fakeElement")
-      case false => distinctElements.toList
+    if (distinctElements.isEmpty) {
+      List[T]() //List[String]("fakeElement")
+    }
+    else {
+      distinctElements.toList
     }
   }
 
@@ -44,15 +46,18 @@ abstract class AbstractBagCompareHistogram(override protected val identity: Stri
     * @param histogramElements ordered elements in the histogram
     * @return list[Double]
     * */
-  protected def bagToHistogram[T](bag: List[T], histogramElements: List[T]) = {
-    normalizeBySum(histogramElements.map(x => bag.count( _ == x))).map(x => if (x.isNaN) 0.0 else x)
+  protected def bagToHistogram[T](bag: Map[T, Int], histogramElements: List[T]): List[Double] = {
+    if (histogramElements.isEmpty) {
+      List[Double](1.0)
+    }
+    normalizeBySum(histogramElements.map(x => bag.getOrElse(x, 0))).map(x => if (x.isNaN) 0.0 else x)
   }
 
   /** Normalizing histogram by the total number of elements
     *
     * @param histogram ordered list of element counts
     * */
-  protected def normalizeBySum(histogram: List[Int]) = {
+  protected def normalizeBySum(histogram: List[Int]): List[Double] = {
     val normConstant = histogram.sum
     histogram.map( _.toDouble / normConstant)
   }
