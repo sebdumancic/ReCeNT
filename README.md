@@ -24,7 +24,7 @@ OPTIONS
 
 --query comma-separated list                                        domains to query
 
---similarity [RCNT|HS|HSAG|CCFonseca]                               similarity measure
+--similarity [RCNT|HS|HSAG|CCFonseca|RKOH]                          similarity measure
 
 --domain filepath                                                   predicate definitions
 
@@ -85,10 +85,12 @@ OPTIONS
 The following similarity measure a currently supported:
 
 1. Relational clustering over neighbourhood trees (see Citing section)
-2. Hybrid similarity measure introduced in `Neville, Adler and Jensen (2003): Clustering Relational Data Using Attribute and Link Information. Text Mining and Link Analysis Workshop, ICAI 2003`
-3. Hybrid similarity measure for annotated graphs introduced in `Witsenburg and Blockeel (2011):  Improving the accuracy of similarity measures by using link information. Foundations of Intelligent Systems`
-4. Conceptual clustering introduced in `Fonseca, Santos Costa, Camacho (2012):  Conceptual clustering of multi-relational data. ILP 2011`
+2. Hybrid similarity measure introduced in `Neville, Adler and Jensen: Clustering Relational Data Using Attribute and Link Information. Text Mining and Link Analysis Workshop, ICAI 2003`
+3. Hybrid similarity measure for annotated graphs introduced in `Witsenburg and Blockeel:  Improving the accuracy of similarity measures by using link information. Foundations of Intelligent Systems 2001`
+4. Conceptual clustering introduced in `Fonseca, Santos Costa, Camacho:  Conceptual clustering of multi-relational data. ILP 2011`
 5. [Not ready yet] Relational instance based learning
+6. Graph kernels
+  - Rooted Kernel for ordered hypergraphs from `Wachman, Khardon: Learning from Interpretations: A Rooted Kernel for Ordered Hypergraphs. ICML 2007`
 
 ## Contributing
 
