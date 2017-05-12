@@ -12,8 +12,8 @@ A versatile relational clustering toolbox. It contains several clustering algori
 
 ## Usage
 
-Version 3.0
 
+```
 Usage: RelationalClustering.jar [OPTIONS]
 
 OPTIONS
@@ -24,7 +24,7 @@ OPTIONS
 
 --query comma-separated list                                        domains to query
 
---similarity [RCNT|HS|RIBL|HSAG|CCFonseca]                          similarity measure
+--similarity [RCNT|HS|HSAG|CCFonseca]                               similarity measure
 
 --domain filepath                                                   predicate definitions
 
@@ -78,7 +78,17 @@ OPTIONS
 --selectSingle                                                      flag single clustering
 
 --validate                                                          perform clustering validation
+```
 
+## Similarity measures
+
+The following similarity measure a currently supported:
+
+1. Relational clustering over neighbourhood trees (see Citing section)
+2. Hybrid similarity measure introduced in `Neville, Adler and Jensen (2003): Clustering Relational Data Using Attribute and Link Information. Text Mining and Link Analysis Workshop, 18th International Joint Conference on Artificial Intelligence`
+3. Hybrid similarity measure for annotated graphs introduced in `Witsenburg and Blockeel (2011):  Improving the accuracy of similarity measures by using link information. Foundations of Intelligent Systems`
+4. Conceptual clustering introduced in `Fonseca, Santos Costa, Camacho (2012):  Conceptual clustering of multi-relational data. ILP 2011`
+5. [Not ready yet] Relational instance based learning
 
 ## Contributing
 
@@ -87,6 +97,10 @@ OPTIONS
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request 
+
+## Contact
+
+If you have any question, feel free to send then at `sebastijan.dumancic@cs.kuleuven.be`
 
 ## Citing
 
