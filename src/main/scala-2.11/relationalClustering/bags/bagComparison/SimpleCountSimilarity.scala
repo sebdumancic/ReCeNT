@@ -1,9 +1,9 @@
-package relationalClustering.bagComparison
+package relationalClustering.bags.bagComparison
 
 /**
-  * Created by seb on 12.02.16.
+  * Created by seb on 15.03.16.
   */
-class UnionBagSimilarity extends AbstractBagComparison("union"){
+class SimpleCountSimilarity extends AbstractBagComparison("simpleCount") {
 
   def needsToBeInverted: Boolean = {
     false
@@ -16,13 +16,14 @@ class UnionBagSimilarity extends AbstractBagComparison("union"){
     val lBag2 = bag2.foldLeft(List[T]())((acc, elem) => {
       acc ++ (0 to elem._2).toList.map(i => elem._1)
     })
-    val value = lBag1.intersect(lBag2).size.toDouble / lBag1.union(lBag2).size.toDouble
+    val value = lBag1.intersect(lBag2).size.toDouble
 
     if (value.isNaN) {
-      0.0
-    }
-    else {
       value
     }
+    else {
+      0.0
+    }
+
   }
 }

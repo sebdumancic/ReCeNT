@@ -2,8 +2,8 @@ package relationalClustering
 
 import org.clapper.argot.{ArgotParser, MultiValueOption, SingleValueOption}
 import relationalClustering.aggregators._
-import relationalClustering.bagComparison.bagCombination.{IntersectionCombination, UnionCombination}
-import relationalClustering.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
+import relationalClustering.bags.bagCombination.{IntersectionCombination, UnionCombination}
+import relationalClustering.bags.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.algo._
 import relationalClustering.clustering.evaluation._
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}

@@ -1,4 +1,4 @@
-package relationalClustering.bagComparison
+package relationalClustering.bags.bagComparison
 
 /**
   * Implements a Chi Squared distance between two normalized histograms

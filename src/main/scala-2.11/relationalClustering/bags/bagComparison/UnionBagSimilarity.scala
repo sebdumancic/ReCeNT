@@ -1,9 +1,9 @@
-package relationalClustering.bagComparison
+package relationalClustering.bags.bagComparison
 
 /**
   * Created by seb on 12.02.16.
   */
-class MinimumSimilarity extends AbstractBagComparison("min") {
+class UnionBagSimilarity extends AbstractBagComparison("union"){
 
   def needsToBeInverted: Boolean = {
     false
@@ -16,14 +16,13 @@ class MinimumSimilarity extends AbstractBagComparison("min") {
     val lBag2 = bag2.foldLeft(List[T]())((acc, elem) => {
       acc ++ (0 to elem._2).toList.map(i => elem._1)
     })
-    val value = lBag1.intersect(lBag2).size.toDouble / math.min(bag1.size, bag2.size).toDouble
+    val value = lBag1.intersect(lBag2).size.toDouble / lBag1.union(lBag2).size.toDouble
+
     if (value.isNaN) {
       0.0
     }
     else {
       value
     }
-
   }
-
 }

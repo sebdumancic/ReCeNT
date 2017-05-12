@@ -1,4 +1,4 @@
-package relationalClustering.bagComparison.bagCombination
+package relationalClustering.bags.bagCombination
 
 /**
   * Created by seb on 11.02.16.
