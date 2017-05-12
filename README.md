@@ -85,7 +85,7 @@ OPTIONS
 The following similarity measure a currently supported:
 
 1. Relational clustering over neighbourhood trees (see Citing section)
-2. Hybrid similarity measure introduced in `Neville, Adler and Jensen (2003): Clustering Relational Data Using Attribute and Link Information. Text Mining and Link Analysis Workshop, 18th International Joint Conference on Artificial Intelligence`
+2. Hybrid similarity measure introduced in `Neville, Adler and Jensen (2003): Clustering Relational Data Using Attribute and Link Information. Text Mining and Link Analysis Workshop, ICAI 2003`
 3. Hybrid similarity measure for annotated graphs introduced in `Witsenburg and Blockeel (2011):  Improving the accuracy of similarity measures by using link information. Foundations of Intelligent Systems`
 4. Conceptual clustering introduced in `Fonseca, Santos Costa, Camacho (2012):  Conceptual clustering of multi-relational data. ILP 2011`
 5. [Not ready yet] Relational instance based learning
