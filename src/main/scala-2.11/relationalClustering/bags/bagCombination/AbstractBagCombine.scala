@@ -6,7 +6,7 @@ package relationalClustering.bags.bagCombination
 abstract class AbstractBagCombine(protected val identity: String) {
 
   /** Returns the name of the combination function */
-  def getName = {
+  def getName: String = {
     identity
   }
 
@@ -16,5 +16,5 @@ abstract class AbstractBagCombine(protected val identity: String) {
     * @param bag2 the second bag of elements
     * @return bag combination
     * */
-  def combineBags[T](bag1: List[T], bag2: List[T]): List[T]
+  def combineBags[T](bag1: Map[T, Int], bag2: Map[T, Int]): Map[T, Int]
 }
