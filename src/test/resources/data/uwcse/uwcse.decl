@@ -1,0 +1,11 @@
+//predicate declarations
+Publication(name,name)
+Taughtby(name,name,name)
+Courselevel(name,attribute)
+Hasposition(name,attribute)
+Projectmember(name,name)
+Advisedby(name,name)
+Inphase(name,attribute)
+Tempadvisedby(name,name)
+Yearsinprogram(name,number)
+Ta(name,name,name)
