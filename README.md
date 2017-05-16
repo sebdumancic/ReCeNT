@@ -12,6 +12,7 @@ A versatile relational clustering toolbox. It contains several clustering algori
 
 ## Usage
 
+### Arguments
 
 ```
 Usage: RelationalClustering.jar [OPTIONS]
@@ -67,18 +68,21 @@ OPTIONS
 --weights Array[Double]                                             
                                                                     comma-separated list of weights [attributes,attribute distribution,connections,vertex neighbourhood,edge distribution]
 
---exportNTrees                                                      export neighbourhood trees as gspan
+--exportNTrees flag                                                 export neighbourhood trees as gspan
 
---findDefinitions                                                   extract definitions of clusters
+--findDefinitions flag                                              extract definitions of clusters
 
 -k n                                                                number of clusters to create
 
---localRepo                                                         use local NodeRepository for all neighbourhood trees
+--localRepo  flag                                                   use local NodeRepository for all neighbourhood trees
 
---selectSingle                                                      flag single clustering
+--selectSingle  flag                                                select single clustering
 
---validate                                                          perform clustering validation
+--validate  flag                                                    perform clustering validation
 ```
+
+### Input files
+
 
 ## Similarity measures
 
@@ -89,8 +93,8 @@ The following similarity measure a currently supported:
 3. Hybrid similarity measure for annotated graphs introduced in `Witsenburg and Blockeel:  Improving the accuracy of similarity measures by using link information. Foundations of Intelligent Systems 2001`
 4. Conceptual clustering introduced in `Fonseca, Santos Costa, Camacho:  Conceptual clustering of multi-relational data. ILP 2011`
 5. [Not ready yet] Relational instance based learning
-6. Graph kernels
-  - Rooted Kernel for ordered hypergraphs from `Wachman, Khardon: Learning from Interpretations: A Rooted Kernel for Ordered Hypergraphs. ICML 2007`
+6. Graph kernels:
+  * Rooted Kernel for ordered hypergraphs from `Wachman, Khardon: Learning from Interpretations: A Rooted Kernel for Ordered Hypergraphs. ICML 2007`
 
 ## Contributing
 
@@ -112,7 +116,9 @@ Please cite the following paper if you are using the code
 @article{,
     author =       {Dumancic, Sebastijan and Blockeel, Hendrik},
     title =        {An expressive dissimilarity measure for relational clustering over neighbourhood trees},
-    journal =      {Machine Learning journal}
+    journal =      {Machine Learning journal},
+    year =         {2017},
+    url =          {https://lirias.kuleuven.be/handle/123456789/582293}
 }
 ```
 
