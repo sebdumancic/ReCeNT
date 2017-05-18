@@ -362,12 +362,7 @@ class NeighbourhoodTree(protected val rootObject: String,
 
   /** Returns all vertex type at a certain level of a neighbourhood tree */
   def getVertexTypesAtLevel(level: Int): Set[String] = {
-    if (!vertexIdentities.contains(level)) {
-      Set[String]()
-    }
-    else {
-      vertexIdentities(level).keySet.toSet
-    }
+    vertexIdentities.getOrElse(level, Map[String, Int]()).keySet.toSet ++ annotations.getOrElse(level, Map[String, Any]()).keySet.toSet
   }
 
   /** Returns all discrete attribute names at a certain level and vertex type */
