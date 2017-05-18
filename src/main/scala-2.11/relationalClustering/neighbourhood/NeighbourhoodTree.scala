@@ -38,6 +38,8 @@ class NeighbourhoodTree(protected val rootObject: String,
   protected var discreteAttributeBags: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]]()
   //level                      vertexType                     attribute   values
   protected var continuousAttributes: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, List[Double]]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, List[Double]]]]()
+  //level                     vertex type                     annotation      count
+  protected var annotations: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[(String, String), Int]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[(String, String), Int]]]()
   //level                       vertex type                   identity count
   protected var vertexIdentities: collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, Int]]] = collection.mutable.Map[Int, collection.mutable.Map[String, collection.mutable.Map[String, Int]]]()
   //level                        edge type       count
@@ -79,6 +81,25 @@ class NeighbourhoodTree(protected val rootObject: String,
       discreteAttributeBags(level)(vertexType)(attribute)(value) = 0
     }
     discreteAttributeBags(level)(vertexType)(attribute)(value) = discreteAttributeBags(level)(vertexType)(attribute)(value) + 1
+  }
+
+  /** Adds an annotation to a multiset
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType type of a vertex
+    * @param annotation annotation
+    */
+  protected def addAnnotation(level: Int, vertexType: String, annotation: (String, String)): Unit = {
+    if (!annotations.contains(level)) {
+      annotations(level) = collection.mutable.Map[String, collection.mutable.Map[(String, String), Int]]()
+    }
+    if (!annotations(level).contains(vertexType)) {
+      annotations(level)(vertexType) = collection.mutable.Map[(String, String), Int]()
+    }
+    if (!annotations(level)(vertexType).contains(annotation)) {
+      annotations(level)(vertexType)(annotation) = 0
+    }
+    annotations(level)(vertexType)(annotation) = annotations(level)(vertexType)(annotation) + 1
   }
 
   /** Adds a value of a continuous attribute in a multiset
@@ -185,7 +206,8 @@ class NeighbourhoodTree(protected val rootObject: String,
         newFrontier = newFrontier ++ cNode.getChildNodes
 
         //filling multisets
-        (cNode.getAnnotations ++ cNode.getAttributeValuePairs).foreach(attr => addDiscreteAttributeValue(currentDepth, cNode.getDomain, attr._1, attr._2))
+        cNode.getAnnotations.foreach(ann => addAnnotation(currentDepth, cNode.getDomain, ann))
+        cNode.getAttributeValuePairs.foreach(attr => addDiscreteAttributeValue(currentDepth, cNode.getDomain, attr._1, attr._2))
         cNode.getNumericAttributeValues.foreach(attr => addContinuousAttributeValue(currentDepth, cNode.getDomain, attr._1, attr._2))
         cNode.getChildNodes.foreach(node => addVertexIdentity(currentDepth + 1, node.getDomain, node.getEntity))
         cNode.getChildEdges.foreach(edge => addEdgeType(currentDepth, (edge.getEdgeType, edge.getParentPosition.toString)))
@@ -287,6 +309,20 @@ class NeighbourhoodTree(protected val rootObject: String,
     }
   }
 
+  /** Returns a mutliset of annotations of a given vertex type at a certain level in the neighbourhood tree
+    *
+    * @param level      a level in the neighbourhood tree
+    * @param vertexType a typoe/domain of vertices
+    */
+  def getBAnnotations(level: Int, vertexType: String): Map[(String, String), Int] = {
+    if (!annotations.contains(level) || !annotations(level).contains(vertexType)) {
+      Map[(String, String), Int]()
+    }
+    else {
+      annotations(level)(vertexType).toMap
+    }
+  }
+
   /** Returns an aggregate of values of the attribute, at a certain level and vertex type
     *
     * @param level         a level of the neighbourhood tree
@@ -303,6 +339,54 @@ class NeighbourhoodTree(protected val rootObject: String,
     }
     else {
       Some(aggregator.aggregate(continuousAttributes(level)(vertexType)(attributeName).map(elem => (attributeName, elem))))
+    }
+  }
+
+  /** Returns values of a numerical attribute, at a certain level and vertex type
+    *
+    * @param level         a level of the neighbourhood tree
+    * @param vertexType    a type/domain of a vertex
+    * @param attributeName attribute name
+    * */
+  def getBContinuous(level: Int, vertexType: String, attributeName: String): Option[List[(String, Double)]] = {
+    if (!continuousAttributes.contains(level) || !continuousAttributes(level).contains(vertexType)) {
+      None
+    }
+    else if (!continuousAttributes(level)(vertexType).contains(attributeName)) {
+      None
+    }
+    else {
+      Some(continuousAttributes(level)(vertexType)(attributeName).map(elem => (attributeName, elem)))
+    }
+  }
+
+  /** Returns all vertex type at a certain level of a neighbourhood tree */
+  def getVertexTypesAtLevel(level: Int): Set[String] = {
+    if (!vertexIdentities.contains(level)) {
+      Set[String]()
+    }
+    else {
+      vertexIdentities(level).keySet.toSet
+    }
+  }
+
+  /** Returns all discrete attribute names at a certain level and vertex type */
+  def getDiscreteAttributeNames(level: Int, vertexType: String): Set[String] = {
+    if (!discreteAttributeBags.contains(level) || !discreteAttributeBags(level).contains(vertexType)) {
+      Set[String]()
+    }
+    else {
+      discreteAttributeBags(level)(vertexType).keySet.toSet
+    }
+  }
+
+  /** Returns all continuous attribute names at a certain level and vertex type */
+  def getContinuousAttributeNames(level: Int, vertexType: String): Set[String] = {
+    if (!continuousAttributes.contains(level) || !continuousAttributes(level).contains(vertexType)) {
+      Set[String]()
+    }
+    else {
+      continuousAttributes(level)(vertexType).keySet.toSet
     }
   }
 
