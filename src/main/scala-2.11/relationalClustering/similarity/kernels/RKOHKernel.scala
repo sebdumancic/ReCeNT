@@ -1,7 +1,7 @@
 package relationalClustering.similarity.kernels
 
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.ChiSquaredDistance
+import relationalClustering.bags.bagComparison.ChiSquaredDistance
 import relationalClustering.neighbourhood.{Edge, NeighbourhoodTree}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees

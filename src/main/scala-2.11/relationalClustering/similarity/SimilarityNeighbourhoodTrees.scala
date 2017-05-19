@@ -2,8 +2,8 @@ package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
+import relationalClustering.bags.bagCombination.AbstractBagCombine
+import relationalClustering.bags.bagComparison.AbstractBagComparison
 import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.{KnowledgeBase, NumericDomain}
 import relationalClustering.utils.Settings
@@ -41,7 +41,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
   }
 
   /** Returns a new object together with normalization constants and neighbourhood trees*/
-  def copy = {
+  def copy: SimilarityNeighbourhoodTrees = {
     val newObj = new SimilarityNeighbourhoodTrees(knowledgeBase, depth, weights, bagCompare, bagCombine, aggregators)
     newObj.setObjectNorms(getObjectNorm.map(x => x))
     newObj.setHyperedgeNorms(getHyperEdgeNorm.map( x => x))
@@ -49,25 +49,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     newObj
   }
 
-  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
-    *
-    * @param domains list of domains of interest
-    * */
-  override def getFilename(domains: List[String]): String = {
-    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
-  }
 
-  override def getVertexNormsFilename(domains: List[String]): String = {
-    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
-  }
-
-  override def getEdgeNormsFilename(domains: List[String]): String = {
-    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
-  }
-
-  override def getFilenameHyperEdges(domains: List[String]): String = {
-    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
-  }
 
   /***********************
     *
@@ -79,10 +61,12 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains list of domains to cluster objects from: [[List]]
     * @return (ordering of objects, similarity matrix for corresponding element)
     * */
-  def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
-    val objects = objectsToUse == null match {
-      case true => getObjectsFromDomains(domains)
-      case false => objectsToUse
+  def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null): (List[String], DenseMatrix[Double]) = {
+    val objects = if (objectsToUse == null) {
+      getObjectsFromDomains(domains)
+    }
+    else {
+      objectsToUse
     }
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
@@ -102,7 +86,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param nt2 the second neighbourhood tree
     * @return similarity
     * */
-  def pairObjectSimilarity(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree) = {
+  def pairObjectSimilarity(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree): Double = {
     if (objectsNormConstants.isEmpty) {
       objectsNormConstants = readNormsFromFile(getVertexNormsFilename(List(nt1.getRoot.getDomain)))
     }
@@ -115,15 +99,19 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     )
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
-      val norm = objectsNormConstants(w._2) == 0.0 match {
-            case true => 1.0
-            case false => objectsNormConstants(w._2)
-          }
+      val norm = if (objectsNormConstants(w._2) == 0.0) {
+        1.0
+      }
+      else {
+        objectsNormConstants(w._2)
+      }
 
-      val calc = w._1 * (functionsWithNorm(w._2)._1 match {
-        case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/norm)
-        case false => functionsWithNorm(w._2)._2(nt1, nt2)/norm
+      val calc = w._1 * (if (functionsWithNorm(w._2)._1) {
+        1.0 - (functionsWithNorm(w._2)._2(nt1, nt2) / norm)
+      } else {
+        functionsWithNorm(w._2)._2(nt1, nt2) / norm
       })
+
       if (calc < 0) {
         println(s"Similarity <0 for ${nt1.getRoot.getEntity} and ${nt2.getRoot.getEntity} with ${w._2} (${w._1}): $calc")
       }
@@ -137,7 +125,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ng2 neighbourhood graph of the second element: [[NeighbourhoodTree]]
     * @return Double
     * */
-  protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     val attrs1 = ng1.getRootAttributes
     val attrs2 = ng2.getRootAttributes
 
@@ -162,58 +150,55 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ng2 the second elements's neighbourhood graph: [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
-    val firstAttrs = ng1.getAttributeValueDistribution
-    val secondAttrs = ng2.getAttributeValueDistribution
+  protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
 
-    // aggregate numeric attributes
-    val numericalValue = getKB.hasNumericAttributes match {
-      case false => 0.0
-      case true =>
-        aggregators.foldLeft(0.0)((acc, agg) => {
-          val numFirstAttrs = ng1.aggregateNumericAttributes(agg)
-          val numSecondAttrs = ng2.aggregateNumericAttributes(agg)
-          val aggDepth = numFirstAttrs.isEmpty && numSecondAttrs.isEmpty match {
-            case true => -1
-            case false =>
-              val firstKeys = if (numFirstAttrs.keys.isEmpty) -1 else numFirstAttrs.keys.max
-              val secondKeys = if (numSecondAttrs.keys.isEmpty) -1 else numSecondAttrs.keys.max
-              math.max(firstKeys, secondKeys)
-          }
-          acc + (0 to aggDepth).foldLeft(0.0)((acc_i, depth) => {
-            acc_i + (numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet ++ numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).keySet).foldLeft(0.0)((acc_ii, vType) => {
-              val aggs1 = numFirstAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
-              val aggs2 = numSecondAttrs.getOrElse(depth, Map[String, List[(String, Double)]]()).getOrElse(vType, List[(String, Double)]()).toMap
+    val discreteValue = (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      acc + (ng1.getVertexTypesAtLevel(depth) ++ ng2.getVertexTypesAtLevel(depth)).foldLeft(0.0)((acc_i, vtype) => {
+        acc_i + (ng1.getDiscreteAttributeNames(depth, vtype) ++ ng2.getDiscreteAttributeNames(depth, vtype)).foldLeft(0.0)((acc_ii, attr) => {
+          acc_ii + math.abs(bagCompare.compareBags(ng1.getBDiscrete(depth, vtype, attr), ng2.getBDiscrete(depth, vtype, attr)))
+        })
+      })
+    })
 
-              acc_ii + (aggs1.keySet ++ aggs2.keySet).foldLeft(0.0)((acc_iii, pred) => {
-                //value will be a distance
-                val value = aggs1.contains(pred) && aggs2.contains(pred) match {
-                  case false => 1.0
-                  case true =>
-                    val domain = getKB.getPredicate(pred).getArgumentRoles.zip(getKB.getPredicate(pred).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
-                    require(domain.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $pred has more than one number domain!")
-                    math.abs(aggs1(pred) - aggs2(pred)) / domain.head._2.asInstanceOf[NumericDomain].getRange
-                }
-                acc_iii + (bagCompare.needsToBeInverted match {
-                  case true =>
-                    // needs to be a distance value
-                    value
-                  case false =>
-                    // value represents a similarity
-                    1.0 - value
-                })
-              })
+    val annotationValue = (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      acc + (ng1.getVertexTypesAtLevel(depth) ++ ng2.getVertexTypesAtLevel(depth)).foldLeft(0.0)((acc_i, vtype) => {
+        acc_i + math.abs(bagCompare.compareBags(ng1.getBAnnotations(depth, vtype), ng2.getBAnnotations(depth, vtype)))
+      })
+    })
+
+    val numericValue = if (!getKB.hasNumericAttributes) {
+      0.0
+    } else {
+      aggregators.foldLeft(0.0)((acc, agg) => {
+        acc + (1 to getDepth).foldLeft(0.0)((acc_i, depth) => {
+          acc_i + (ng1.getVertexTypesAtLevel(depth) ++ ng2.getVertexTypesAtLevel(depth)).foldLeft(0.0)((acc_ii, vtype) => {
+            acc_ii + (ng1.getContinuousAttributeNames(depth, vtype) ++ ng2.getContinuousAttributeNames(depth, vtype)).foldLeft(0.0)((acc_iii, attr) => {
+              val denominator = getKB.getPredicate(attr).getArgumentRoles.zip(getKB.getPredicate(attr).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+              require(denominator.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $attr has more than one number domain!")
+              val ng1Agg = ng1.getBContinuous(depth, vtype, attr, agg)
+              val ng2Agg = ng2.getBContinuous(depth, vtype, attr, agg)
+              val value = if (ng1Agg.isDefined && ng2Agg.isDefined) {
+                math.abs(ng1Agg.get - ng2Agg.get) / denominator.head._2.asInstanceOf[NumericDomain].getRange
+              }
+              else {
+                1.0
+              }
+              if (bagCompare.needsToBeInverted) {
+                //needs to be a distance value
+                acc_iii + value
+              }
+              else {
+                // value represents a similarity
+                acc_iii + (1.0 - value)
+              }
             })
           })
         })
+      })
     }
 
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      acc + firstAttrs(depth).keySet.union(secondAttrs(depth).keySet).foldLeft(0.0)( (acc_i, vType) => {
-        acc_i + math.abs(bagCompare.compareBags(firstAttrs(depth).getOrElse(vType, List[(String,String)]()),
-                                                secondAttrs(depth).getOrElse(vType, List[(String,String)]())))
-      })
-    }) + numericalValue
+
+    discreteValue + annotationValue + numericValue
   }
 
   /** Calculates the number of connections between two root elements
@@ -222,10 +207,8 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def elementConnections(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
-    val depthOneVertices = ng2.collectVertexIdentity()(0).getOrElse(ng1.getRootDomain, List[String]())
-
-    depthOneVertices.count( _ == ng1.getRoot.getEntity ).toDouble
+  protected def elementConnections(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
+    ng2.getV(1, ng1.getRootDomain).getOrElse(ng1.getRoot.getEntity, 0).toDouble
   }
 
   /** Computes the vertex identity distributions similarity for two neighbourhood graphs, per level and vertex type
@@ -234,13 +217,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def vertexIdentityDistribution(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
-    val neighbourhood1 = ng1.collectVertexIdentity()
-    val neighbourhood2 = ng2.collectVertexIdentity()
-
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      acc + neighbourhood1(depth).keySet.union(neighbourhood2(depth).keySet).foldLeft(0.0)( (acc_i, vType) => {
-        acc_i + math.abs(bagCompare.compareBags(neighbourhood1(depth).getOrElse(vType, List[String]()), neighbourhood2(depth).getOrElse(vType, List[String]())))
+  protected def vertexIdentityDistribution(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
+    (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      acc + (ng1.getVertexTypesAtLevel(depth) ++ ng2.getVertexTypesAtLevel(depth)).foldLeft(0.0)((acc_i, vtype) => {
+        acc_i + math.abs(bagCompare.compareBags(ng1.getV(depth, vtype), ng2.getV(depth, vtype)))
       })
     })
   }
@@ -251,12 +231,9 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ng2 the second element's [[NeighbourhoodTree]]
     * @return [[Double]]
     * */
-  protected def edgeDistributionsSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
-    val distr1 = ng1.getEdgeDistribution
-    val distr2 = ng2.getEdgeDistribution
-
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      acc + math.abs(bagCompare.compareBags(distr1(depth), distr2(depth)))
+  protected def edgeDistributionsSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
+    (0 until getDepth).foldLeft(0.0)((acc, depth) => {
+      acc + math.abs(bagCompare.compareBags(ng1.getE(depth), ng2.getE(depth)))
     })
   }
 
@@ -266,7 +243,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param simFunc similarity functions that takes two neighbourhood trees as input and return a Double
     * @param shouldBeInverted flag indicating should the computed matrix be inverted in order to be a similarity measure: [[Boolean]]
     * */
-  protected def accumulateIntoMatrix(elements: List[(String, String)], simFunc: (NeighbourhoodTree, NeighbourhoodTree) => Double, shouldBeInverted: Boolean, constInd: Int) = {
+  protected def accumulateIntoMatrix(elements: List[(String, String)], simFunc: (NeighbourhoodTree, NeighbourhoodTree) => Double, shouldBeInverted: Boolean, constInd: Int): DenseMatrix[Double] = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
@@ -276,9 +253,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
       similarityMatrix(ind2, ind1) += simValue
     }
 
-    shouldBeInverted match {
-      case true => normalizeAndInvert(similarityMatrix, constInd, "v")
-      case false => normalizeMatrix(similarityMatrix, constInd, "v")
+    if (shouldBeInverted) {
+      normalizeAndInvert(similarityMatrix, constInd, "v")
+    } else {
+      normalizeMatrix(similarityMatrix, constInd, "v")
     }
   }
 
@@ -296,7 +274,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains list of domains that hyperedges connect: [[List]]
     * @return (ordering of hyperEdges, similarity matrix)
     * */
-  def getHyperEdgeSimilarity(domains: List[String]) = {
+  def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double]) = {
     val hyperEdges = getHyperEdges(domains)
 
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
@@ -310,13 +288,14 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     (hyperEdges, returnMat)
   }
 
+
   /** Calculates similarity between two individual hyperedges (normalizing constants have to be calculated before!!!)
     *
     * @param nt1 an ordered set of neighbourhood trees
     * @param nt2 an ordered set of neighbourhood trees
     *
     * */
-  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodTree], nt2: List[NeighbourhoodTree]) = {
+  def getPairHyperEdgeSimilarity(nt1: List[NeighbourhoodTree], nt2: List[NeighbourhoodTree]): Double = {
     val functionsWithNorm = List(false, bagCompare.needsToBeInverted, false, bagCompare.needsToBeInverted, bagCompare.needsToBeInverted).zip(
       List[(List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double](hyperedgeAttributeSimilarity, hyperEdgeAttributeNeighbourhoodSimilarity, hyperEdgeConnections, hyperEdgeVertexDistribution, hyperEdgeEdgeDistribution)
     )
@@ -326,13 +305,16 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     }
 
     weights.zipWithIndex.filter( _._1 > 0.0).foldLeft(0.0)( (acc, w) => {
-      val norm = hyperEdgeNormConstants(w._2) == 0.0 match {
-        case true => 1.0
-        case false => hyperEdgeNormConstants(w._2)
+      val norm = if (hyperEdgeNormConstants(w._2) == 0.0) {
+        1.0
+      } else {
+        hyperEdgeNormConstants(w._2)
       }
-      acc + w._1 * (functionsWithNorm(w._2)._1 match {
-        case true => 1.0 - (functionsWithNorm(w._2)._2(nt1, nt2)/norm)
-        case false => functionsWithNorm(w._2)._2(nt1, nt2)/norm
+
+      acc + w._1 * (if (functionsWithNorm(w._2)._1) {
+        1.0 - (functionsWithNorm(w._2)._2(nt1, nt2) / norm)
+      } else {
+        functionsWithNorm(w._2)._2(nt1, nt2) / norm
       })
     })
 
@@ -344,43 +326,116 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
-    val ngOneCombined = ngs1.map(_.getRootAttributes).foldLeft(Set[(String,String)]())((acc, attrSet) => {
-      bagCombine.combineBags(acc.toList, attrSet.toList).toSet
-    })
-    val ngTwoCombined = ngs2.map(_.getRootAttributes).foldLeft(Set[(String,String)]())( (acc, attrSet) => {
-      bagCombine.combineBags(acc.toList, attrSet.toList).toSet
+  protected def hyperedgeAttributeSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
+    val discreteAttributeSet = ngs1.flatMap(nt => nt.getDiscreteAttributeNames(0, nt.getRootDomain)) ++ ngs2.flatMap(nt => nt.getDiscreteAttributeNames(0, nt.getRootDomain))
+    val discreteValue = discreteAttributeSet.foldLeft(0.0)((acc, attr) => {
+      val he1 = ngs1.map(nt => nt.getBDiscrete(0, nt.getRootDomain, attr)).reduceLeft(bagCombine.combineBags)
+      val he2 = ngs2.map(nt => nt.getBDiscrete(0, nt.getRootDomain, attr)).reduceLeft(bagCombine.combineBags)
+      acc + math.abs(bagCompare.compareBags(he1, he2))
     })
 
-    ngOneCombined.intersect(ngTwoCombined).size.toDouble
+    val h1 = ngs1.flatMap(nt => nt.getRootAttributes.toList)
+    val h2 = ngs2.flatMap(nt => nt.getRootAttributes.toList)
+    val discVal = h1.intersect(h2).size.toDouble
+
+    val continuousAttributeSet = ngs1.flatMap(nt => nt.getContinuousAttributeNames(0, nt.getRootDomain)) ++ ngs2.flatMap(nt => nt.getContinuousAttributeNames(0, nt.getRootDomain))
+    val numericValue = continuousAttributeSet.foldLeft(0.0)((acc, attr) => {
+      val he1 = ngs1.map(nt => nt.getBContinuous(0, nt.getRootDomain, attr)).filter(_.isDefined).map(_.get).reduce(_ ++ _)
+      val he2 = ngs2.map(nt => nt.getBContinuous(0, nt.getRootDomain, attr)).filter(_.isDefined).map(_.get).reduce(_ ++ _)
+
+      acc + aggregators.foldLeft(0.0)((acc_i, agg) => {
+        val denominator = getKB.getPredicate(attr).getArgumentRoles.zip(getKB.getPredicate(attr).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+        require(denominator.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $attr has more than one number domain!")
+
+        val value = if (he1.nonEmpty && he2.nonEmpty) {
+          math.abs(agg.aggregate(he1) - agg.aggregate(he2)) / denominator.head._2.asInstanceOf[NumericDomain].getRange
+        }
+        else {
+          1.0
+        }
+
+        if (bagCompare.needsToBeInverted) {
+          //needs to be a distance value
+          acc_i + value
+        }
+        else {
+          // value represents a similarity
+          acc_i + (1.0 - value)
+        }
+      })
+    })
+
+    discVal + numericValue
   }
 
-  /** Computes the similarity between hyperEdges accoring to the attribute neighbourhoods of the vertices it connects
+  /** Computes the similarity between hyperEdges according to the attribute neighbourhoods of the vertices it connects
     *
     * @param ngs1 the first hyperedge
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
-    val firstNeighbourhoods = ngs1.map(_.getAttributeValueDistribution)
-    val secondNeighbourhoods = ngs2.map(_.getAttributeValueDistribution)
+  protected def hyperEdgeAttributeNeighbourhoodSimilarity(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
+    val discreteValue = (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      val domains = ngs1.flatMap(nt => nt.getVertexTypesAtLevel(depth)) ++ ngs2.flatMap(nt => nt.getVertexTypesAtLevel(depth))
 
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      val firstDepthFilteredAttrs = firstNeighbourhoods.map( _(depth))
-      val secondDepthFilteredAttrs = secondNeighbourhoods.map(_(depth))
-      val keys = firstDepthFilteredAttrs.map( _.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet).union(
-        secondDepthFilteredAttrs.map( _.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet)
-      )
-      acc + keys.foldLeft(0.0)( (acc_i, vType) => {
-        val firstBag = firstDepthFilteredAttrs.map( _.getOrElse(vType, List[(String,String)]())).foldLeft(List[(String,String)]())((acc, attrSet) => {
-          bagCombine.combineBags(acc, attrSet)
+      acc + domains.foldLeft(0.0)((acc_i, vtype) => {
+        val attributes = ngs1.flatMap(nt => nt.getDiscreteAttributeNames(depth, vtype)) ++ ngs2.flatMap(nt => nt.getDiscreteAttributeNames(depth, vtype))
+
+        acc_i + attributes.foldLeft(0.0)((acc_ii, attr) => {
+          val he1 = ngs1.map(nt => nt.getBDiscrete(0, nt.getRootDomain, attr)).reduceLeft(bagCombine.combineBags)
+          val he2 = ngs2.map(nt => nt.getBDiscrete(0, nt.getRootDomain, attr)).reduceLeft(bagCombine.combineBags)
+          acc_ii + math.abs(bagCompare.compareBags(he1, he2))
         })
-        val secondBag = secondDepthFilteredAttrs.map(_.getOrElse(vType, List[(String,String)]())).foldLeft(List[(String,String)]())( (acc, attrSet) => {
-          bagCombine.combineBags(acc, attrSet)
-        })
-        acc_i + math.abs(bagCompare.compareBags(firstBag.map(e => s"${e._1}${e._2}"), secondBag.map(e => s"${e._1}${e._2}")))
       })
     })
+
+    val annotationValue = (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      val domains = ngs1.flatMap(nt => nt.getVertexTypesAtLevel(depth)) ++ ngs2.flatMap(nt => nt.getVertexTypesAtLevel(depth))
+      acc + domains.foldLeft(0.0)((acc_i, vtype) => {
+        val he1 = ngs1.map(nt => nt.getBAnnotations(0, nt.getRootDomain)).reduceLeft(bagCombine.combineBags)
+        val he2 = ngs2.map(nt => nt.getBAnnotations(0, nt.getRootDomain)).reduceLeft(bagCombine.combineBags)
+        acc_i + math.abs(bagCompare.compareBags(he1, he2))
+      })
+    })
+
+    val numericValue = if (!getKB.hasNumericAttributes) {
+      0.0
+    } else {
+      (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+        val domains = ngs1.flatMap(nt => nt.getVertexTypesAtLevel(depth)) ++ ngs2.flatMap(nt => nt.getVertexTypesAtLevel(depth))
+
+        acc + domains.foldLeft(0.0)((acc_i, vtype) => {
+          val attributes = ngs1.flatMap(nt => nt.getContinuousAttributeNames(depth, vtype)) ++ ngs2.flatMap(nt => nt.getContinuousAttributeNames(depth, vtype))
+          acc_i + attributes.foldLeft(0.0)((acc_ii, attr) => {
+            val he1 = ngs1.map(nt => nt.getBContinuous(0, nt.getRootDomain, attr)).filter(_.isDefined).map(_.get).reduceLeft(_ ++ _)
+            val he2 = ngs2.map(nt => nt.getBContinuous(0, nt.getRootDomain, attr)).filter(_.isDefined).map(_.get).reduceLeft(_ ++ _)
+
+            acc_ii + aggregators.foldLeft(0.0)((acc_iii, agg) => {
+              val denominator = getKB.getPredicate(attr).getArgumentRoles.zip(getKB.getPredicate(attr).getDomainObjects).filter(_._1 == Settings.ARG_TYPE_NUMBER)
+              require(denominator.length == 1, s"SimilarityNeighbourhoodTrees::attributeSimilarity : predicate $attr has more than one number domain!")
+
+              val value = if (he1.nonEmpty && he2.nonEmpty) {
+                math.abs(agg.aggregate(he1) - agg.aggregate(he2)) / denominator.head._2.asInstanceOf[NumericDomain].getRange
+              }
+              else {
+                1.0
+              }
+
+              if (bagCompare.needsToBeInverted) {
+                //needs to be a distance value
+                acc_iii + value
+              }
+              else {
+                // value represents a similarity
+                acc_iii + (1.0 - value)
+              }
+            })
+          })
+        })
+      })
+    }
+
+    discreteValue + annotationValue + numericValue
   }
 
   /** Calculates the number of connections between vertices in two hyperedges
@@ -389,13 +444,10 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeConnections(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
-    val depthOneVertices = ngs2.map( _.collectVertexIdentity()(0)).map( x => x.foldLeft(List[String]())( (acc, dom) => {
-      acc ++ dom._2
-    })).reduce(_ ++ _)
-
-    ngs1.map( _.getRoot.getEntity).foldLeft(0.0)( (acc, elem) => {
-      acc + depthOneVertices.count( _ == elem).toDouble
+  protected def hyperEdgeConnections(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
+    ngs1.foldLeft(0.0)((acc, nt) => {
+      val combined = ngs2.map(_.getV(1, nt.getRootDomain)).reduceLeft(bagCombine.combineBags)
+      acc + combined.getOrElse(nt.getRoot.getEntity, 0).toDouble
     })
   }
 
@@ -405,20 +457,13 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
-    val firstVertices = ngs1.map( _.collectVertexIdentity())
-    val secondVertices = ngs2.map(_.collectVertexIdentity())
-
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      val firstDepthFiltered = firstVertices.map( _(depth))
-      val secondDepthFiltered = secondVertices.map(_(depth))
-      val iterables = firstDepthFiltered.map(_.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet).union(
-        secondDepthFiltered.map(_.keySet.toList).foldLeft(Set[String]())( (acc, dom) => bagCombine.combineBags(acc.toList, dom).toSet)
-      )
-      acc + iterables.foldLeft(0.0)( (acc_i, vType) => {
-        val firstBag = firstDepthFiltered.map(_.getOrElse(vType, List[String]())).foldLeft(List[String]())( (acc, vSet) => bagCombine.combineBags(acc, vSet))
-        val secondBag = secondDepthFiltered.map(_.getOrElse(vType, List[String]())).foldLeft(List[String]())( (acc, vSet) => bagCombine.combineBags(acc, vSet))
-        acc_i + math.abs(bagCompare.compareBags(firstBag, secondBag))
+  protected def hyperEdgeVertexDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
+    (1 to getDepth).foldLeft(0.0)((acc, depth) => {
+      val domains = ngs1.flatMap(nt => nt.getVertexTypesAtLevel(depth)) ++ ngs2.flatMap(nt => nt.getVertexTypesAtLevel(depth))
+      acc + domains.foldLeft(0.0)((acc_i, vtype) => {
+        val he1 = ngs1.map(_.getV(depth, vtype)).reduceLeft(bagCombine.combineBags)
+        val he2 = ngs2.map(_.getV(depth, vtype)).reduceLeft(bagCombine.combineBags)
+        acc_i + math.abs(bagCompare.compareBags(he1, he2))
       })
     })
   }
@@ -429,16 +474,11 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param ngs2 the second hyperedge
     * @return [[Double]]
     * */
-  protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]) = {
-    val firstDistribution = ngs1.map(_.getEdgeDistribution)
-    val secondDistribution = ngs2.map(_.getEdgeDistribution)
-
-    (0 to getDepth).foldLeft(0.0)( (acc, depth) => {
-      val firstDepthFiltered = firstDistribution.map( _(depth))
-      val secondDepthfiltered = secondDistribution.map(_(depth))
-
-      acc + math.abs(bagCompare.compareBags(firstDepthFiltered.foldLeft(List[String]())( (acc, eSet) => bagCombine.combineBags(acc, eSet)),
-                                            secondDepthfiltered.foldLeft(List[String]())( (acc, eSet) => bagCombine.combineBags(acc, eSet))))
+  protected def hyperEdgeEdgeDistribution(ngs1: List[NeighbourhoodTree], ngs2: List[NeighbourhoodTree]): Double = {
+    (0 until getDepth).foldLeft(0.0)((acc, depth) => {
+      val he1 = ngs1.map(_.getE(depth)).reduceLeft(bagCombine.combineBags)
+      val he2 = ngs2.map(_.getE(depth)).reduceLeft(bagCombine.combineBags)
+      acc + math.abs(bagCompare.compareBags(he1, he2))
     })
   }
 
@@ -448,7 +488,7 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
     * @param domains domains of elements in a hyperedge
     * @param simFunction similarity measure
     * */
-  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double, shouldBeInverted: Boolean, constId: Int) = {
+  protected def accumulateIntoMatrixHyperEdge(elements: List[List[String]], domains: List[String], simFunction: (List[NeighbourhoodTree], List[NeighbourhoodTree]) => Double, shouldBeInverted: Boolean, constId: Int): DenseMatrix[Double] = {
     val similarityMatrix = DenseMatrix.zeros[Double](elements.length, elements.length)
 
     for(ind1 <- elements.indices; ind2 <- (ind1 + 1) until elements.length) {
@@ -459,9 +499,32 @@ class SimilarityNeighbourhoodTrees(override protected val knowledgeBase: Knowled
       similarityMatrix(ind2, ind1) += simValue
     }
 
-    shouldBeInverted match {
-      case true => normalizeAndInvert(similarityMatrix, constId, "h")
-      case false => normalizeMatrix(similarityMatrix, constId, "h")
+    if (shouldBeInverted) {
+      normalizeAndInvert(similarityMatrix, constId, "h")
+    } else {
+      normalizeMatrix(similarityMatrix, constId, "h")
     }
+  }
+
+  /** FILE NAME GETTERS FOR SAVING SIMILARITY MATRICES */
+
+  /** Uniquely identifies the filename to save similarity matrix (once calculated it can be reused)
+    *
+    * @param domains list of domains of interest
+    **/
+  override def getFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.txt"
+  }
+
+  override def getVertexNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.vnorms"
+  }
+
+  override def getEdgeNormsFilename(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_localRepo$useLocal.hnorms"
+  }
+
+  override def getFilenameHyperEdges(domains: List[String]): String = {
+    s"${domains.mkString("")}_depth${depth}_parameters${weights.mkString(",")}_compare${bagCompare.name}_combination${bagCombine.getName}_localRepo$useLocal.txt"
   }
 }

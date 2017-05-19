@@ -1,7 +1,7 @@
 package relationalClustering.similarity
 
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.ChiSquaredDistance
+import relationalClustering.bags.bagComparison.ChiSquaredDistance
 import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 
@@ -11,15 +11,15 @@ import relationalClustering.representation.domain.KnowledgeBase
 class ConceptualFonseca(override protected val knowledgeBase: KnowledgeBase,
                         protected val maxClauseLength: Int) extends SimilarityNeighbourhoodTrees(knowledgeBase, 0, List(1.0,0.0,0.0,0.0,0.0), new ChiSquaredDistance, null, List[AbstractAggregator](), true) {
 
-  protected def getClauseLength = {
+  protected def getClauseLength: Int = {
     maxClauseLength
   }
 
-  override def getFilename(domains: List[String]) = {
+  override def getFilename(domains: List[String]): String = {
     s"${domains.mkString(",")}_clause${getClauseLength}_conceptualclusteringfonseca.txt"
   }
 
-  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     val attrs1 = ng1.getClauses(getClauseLength)
     val attrs2 = ng2.getClauses(getClauseLength)
 

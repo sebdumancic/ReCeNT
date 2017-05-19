@@ -2,7 +2,7 @@ package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.AbstractBagComparison
+import relationalClustering.bags.bagComparison.AbstractBagComparison
 import relationalClustering.neighbourhood.{NeighbourhoodTree, Node}
 import relationalClustering.representation.domain.KnowledgeBase
 
@@ -13,12 +13,12 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
            override protected val depth: Int,
            override protected val bagCompare: AbstractBagComparison) extends SimilarityNeighbourhoodTrees(knowledgeBase, depth, List(0.5,0.5,0.0,0.0,0.0), bagCompare, null, List[AbstractAggregator](), true) {
 
-  override def getFilename(domains: List[String]) = {
+  override def getFilename(domains: List[String]): String = {
     s"${domains.mkString(",")}_hsag_localRepo$useLocal.txt"
   }
 
   /** Override to make sure the exception is thrown*/
-  override def getHyperEdgeSimilarity(domains: List[String]) = {
+  override def getHyperEdgeSimilarity(domains: List[String]): (List[List[String]], DenseMatrix[Double]) = {
     new Exception(s"HSAG similarity metrics cannot cluster hyperedges!!!")
 
     val hyperEdges = getHyperEdges(domains)
@@ -27,35 +27,36 @@ class HSAG(override protected val knowledgeBase: KnowledgeBase,
     (hyperEdges, returnMat)
   }
 
-  protected def contentSimilarity(ng1: Node, ng2: Node) = {
-    val value = bagCompare.compareBags(ng1.getAttributeValuePairs.toList, ng2.getAttributeValuePairs.toList)
+  protected def contentSimilarity(ng1: Node, ng2: Node): Double = {
+    val value = bagCompare.compareBags(ng1.getAttributeValuePairs.map(el => (el, 1)).toMap, ng2.getAttributeValuePairs.map(el => (el, 1)).toMap)
     value
   }
 
-  protected def neighbourSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  protected def neighbourSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     val value = ng2.getRoot.getChildNodes.foldLeft(0.0)( (acc, node) => {
       acc + contentSimilarity(ng1.getRoot, node)
     })/ng2.getRoot.getChildNodes.length
 
-    value.isNaN match {
-      case false => value
-      case true => 1.0
+    if (value.isNaN) {
+      1.0
+    } else {
+      value
     }
   }
 
-  protected def contextSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  protected def contextSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     (neighbourSimilarity(ng1, ng2) + neighbourSimilarity(ng2, ng1))/2.0
   }
 
-  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  override protected def attributeSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     contentSimilarity(ng1.getRoot, ng2.getRoot)
   }
 
-  override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree) = {
+  override protected def attributeNeighbourhoodSimilarity(ng1: NeighbourhoodTree, ng2: NeighbourhoodTree): Double = {
     contextSimilarity(ng1, ng2)
   }
 
-  override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null) = {
+  override def getObjectSimilarity(domains: List[String], objectsToUse: List[(String, String)] = null): (List[String], DenseMatrix[Double]) = {
     val objects = objectsToUse == null match {
       case false => objectsToUse
       case true => getObjectsFromDomains(domains)

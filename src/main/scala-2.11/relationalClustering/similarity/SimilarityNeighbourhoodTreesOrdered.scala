@@ -1,8 +1,8 @@
 package relationalClustering.similarity
 
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.bagComparison.bagCombination.UnionCombination
+import relationalClustering.bags.bagCombination.UnionCombination
+import relationalClustering.bags.bagComparison.AbstractBagComparison
 import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 

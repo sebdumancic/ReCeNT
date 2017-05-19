@@ -2,8 +2,8 @@ package relationalClustering.similarity
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.SimpleCountSimilarity
-import relationalClustering.bagComparison.bagCombination.UnionCombination
+import relationalClustering.bags.bagCombination.UnionCombination
+import relationalClustering.bags.bagComparison.SimpleCountSimilarity
 import relationalClustering.neighbourhood.NeighbourhoodTree
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.utils.Settings
