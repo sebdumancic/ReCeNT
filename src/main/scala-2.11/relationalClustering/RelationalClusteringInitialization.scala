@@ -4,7 +4,7 @@ import java.io.{BufferedWriter, File, FileWriter}
 import java.util.Calendar
 
 import breeze.linalg.{DenseMatrix, max, min}
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.neighbourhood.{NeighbourhoodTree, NodeRepository}
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.{Helper, Histogram, HistogramDistance, PredicateDeclarations}
 
@@ -45,7 +45,7 @@ import scala.util.Random
   private val createdClusters = collection.mutable.Map[String, List[List[String]]]()
   private val lastIndexedCluster = collection.mutable.Map[String, Int]()
   private val accessingClustersCounter = collection.mutable.Map[String, Int]()
-  private val neighbourhoodGraphCache = collection.mutable.Map[(String,String,Int), NeighbourhoodGraph]() // [element, Domain, Depth]
+  private val neighbourhoodGraphCache = collection.mutable.Map[(String, String, Int), NeighbourhoodTree]() // [element, Domain, Depth]
   private val attributeNodesCache = collection.mutable.Map[String, List[String]]() // [ObjectName(Node) -> List[Attributes] ]
   private val riblBaseSimilarityCache = collection.mutable.Map[String, List[String]]() // Object_domain -> List[Occurrences]
   private val riblLiteralCache = collection.mutable.Map[(String, Int), List[String]]()
@@ -65,7 +65,9 @@ import scala.util.Random
   private def getRIBL = { asRIBL }
   private def getNeighbourhoodGraph(element: String, domain: String, depth: Int) = {
     val accessIndex = new Tuple3(element, domain, depth)
-    if (!neighbourhoodGraphCache.contains(accessIndex)) { neighbourhoodGraphCache(accessIndex) = new NeighbourhoodGraph(element, domain, depth, getKnowledgeBase) } //original NeighbourhoodGraph(element, domain, depth, getKnowledgeBase, nodeRepo)
+    if (!neighbourhoodGraphCache.contains(accessIndex)) {
+      neighbourhoodGraphCache(accessIndex) = new NeighbourhoodTree(element, domain, depth, getKnowledgeBase)
+    } //original NeighbourhoodGraph(element, domain, depth, getKnowledgeBase, nodeRepo)
     neighbourhoodGraphCache(accessIndex)
   }
   private def getAnyNeighbourhoodGraph(element: String, domain: String) = {
@@ -824,7 +826,7 @@ import scala.util.Random
     (domainElements, normalizeMatrix(resultingMatrix))
   }
 
-  def constructRiblP(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
+  def constructRiblP(neighbourhoodGraph: NeighbourhoodTree, level: Int = 0) = {
     level match {
       case 0 => neighbourhoodGraph.getEdgeDistribution(level).map( x => new Tuple2(x.take(x.length - 1), x.last.toString.toInt))
       case _ =>
@@ -835,7 +837,7 @@ import scala.util.Random
     }
   }
 
-  def constructRiblL(neighbourhoodGraph: NeighbourhoodGraph, level: Int = 0) = {
+  def constructRiblL(neighbourhoodGraph: NeighbourhoodTree, level: Int = 0) = {
     val queryTuple = new Tuple2(neighbourhoodGraph.getRoot.getEntity, level)
     //val attrValues = collection.mutable.Set[String]()
 
@@ -902,7 +904,7 @@ import scala.util.Random
     sim_a(vertex1, vertex2, 0, l1, l2, constructRiblPFromL(vertex1, l1), constructRiblPFromL(vertex2, l2), v1ng, v2ng)
   }
 
-  def sim_a(vertex1: String, vertex2: String, depth: Int, v1Literals: List[String], v2Literals: List[String], v1Positions: List[(String, Int)], v2Positions: List[(String,Int)], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph): Double = {
+  def sim_a(vertex1: String, vertex2: String, depth: Int, v1Literals: List[String], v2Literals: List[String], v1Positions: List[(String, Int)], v2Positions: List[(String, Int)], cd1: NeighbourhoodTree, cd2: NeighbourhoodTree): Double = {
     val predicateIntersection = v1Positions.toSet.intersect(v2Positions.toSet)
     (1.0/math.max(v1Positions.length, v2Positions.length)) * predicateIntersection.toList.foldLeft(0.0)( (acc, pTuple) => {
       acc + sim_ls(vertex1, vertex2, depth, pTuple._1, pTuple._2, v1Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex1), v2Literals.filter( x => x.contains(pTuple._1) && getArguments(x)(pTuple._2) == vertex2), cd1, cd2)
@@ -916,7 +918,7 @@ import scala.util.Random
     }
   }
 
-  def sim_ls(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literals: List[String], v2Literals: List[String], cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+  def sim_ls(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literals: List[String], v2Literals: List[String], cd1: NeighbourhoodTree, cd2: NeighbourhoodTree) = {
     v1Literals.length < v2Literals.length match {
       case true => (1.0/math.max(v2Literals.length, 1.0)) * v1Literals.foldLeft(0.0)( (acc, literal) => {
         val evaluations = v2Literals.map( x => sim_l(vertex1, vertex2, depth, predicate, position, literal, x, cd1, cd2)).map(x => if (x.isNaN) 0.0 else x)
@@ -929,7 +931,7 @@ import scala.util.Random
     }
   }
 
-  def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph): Double = {
+  def sim_l(vertex1: String, vertex2: String, depth: Int, predicate: String, position: Int, v1Literal: String, v2Literal: String, cd1: NeighbourhoodTree, cd2: NeighbourhoodTree): Double = {
     val SimLKey = vertex1 < vertex2 match {
       case true => s"$vertex1$vertex2$depth$predicate$position$v1Literal$v2Literal"
       case false => s"$vertex2$vertex1$depth$predicate$position$v2Literal$v1Literal"
@@ -981,7 +983,7 @@ import scala.util.Random
     returnR
   }
 
-  def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodGraph, cd2: NeighbourhoodGraph) = {
+  def SIM_A(element1: String, element2: String, predicate: String, position: Int, depth: Int, cd1: NeighbourhoodTree, cd2: NeighbourhoodTree) = {
     depth < getJumpStep match {
       case true => getDeclarations.getArgumentType(predicate, position) match {
         case "attribute" => sim_a_discrete(element1, element2)
@@ -1006,7 +1008,7 @@ import scala.util.Random
     }
   }
 
-  def baseSimilarity(vertex1: NeighbourhoodGraph, vertex2: NeighbourhoodGraph) = {
+  def baseSimilarity(vertex1: NeighbourhoodTree, vertex2: NeighbourhoodTree) = {
     val firstOcc = vertex1.getEdgeDistribution(0)
     val secondOcc = vertex2.getEdgeDistribution(0)
     val res = firstOcc.intersect(secondOcc).length.toDouble/math.max(firstOcc.length, secondOcc.length)
