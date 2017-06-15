@@ -1,4 +1,4 @@
-package relationalClustering.clustering.evaluation
+package relationalClustering.clustering.evaluation.unsupervised
 
 import breeze.linalg.DenseMatrix
 import relationalClustering.representation.clustering.{Cluster, Clustering}

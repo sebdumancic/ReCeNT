@@ -1,6 +1,6 @@
-package relationalClustering.parameterLearning
+package relationalClustering.clustering.evaluation.semisupervised
 
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.neighbourhood.{NeighbourhoodTree, NodeRepository}
 import relationalClustering.representation.domain.KnowledgeBase
 
 import scala.io.Source
@@ -14,8 +14,8 @@ class ConstraintsContainer(protected val filename: String,
                            protected val treeDepth: Int) {
 
 
-  protected val mustLink = collection.mutable.Set[(NeighbourhoodGraph, NeighbourhoodGraph)]()
-  protected val cannotLink = collection.mutable.Set[(NeighbourhoodGraph, NeighbourhoodGraph)]()
+  protected val mustLink = collection.mutable.Set[(NeighbourhoodTree, NeighbourhoodTree)]()
+  protected val cannotLink = collection.mutable.Set[(NeighbourhoodTree, NeighbourhoodTree)]()
   protected val constraintRegex = """(.*) (.*) (.*)""".r
   val nodeRepo = new NodeRepository(knowledgeBase)
 
@@ -30,8 +30,8 @@ class ConstraintsContainer(protected val filename: String,
     try {
       inputFile.getLines().filter(_.length > 3).foreach(line => {
         val constraintRegex(obj1, obj2, t) = line
-        val ng1 = new NeighbourhoodGraph(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
-        val ng2 = new NeighbourhoodGraph(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
+        val ng1 = new NeighbourhoodTree(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
+        val ng2 = new NeighbourhoodTree(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
 
         t match {
           case x if x == "ML" =>
@@ -49,23 +49,23 @@ class ConstraintsContainer(protected val filename: String,
     }
   }
 
-  def addMustLink(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph): Unit = {
+  def addMustLink(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree): Unit = {
     mustLink.+=((nt1, nt2))
   }
 
   def addMustLink(obj1: String, obj2: String): Unit = {
-    val ng1 = new NeighbourhoodGraph(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
-    val ng2 = new NeighbourhoodGraph(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
+    val ng1 = new NeighbourhoodTree(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
+    val ng2 = new NeighbourhoodTree(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
     addMustLink(ng1, ng2)
   }
 
-  def addCannotLink(nt1: NeighbourhoodGraph, nt2: NeighbourhoodGraph): Unit = {
+  def addCannotLink(nt1: NeighbourhoodTree, nt2: NeighbourhoodTree): Unit = {
     cannotLink.+=((nt1, nt2))
   }
 
   def addCannotLink(obj1: String, obj2: String): Unit = {
-    val ng1 = new NeighbourhoodGraph(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
-    val ng2 = new NeighbourhoodGraph(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
+    val ng1 = new NeighbourhoodTree(obj1, domain, treeDepth, knowledgeBase, nodeRepo)
+    val ng2 = new NeighbourhoodTree(obj2, domain, treeDepth, knowledgeBase, nodeRepo)
     addCannotLink(ng1, ng2)
   }
 

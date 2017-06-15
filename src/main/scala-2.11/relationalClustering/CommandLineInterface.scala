@@ -5,7 +5,8 @@ import relationalClustering.aggregators._
 import relationalClustering.bags.bagCombination.{IntersectionCombination, UnionCombination}
 import relationalClustering.bags.bagComparison.{ChiSquaredDistance, MaximumSimilarity, MinimumSimilarity, UnionBagSimilarity}
 import relationalClustering.clustering.algo._
-import relationalClustering.clustering.evaluation._
+import relationalClustering.clustering.evaluation.supervised.{AdjustedNMI, AdjustedRandIndex, LabelsContainer, MajorityClass}
+import relationalClustering.clustering.evaluation.unsupervised.{AverageIntraClusterSimilarity, SilhouetteScore}
 import relationalClustering.clustering.selection.{IncreaseSaturationCut, ModelBasedSelection}
 import relationalClustering.parameterLearning.LearnWeightsLPSupervised
 import relationalClustering.representation.clustering.Clustering

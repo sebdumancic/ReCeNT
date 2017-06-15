@@ -1,7 +1,8 @@
-package relationalClustering.clustering.evaluation
+package relationalClustering.clustering.evaluation.unsupervised
 
 import java.io.FileWriter
 
+import relationalClustering.clustering.evaluation.AbstractEvaluator
 import relationalClustering.representation.clustering.Clustering
 
 /**

@@ -2,7 +2,7 @@ package relationalClustering.utils
 
 import java.io.File
 
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.neighbourhood.{NeighbourhoodTree, NodeRepository}
 import relationalClustering.representation.domain.KnowledgeBase
 
 /**
@@ -21,7 +21,7 @@ object PrintNTrees {
   }
 
   protected def saveIndividual(element: String, domain: String, depth: Int, nodeRepository: NodeRepository, filename: String, kBase: KnowledgeBase) = {
-    val nt = new NeighbourhoodGraph(element, domain, depth, kBase, nodeRepository)
+    val nt = new NeighbourhoodTree(element, domain, depth, kBase, nodeRepository)
     nt.saveAsGspan(filename)
   }
 

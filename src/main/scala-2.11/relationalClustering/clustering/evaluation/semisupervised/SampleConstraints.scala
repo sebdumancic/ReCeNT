@@ -1,6 +1,6 @@
-package relationalClustering.parameterLearning
+package relationalClustering.clustering.evaluation.semisupervised
 
-import relationalClustering.clustering.evaluation.LabelsContainer
+import relationalClustering.clustering.evaluation.supervised.LabelsContainer
 import relationalClustering.representation.domain.{Domain, KnowledgeBase}
 
 import scala.util._

@@ -1,4 +1,4 @@
-package relationalClustering.clustering.evaluation
+package relationalClustering.clustering.evaluation.supervised
 
 import relationalClustering.utils.Helper
 

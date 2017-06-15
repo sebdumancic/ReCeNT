@@ -1,4 +1,4 @@
-package relationalClustering.clustering.evaluation
+package relationalClustering.clustering.evaluation.supervised
 
 /**
   * Created by seb on 03.10.16.
