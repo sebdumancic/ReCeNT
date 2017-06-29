@@ -3,6 +3,7 @@ package relationalClustering.neighbourhood
 import java.io.{BufferedWriter, FileWriter}
 
 import relationalClustering.aggregators.AbstractAggregator
+import relationalClustering.clustering.evaluation.supervised.LabelsContainer
 import relationalClustering.representation.domain.{KnowledgeBase, Predicate}
 import relationalClustering.utils.Settings
 
@@ -32,6 +33,7 @@ class NeighbourhoodTree(protected val rootObject: String,
   var numericAttributesCaches: Map[Int, collection.mutable.Map[String, List[(String, Double)]]] = _
   var clauseCache: Set[List[String]] = _
   var edgeCache: Set[Edge] = _
+  val labelCounts: collection.mutable.Map[Int, collection.mutable.Map[String, Int]] = collection.mutable.Map[Int, collection.mutable.Map[String, Int]]()
 
   /** MULTISET CACHES */
   //level                       vertex type                    attribute                      value   count
@@ -383,6 +385,47 @@ class NeighbourhoodTree(protected val rootObject: String,
     else {
       continuousAttributes(level)(vertexType).keySet.toSet
     }
+  }
+
+  /**
+    * NEIGHBOURHOOD LABELS FUNCTIONS
+    **/
+
+  protected def addLabel(level: Int, label: String): Unit = {
+    if (!labelCounts.contains(level)) {
+      labelCounts(level) = collection.mutable.Map[String, Int]()
+    }
+    if (!labelCounts(level).contains(label)) {
+      labelCounts(level)(label) = 0
+    }
+    labelCounts(level)(label) += 1
+  }
+
+  def processLabels(labels: LabelsContainer): Unit = {
+    (0 to getMaxDepth).foreach(depth => {
+      val instances = getV(depth, labels.getDomain).filter(elem => labels.getLabelV2(elem._1).nonEmpty).toList
+      instances.foreach(inst => {
+        (0 until inst._2).foreach(c => addLabel(depth, labels.getLabelV2(inst._1).get))
+      })
+    })
+  }
+
+  def getLabelDistributionCollectively: Map[String, Int] = {
+    val labs = collection.mutable.Map[String, Int]()
+
+    (0 to getMaxDepth).foreach(level => {
+      labelCounts(level).foreach(elem => {
+        if (!labs.contains(elem._1)) {
+          labs(elem._1) = 0
+        }
+        labs(elem._1) += elem._2
+      })
+    })
+    labs.toMap
+  }
+
+  def getLabelDistribution: Map[Int, Map[String, Int]] = {
+    labelCounts.map(elem => (elem._1, elem._2.toMap)).toMap
   }
 
   /** Collects the vertex identity information in the Neighbourhood graph

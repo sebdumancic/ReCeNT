@@ -5,7 +5,8 @@ import relationalClustering.utils.Helper
 /**
   * Created by seb on 05.02.16.
   */
-class LabelsContainer(private val filenames: Seq[String]) {
+class LabelsContainer(private val filenames: Seq[String],
+                      protected val domain: String) {
 
   // contains labels of objects: object name -> labels
   private val labels = collection.mutable.Map[String, String]()
@@ -15,6 +16,10 @@ class LabelsContainer(private val filenames: Seq[String]) {
 
   private def readAllLabels() = {
     filenames.foreach( f => readLabels(f))
+  }
+
+  def getDomain: String = {
+    domain
   }
 
   /** Read the file containing labels */
@@ -40,6 +45,15 @@ class LabelsContainer(private val filenames: Seq[String]) {
     }
     else {
       "xxxxxx"  //if no label is assigned
+    }
+  }
+
+  def getLabelV2(element: String): Option[String] = {
+    if (labels.contains(element)) {
+      Some(labels(element))
+    }
+    else {
+      None
     }
   }
 

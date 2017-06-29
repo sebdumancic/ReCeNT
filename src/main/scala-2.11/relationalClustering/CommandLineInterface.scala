@@ -105,7 +105,8 @@ object CommandLineInterface {
         require(query.value.get.split(",").length == 1, s"When learning the weights, only one domain is supported!")
         require(labels.hasValue, s"No labels provided for weight learning!")
 
-        val labContainer = new LabelsContainer(labels.value)
+        require(query.value.get.split(",").toList.length == 1, s"query needs to be a single domain if labels are used")
+        val labContainer = new LabelsContainer(labels.value, query.value.get.split(",").toList.head)
         val optimizer = new LearnWeightsLPSupervised(labContainer, KnowledgeBase, query.value.get, depth.value.getOrElse(0), bagComparison, bagCombinationMethod, agregates)
         val optimalPars = optimizer.learn()
         println(s"Learned weights: $optimalPars")
@@ -191,7 +192,8 @@ object CommandLineInterface {
 
         //if validation is to be performed
         if (validate.value.getOrElse(false)) {
-          val labContainer = new LabelsContainer(labels.value)
+          require(query.value.get.split(",").toList.length == 1, s"query needs to be a single domain if labels are used")
+          val labContainer = new LabelsContainer(labels.value, query.value.get.split(",").toList.head)
           valMethod.value.getOrElse("ARI") match {
             case "ARI" =>
               val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
@@ -238,7 +240,8 @@ object CommandLineInterface {
 
           //if validation is to be performed
           if (validate.value.getOrElse(false)) {
-            val labContainer = new LabelsContainer(labels.value)
+            require(query.value.get.split(",").toList.length == 1, s"query needs to be a single domain if labels are used")
+            val labContainer = new LabelsContainer(labels.value, query.value.get.split(",").toList.head)
             valMethod.value.getOrElse("ARI") match {
               case "ARI" =>
                 val validator = new AdjustedRandIndex(rootFolder.value.getOrElse("./tmp"))
