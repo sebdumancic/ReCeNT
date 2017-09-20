@@ -81,7 +81,7 @@ OPTIONS
 --validate  flag                                                    perform clustering validation
 ```
 
-## Input files
+### Input files
 
 Knowledge base/graph containing the facts in a domain (*.db)
  
