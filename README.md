@@ -83,6 +83,58 @@ OPTIONS
 
 ### Input files
 
+Knowledge base/graph containing the facts in a domain (*.db)
+ 
+```
+Movie(Aoceanstwelve,Anelsonpeltz)
+Movie(Aplayerthe,Awhoopigoldberg)
+Movie(Apelicanbriefthe,Ajuliaroberts)
+Movie(Aoceanstwelve,Ajuliaroberts)
+...
+Gender_male(Adavidsontag)
+Gender_male(Arobertculp)
+Gender_female(Acynthiastevenson)
+Gender_male(Afredward)
+Gender_female(Adinamerrill)
+...
+Genre(Asoderberghsteven,Acrime)
+Genre(Apakulaalanj,Adrama)
+Genre(Apakulaalanj,Amystery)
+Genre(Aaltmanroberti,Adrama)
+Workedunder(Aminianden,Asoderberghsteven)
+Workedunder(Acaseyaffleck,Asoderberghsteven)
+Workedunder(Aelliottgould,Asoderberghsteven)
+Workedunder(Adenzelwashington,Apakulaalanj)
+...
+```
+
+Definitions file specifying the domains of objects (*.def)
+
+```
+Gender_male(person)
+Gender_female(person)
+Genre(person,genre)
+Movie(movie,person)
+Workedunder(person,person)
+```
+
+Declarations file specifying the meaning of the arguments of predicates (*.dcl)
+
+```
+Gender_male(name)
+Gender_female(name)
+Genre(name,attr)
+Movie(name,name)
+Workedunder(name,name)
+```
+
+The arguments can have the following roles:
+
+1. `name` - identifier of an objects/instance/example; this is essentially treated as the name of an instance
+2. `attr` - identifies a discrete attribute value. Attribute name is given by the name of a predicate. It needs to have exactly one `name` argument.
+3. `number` - identifies a continuous attribute value. Attribute name is given by the name of a predicate. It needs to have exactly one `name` argument.
+
+These roles influence the way a neighbourhood tree is constructed.
 
 ## Similarity measures
 
