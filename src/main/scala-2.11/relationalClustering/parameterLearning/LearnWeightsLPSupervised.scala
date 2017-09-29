@@ -2,10 +2,10 @@ package relationalClustering.parameterLearning
 
 import breeze.optimize.linear.LinearProgram
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
-import relationalClustering.clustering.evaluation.LabelsContainer
-import relationalClustering.neighbourhood.{NeighbourhoodGraph, NodeRepository}
+import relationalClustering.bags.bagCombination.AbstractBagCombine
+import relationalClustering.bags.bagComparison.AbstractBagComparison
+import relationalClustering.clustering.evaluation.supervised.LabelsContainer
+import relationalClustering.neighbourhood.{NeighbourhoodTree, NodeRepository}
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees
 
@@ -27,7 +27,7 @@ class LearnWeightsLPSupervised(protected val labels: LabelsContainer,
   val fifthCompSim = new SimilarityNeighbourhoodTrees(knowledgeBase, treeDepth, List(0.0, 0.0, 0.0, 0.0, 1.0), bagComparison, bagCombination, aggregates)
 
   val nodeRepo = new NodeRepository(knowledgeBase)
-  val neighbourhoodTrees: Map[String, NeighbourhoodGraph] = labels.getAllPairs.map(item => (item._1, new NeighbourhoodGraph(item._1, domain, treeDepth, knowledgeBase, nodeRepo)))
+  val neighbourhoodTrees: Map[String, NeighbourhoodTree] = labels.getAllPairs.map(item => (item._1, new NeighbourhoodTree(item._1, domain, treeDepth, knowledgeBase, nodeRepo)))
 
   val objectsByClasses: Map[String, List[String]] = labels.getAllPairs.toList.groupBy(_._2).map(item => (item._1, item._2.map(_._1))).filterNot(_._1 == "xxxxxx")
 

@@ -2,8 +2,9 @@ package relationalClustering.parameterLearning
 
 import breeze.optimize.linear._
 import relationalClustering.aggregators.AbstractAggregator
-import relationalClustering.bagComparison.AbstractBagComparison
-import relationalClustering.bagComparison.bagCombination.AbstractBagCombine
+import relationalClustering.bags.bagCombination.AbstractBagCombine
+import relationalClustering.bags.bagComparison.AbstractBagComparison
+import relationalClustering.clustering.evaluation.semisupervised.ConstraintsContainer
 import relationalClustering.representation.domain.KnowledgeBase
 import relationalClustering.similarity.SimilarityNeighbourhoodTrees
 
